@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "wav.h"
+#include "../lib/macros.h"
 
 Riff_chunk
 riff_alloc(const uint16_t format_code, const uint16_t number_of_channels)

@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define BYTE unsigned char
+#include "../lib/macros.h"
 
 /*
  * https://wavefilegem.com/how_wave_files_work.html
@@ -15,8 +15,6 @@
 #define DATA_CHUNK_ID 0x64617461
 #define RIFF_CHUNK_ID 0x52494646
 #define RIFF_FORMAT_CODE 0x57415645
-
-#define DEFAULT_SAMPLE_FREQUENCY 48000
 
 struct chunk {
   uint32_t chunk_id;
