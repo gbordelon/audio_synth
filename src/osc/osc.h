@@ -1,5 +1,5 @@
-#ifndef OSC
-#define OSC
+#ifndef OSC_H
+#define OSC_H
 
 #include "../lib/macros.h"
 

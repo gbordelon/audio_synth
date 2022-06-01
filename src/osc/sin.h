@@ -1,5 +1,5 @@
-#ifndef SIN
-#define SIN
+#ifndef SIN_H
+#define SIN_H
 
 #include "osc.h"
 #include "../lib/macros.h"
@@ -7,6 +7,16 @@
 Osc sin_alloc(FTYPE tone_freq, FTYPE sample_freq);
 void sin_free(Osc osc);
 
+
+/*
+python3 >/tmp/test.c <<EOF
+import math as m
+N=96000
+print('static const FTYPE osc_sin[OSC_TABLE_SIZE] = {')
+for i in range(N): print('  ' + str(m.sin(m.pi * 2 * i / N)) + ',')
+print('};')
+EOF
+*/
 static const FTYPE osc_sin[OSC_TABLE_SIZE] = {
   0.0,
   6.544984690305962e-05,

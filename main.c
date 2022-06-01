@@ -8,7 +8,10 @@
 #include "src/pcm/pcm.h"
 #include "src/wav/wav.h"
 #include "src/osc/osc.h"
+#include "src/osc/saw.h"
 #include "src/osc/sin.h"
+#include "src/osc/squ.h"
+#include "src/osc/tri.h"
 #include "src/lib/macros.h"
 
 int

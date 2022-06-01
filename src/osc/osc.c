@@ -2,7 +2,10 @@
 #include <math.h>
 
 #include "osc.h"
+#include "saw.h"
 #include "sin.h"
+#include "squ.h"
+#include "tri.h"
 #include "../lib/macros.h"
 
 Osc
@@ -36,13 +39,16 @@ osc_sample(Osc osc)
     table = osc_sin;
     break;
   case OSC_TRI:
-    //break;
+    table = osc_tri;
+    break;
   case OSC_SAW:
-    //break;
+    table = osc_saw;
+    break;
   case OSC_IMP:
     //break;
   case OSC_SQU:
-    //break;
+    table = osc_squ;
+    break;
   default:
     table = NULL;
     break;
