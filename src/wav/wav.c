@@ -68,6 +68,20 @@ riff_free(const Riff_chunk riff_chunk)
   free(riff_chunk);
 }
 
+BYTE *
+riff_alloc_frames(const Riff_chunk riff_chunk, const size_t num_frames)
+{
+  BYTE *frames = (BYTE *)calloc(num_frames, riff_get_frame_size(riff_chunk));
+  // null checks
+  return frames;
+}
+
+void
+riff_free_frames(BYTE *frames)
+{
+  free(frames);
+}
+
 size_t
 riff_append_frames(const Riff_chunk riff_chunk, const BYTE *frames, const size_t num_frames)
 {
@@ -159,3 +173,9 @@ riff_write_wav_file(const Riff_chunk riff_chunk, const char *path)
   return false;
 }
 
+void
+riff_set_frame(const Riff_chunk riff_chunk, const BYTE *frames_head, const size_t frame_num, const float *samples)
+{
+  *(float *)(frames_head + riff_chunk->format_chunk->number_of_channels * frame_num * sizeof(float)) = *samples;
+  *(float *)(frames_head + (riff_chunk->format_chunk->number_of_channels * frame_num + 1) * sizeof(float)) = *(samples + 1);
+}

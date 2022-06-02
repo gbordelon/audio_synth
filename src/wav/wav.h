@@ -71,9 +71,11 @@ typedef struct riff_chunk {
 
 Riff_chunk riff_alloc(const uint16_t format_code, const uint16_t number_of_channels);
 void riff_free(const Riff_chunk riff_chunk);
+BYTE *riff_alloc_frames(const Riff_chunk riff_chunk, const size_t num_frames);
+void riff_free_frames(BYTE *frames);
 size_t riff_append_frames(const Riff_chunk, const BYTE *frames, const size_t num_frames);
 size_t riff_get_frame_size(const Riff_chunk riff_chunk);
 bool riff_write_wav_file(const Riff_chunk riff_chunk, const char *path);
-
+void riff_set_frame(const Riff_chunk riff_chunk, const BYTE *frames_head, const size_t frame_num, const float *samples);
 
 #endif
