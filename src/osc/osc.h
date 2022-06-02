@@ -23,5 +23,8 @@ typedef struct oscillator {
 Osc osc_alloc(enum Osc_type type, FTYPE tone_freq, FTYPE sample_freq);
 void osc_free(Osc osc);
 FTYPE osc_sample(Osc osc);
+FTYPE osc_sample_phase_osc(Osc osc, Osc mod);
+FTYPE osc_sample_phase_sample(Osc osc, FTYPE sample_mod);
+FTYPE osc_sample_phase_mod(Osc osc, size_t phase_mod);
 
 #endif

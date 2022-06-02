@@ -31,8 +31,31 @@ osc_free(Osc osc)
 FTYPE
 osc_sample(Osc osc)
 {
+  return osc_sample_phase_mod(osc, 0);
+}
+
+// TODO this assumes we don't want to phase modulate the modulator oscillator
+// How about callback logic or a function pointer in the osc struct to indicate the desired sampling method. This would allow for chaining of modulated signals
+FTYPE
+osc_sample_phase_osc(Osc osc, Osc mod)
+{
+  return osc_sample_phase_sample(osc, osc_sample(mod));
+}
+
+FTYPE
+osc_sample_phase_sample(Osc osc, FTYPE sample_mod)
+{
+  // 1.0 maps to OSC_TABLE_SIZE - 1, -1.0 maps to 0, 0.0 maps to OSC_TABLE_SIZE/2 - 1
+  size_t phase_mod = lround((sample_mod + 1.0) * (OSC_TABLE_SIZE - 1)/ 2.0);
+  return osc_sample_phase_mod(osc, phase_mod);
+}
+
+FTYPE
+osc_sample_phase_mod(Osc osc, size_t phase_mod)
+{
   const FTYPE *table;
   FTYPE sample1, sample2;
+  size_t phase_ind;
 
   switch(osc->type) {
   case OSC_SIN:
@@ -58,12 +81,17 @@ osc_sample(Osc osc)
   if (osc->p_ind >= OSC_TABLE_SIZE) {
     osc->p_ind %= OSC_TABLE_SIZE;
   }
-  sample1 = table[osc->p_ind];
+  phase_ind = osc->p_ind + phase_mod;
+  if (phase_ind >= OSC_TABLE_SIZE) {
+    phase_ind %= OSC_TABLE_SIZE;
+  }
 
-  if ((osc->p_ind + 1) == OSC_TABLE_SIZE) {
+  sample1 = table[phase_ind];
+
+  if ((phase_ind + 1) == OSC_TABLE_SIZE) {
     sample2 = table[0];
   } else {
-    sample2 = table[osc->p_ind + 1];
+    sample2 = table[phase_ind + 1];
   }
 
   return (1.0 - osc->p_inc_frac) * sample1 + osc->p_inc_frac * sample2;
