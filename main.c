@@ -26,21 +26,23 @@ main()
   size_t N = sample_freq * dur;
   double scale = max_amp / (double)N;
 
+  Osc sin_gen = sin_alloc(tone_freq / 2.0, sample_freq);
   Osc car_gen = sin_alloc(tone_freq, sample_freq);
-  Osc mod_gen = sin_alloc(tone_freq, sample_freq);
+  Osc mod_gen = sin_alloc(tone_freq * 7.0 / 2.0, sample_freq);
   Riff_chunk rc = riff_alloc(3, 2); // floats and stereo
   BYTE *frames = riff_alloc_frames(rc, N);
 
   int n;
   double amp;
   double sample;
+  double sample2;
   float samples[2];
   for (n = 0; n < N; n++) {
     amp = ((double)n) * scale;
     sample = osc_sample_phase_osc(car_gen, mod_gen);
-    //sample = osc_sample(car_gen);
-    samples[0] = (float)(amp * sample);
-    samples[1] = (float)((max_amp - amp) * sample);
+    sample2 = sample;//osc_sample(sin_gen);
+    samples[0] = (float)(amp * (sample + sample2) / 2.0);
+    samples[1] = (float)((max_amp - amp) * (sample + sample2) / 2.0);
     riff_set_frame(rc, frames, n, samples);
   }
 
@@ -51,5 +53,6 @@ main()
   riff_free(rc);
   sin_free(mod_gen);
   sin_free(car_gen);
+  sin_free(sin_gen);
   return 0;
 }

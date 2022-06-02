@@ -45,9 +45,12 @@ osc_sample_phase_osc(Osc osc, Osc mod)
 FTYPE
 osc_sample_phase_sample(Osc osc, FTYPE sample_mod)
 {
-  // 1.0 maps to OSC_TABLE_SIZE - 1, -1.0 maps to 0, 0.0 maps to OSC_TABLE_SIZE/2 - 1
-  size_t phase_mod = lround((sample_mod + 1.0) * (OSC_TABLE_SIZE - 1)/ 2.0);
-  return osc_sample_phase_mod(osc, phase_mod);
+  // 1.0 maps to (OSC_TABLE_SIZE / 4), -1.0 maps to -(OSC_TABLE_SIZE / 4), 0.0 maps to 0
+  long phase_mod = lround(sample_mod * OSC_TABLE_SIZE / 4.0);
+  if (phase_mod < 0) {
+    phase_mod += OSC_TABLE_SIZE;
+  }
+  return osc_sample_phase_mod(osc, (size_t)phase_mod);
 }
 
 FTYPE
