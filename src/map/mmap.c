@@ -35,9 +35,9 @@ mmap_init() {
     return NULL;
   }
 
-  ftruncate(map->fd, MMAP_SIZE * sizeof(FTYPE) + 4);
+  ftruncate(map->fd, MMAP_SIZE * sizeof(FTYPE) + MMAP_HEADER_SIZE);
 
-  map->mmap_addr = mmap(NULL, MMAP_SIZE * sizeof(FTYPE) + 4, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FILE, map->fd, 0);
+  map->mmap_addr = mmap(NULL, MMAP_SIZE * sizeof(FTYPE) + MMAP_HEADER_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FILE, map->fd, 0);
   if (map->mmap_addr == MAP_FAILED) {
     perror("mmap() failed");
     close(map->fd);
@@ -62,9 +62,9 @@ mmap_clean(Mmap_t map)
 size_t
 mmap_write(Mmap_t map, BYTE *msg, size_t len)
 {
-  if (memcmp(map->mmap_addr, "0000", 4) == 0) {
-    memmove(map->mmap_addr + 4, msg, len);
-    memset(map->mmap_addr, HEAD1, 4);
+  if (memcmp(map->mmap_addr, HEAD2, MMAP_HEADER_SIZE) == 0) {
+    memmove(map->mmap_addr + MMAP_HEADER_SIZE, msg, len);
+    memset(map->mmap_addr, HEAD1, MMAP_HEADER_SIZE);
     return len;
   }
   return 0;

@@ -28,30 +28,28 @@ main()
   double scale = max_amp / (double)N;
 
   Osc car_gen = sin_alloc(tone_freq, sample_freq);
-  Osc mod_gen = sin_alloc(tone_freq * 7.0 / 2.0, sample_freq);
+  Osc mod_gen = sin_alloc(3 /*tone_freq * 7.0 / 2.0*/, sample_freq);
 
   Mmap_t map = mmap_init();
 
+  BYTE *map_frames = calloc(MMAP_SIZE, sizeof(FTYPE));
 
-  int m;
-  BYTE *map_frames = calloc(4096 * 2, sizeof(double));
-
-  int n;
+  int n, m;
   double amp;
   double sample;
-  double samples[2];
+  double samples[NUM_CHANNELS];
   for (n = m = 0; n < N; n++) {
     amp = ((double)n) * scale;
     sample = osc_sample_phase_osc(car_gen, mod_gen);
     samples[0] = amp * sample;
     samples[1] = (max_amp - amp) * sample;
 
-    *(FTYPE *)(map_frames + m * 2 * sizeof(FTYPE)) = (FTYPE)samples[0];
-    *(FTYPE *)(map_frames + (m * 2 + 1) * sizeof(FTYPE)) = (FTYPE)samples[1];
+    *(FTYPE *)(map_frames + m * NUM_CHANNELS * sizeof(FTYPE)) = (FTYPE)samples[0];
+    *(FTYPE *)(map_frames + (m * NUM_CHANNELS + 1) * sizeof(FTYPE)) = (FTYPE)samples[1];
 
-    if (m++ >= 4095) {
-      while(mmap_write(map, map_frames, 4096 * 2 * sizeof(FTYPE)) == 0);
-      memset(map_frames, 0, 4096 * 2 * sizeof(FTYPE));
+    if (m++ >= PAGE_SIZE - 1) {
+      while(mmap_write(map, map_frames, MMAP_SIZE * sizeof(FTYPE)) == 0);
+      memset(map_frames, 0, MMAP_SIZE * sizeof(FTYPE));
       m = 0;
     }
   }

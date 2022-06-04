@@ -5,11 +5,12 @@
 
 #include "../lib/macros.h"
 
-#define PAGE_SIZE 4096
-#define MMAP_SIZE (2 * PAGE_SIZE)
+#define PAGE_SIZE 1024
+#define MMAP_SIZE (NUM_CHANNELS * PAGE_SIZE)
 #define MMAP_FILE "./DEADBEEF"
+#define MMAP_HEADER_SIZE 4
 #define HEAD1 'A'
-#define HEAD2 '0'
+#define HEAD2 "0000"
 
 typedef struct mmap_t {
   int fd;
