@@ -5,8 +5,7 @@
 
 #include "../lib/macros.h"
 
-#define PAGE_SIZE 1024
-#define MMAP_SIZE (NUM_CHANNELS * PAGE_SIZE)
+#define MMAP_SIZE (NUM_CHANNELS*CHUNK_SIZE)
 #define MMAP_FILE "./DEADBEEF"
 #define MMAP_HEADER_SIZE 4
 #define HEAD1 'A'

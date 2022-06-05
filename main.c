@@ -30,6 +30,13 @@ main()
   Osc car_gen = sin_alloc(tone_freq, sample_freq);
   Osc mod_gen = sin_alloc(3 /*tone_freq * 7.0 / 2.0*/, sample_freq);
 
+  // TODO
+  // initialize mixer
+  // mixer should be the one who knows about mmap so move that code
+  // reading/writing functions for busses and channels
+  // use the writing functions here
+  // use the reading functions in mixer code
+
   Mmap_t map = mmap_init();
 
   BYTE *map_frames = calloc(MMAP_SIZE, sizeof(FTYPE));
@@ -47,7 +54,7 @@ main()
     *(FTYPE *)(map_frames + m * NUM_CHANNELS * sizeof(FTYPE)) = (FTYPE)samples[0];
     *(FTYPE *)(map_frames + (m * NUM_CHANNELS + 1) * sizeof(FTYPE)) = (FTYPE)samples[1];
 
-    if (m++ >= PAGE_SIZE - 1) {
+    if (m++ >= CHUNK_SIZE - 1) {
       while(mmap_write(map, map_frames, MMAP_SIZE * sizeof(FTYPE)) == 0);
       memset(map_frames, 0, MMAP_SIZE * sizeof(FTYPE));
       m = 0;
