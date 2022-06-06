@@ -13,7 +13,7 @@
 #include "src/osc/tri.h"
 #include "src/lib/macros.h"
 
-#include "src/map/mmap.h"
+#include "src/pcm/mixer.h"
 
 int
 main()
@@ -27,19 +27,17 @@ main()
   size_t N = sample_freq * dur;
   double scale = max_amp / (double)N;
 
+  Mixer mixer = mixer_init(NULL, 0, 1.0);
+
   Osc car_gen = sin_alloc(tone_freq, sample_freq);
   Osc mod_gen = sin_alloc(3 /*tone_freq * 7.0 / 2.0*/, sample_freq);
 
   // TODO
-  // initialize mixer
-  // mixer should be the one who knows about mmap so move that code
   // reading/writing functions for busses and channels
   // use the writing functions here
   // use the reading functions in mixer code
 
-  Mmap_t map = mmap_init();
-
-  BYTE *map_frames = calloc(MMAP_SIZE, sizeof(FTYPE));
+  BYTE *map_frames = mixer->write_buf;
 
   int n, m;
   double amp;
@@ -55,14 +53,13 @@ main()
     *(FTYPE *)(map_frames + (m * NUM_CHANNELS + 1) * sizeof(FTYPE)) = (FTYPE)samples[1];
 
     if (m++ >= CHUNK_SIZE - 1) {
-      while(mmap_write(map, map_frames, MMAP_SIZE * sizeof(FTYPE)) == 0);
-      memset(map_frames, 0, MMAP_SIZE * sizeof(FTYPE));
+      mixer_commit(mixer);
       m = 0;
     }
   }
 
-  mmap_clean(map);
   sin_free(mod_gen);
   sin_free(car_gen);
+  mixer_cleanup(mixer);
   return 0;
 }
