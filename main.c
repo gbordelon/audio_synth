@@ -37,7 +37,8 @@ main()
   // use the writing functions here
   // use the reading functions in mixer code
 
-  BYTE *map_frames = mixer->write_buf;
+  Channel left = &mixer->busses[0].channels[0];
+  Channel right = &mixer->busses[0].channels[1];
 
   int n, m;
   double amp;
@@ -49,10 +50,10 @@ main()
     samples[0] = amp * sample;
     samples[1] = (max_amp - amp) * sample;
 
-    *(FTYPE *)(map_frames + m * NUM_CHANNELS * sizeof(FTYPE)) = (FTYPE)samples[0];
-    *(FTYPE *)(map_frames + (m * NUM_CHANNELS + 1) * sizeof(FTYPE)) = (FTYPE)samples[1];
+    channel_write(left, samples[0]);
+    channel_write(right, samples[1]);
 
-    if (m++ >= CHUNK_SIZE - 1) {
+    if (m++ == CHUNK_SIZE) {
       mixer_commit(mixer);
       m = 0;
     }
