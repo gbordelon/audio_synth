@@ -50,29 +50,29 @@ mixer_cleanup(Mixer mix)
   mixer_free(mix);
 }
 
-// TODO operate on busses, not channels here
-// let the bus code operate on channels
+// interleave samples to create stereo frames
 void
 mixer_update(Mixer mix)
 {
-  Channel left = &mix->busses[0].channels[0];
-  Channel right = &mix->busses[0].channels[1];
-  FTYPE buf_l[CHUNK_SIZE] = {0};
-  FTYPE buf_r[CHUNK_SIZE] = {0};
-  FTYPE *write_buf_l = (FTYPE *)mix->write_buf;
-  FTYPE *write_buf_r = write_buf_l + 1;
-  FTYPE *read_buf_l = buf_l;
-  FTYPE *read_buf_r = buf_r;
+  static FTYPE read_buf[2][CHUNK_SIZE] = {0};
+  int i,j;
+  Bus bus;
+  FTYPE *read_buf_l, *read_buf_r, *write_buf_l, *write_buf_r;
 
-  // TODO check for read ready
-  channel_read(left, buf_l);
-  channel_read(right, buf_r);
 
-  int i;
-  for (i = 0; i < CHUNK_SIZE; i++, write_buf_l+=2, write_buf_r+=2, read_buf_l++, read_buf_r++) {
-    *write_buf_l = *read_buf_l * mix->gain;
-    *write_buf_r = *read_buf_r * mix->gain;
+  for (j = 0, bus = mix->busses; j < mix->num_busses; j++, bus++) {
+    // TODO check for read failure
+    bus_read(bus, read_buf);
+
+    for (i = 0, read_buf_l = read_buf[0], read_buf_r = read_buf[1], write_buf_l = (FTYPE *)mix->write_buf, write_buf_r = write_buf_l + 1;
+         i < CHUNK_SIZE;
+         i++, write_buf_l+=2, write_buf_r+=2, read_buf_l++, read_buf_r++) {
+      *write_buf_l += *read_buf_l * mix->gain;
+      *write_buf_r += *read_buf_r * mix->gain;
+    }
+    memset(read_buf, 0, CHUNK_SIZE * 2 * sizeof(FTYPE));
   }
+  // TODO scale or clip amplitudes for values outside the range [-1.0,1.0]
 }
 
 void

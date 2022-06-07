@@ -68,7 +68,8 @@ channel_cleanup(Channel chan)
 {
   channels_cleanup(chan, 1);
 }
-
+// TODO take into account that a read may occur on a page that is still being concurrently written
+// i.e. only read the part of the page which has been written then remember with successive read calls to only mark the page clean once it is both done being written to and has been completely read.
 int
 channel_read(Channel chan, FTYPE *buf_w)
 {
@@ -111,13 +112,10 @@ channel_read(Channel chan, FTYPE *buf_w)
  * this implies some state to indicate pending vs completed reads
  * block on writing if all pages are dirty?
  */
-// TODO write_page function. more complex arithmetic with wrapping to consider
+// TODO channel_write_page function. more complex arithmetic with wrapping to consider
 void
 channel_write(Channel chan, FTYPE sample)
 {
-  // TODO move this write into the predicated section after i have a way to force the mixer to read a page or have a callback mechanism
-  // TODO be sure to adjust the predicates, which right now are based on the offset_w being incremented beforehand
-
   if ((chan->offset_w == 0 && (chan->dirty_map & dirty_page_0))
   ||  (chan->offset_w == page_01_boundary && (chan->dirty_map & dirty_page_1)) 
   ||  (chan->offset_w == page_12_boundary && (chan->dirty_map & dirty_page_2)) 

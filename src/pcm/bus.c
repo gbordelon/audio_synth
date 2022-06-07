@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "../lib/macros.h"
 #include "bus.h"
@@ -82,3 +83,34 @@ busses_cleanup(Bus busses, size_t num_busses)
 
   free(busses);
 }
+
+// read the next page from each channel
+// apply gain and fx
+// TODO don't assume 2 channels for the bus
+int
+bus_read(Bus bus, FTYPE buf_w[2][CHUNK_SIZE])
+{
+  static FTYPE read_buf[2][CHUNK_SIZE] = {0};
+  Channel left = &bus->channels[0];
+  Channel right = &bus->channels[1];
+  FTYPE *read_buf_l = read_buf[0];
+  FTYPE *read_buf_r = read_buf[1];
+
+  FTYPE *write_buf_l = *buf_w;
+  FTYPE *write_buf_r = *(buf_w + 1);
+
+  // TODO check for read ready
+  channel_read(left, read_buf_l);
+  channel_read(right, read_buf_r);
+
+  int i;
+  for (i = 0; i < CHUNK_SIZE; i++, write_buf_l++, write_buf_r++, read_buf_l++, read_buf_r++) {
+    *write_buf_l = *read_buf_l * bus->gain;
+    *write_buf_r = *read_buf_r * bus->gain;
+  }
+
+  memset(read_buf, 0, CHUNK_SIZE * 2 * sizeof(FTYPE));
+  return CHUNK_SIZE;
+}
+
+

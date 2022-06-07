@@ -28,14 +28,10 @@ main()
   double scale = max_amp / (double)N;
 
   Mixer mixer = mixer_init(NULL, 0, 1.0);
+  mixer->gain = 1.0;
 
   Osc car_gen = sin_alloc(tone_freq, sample_freq);
   Osc mod_gen = sin_alloc(3 /*tone_freq * 7.0 / 2.0*/, sample_freq);
-
-  // TODO
-  // reading/writing functions for busses and channels
-  // use the writing functions here
-  // use the reading functions in mixer code
 
   Channel left = &mixer->busses[0].channels[0];
   Channel right = &mixer->busses[0].channels[1];
