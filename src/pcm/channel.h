@@ -39,6 +39,7 @@ typedef struct channel_t {
   uint8_t dirty_map:4;
   uint8_t page_r:4;
   uint16_t offset_w;
+  FTYPE gain;
 } *Channel;
 
 Channel channel_init();

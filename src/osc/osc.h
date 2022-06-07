@@ -3,6 +3,8 @@
 
 #include "../lib/macros.h"
 
+#define osc_reset_phase(o) ((o)->p_ind = 0)
+
 enum Osc_type {
   OSC_SIN,
   OSC_TRI,
@@ -18,6 +20,11 @@ typedef struct oscillator {
   uint32_t p_inc_whole;
   FTYPE p_inc_frac;
   uint32_t p_ind;
+  union {
+    struct {
+      FTYPE duty_cycle;
+    } imp;
+  } u;
 } *Osc;
 
 Osc osc_alloc(enum Osc_type type, FTYPE tone_freq, FTYPE sample_freq);

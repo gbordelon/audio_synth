@@ -2,6 +2,7 @@
 #include <math.h>
 
 #include "osc.h"
+#include "imp.h"
 #include "saw.h"
 #include "sin.h"
 #include "squ.h"
@@ -70,11 +71,10 @@ osc_sample_phase_mod(Osc osc, size_t phase_mod)
   case OSC_SAW:
     table = osc_saw;
     break;
-  case OSC_IMP:
-    //break;
   case OSC_SQU:
     table = osc_squ;
     break;
+  case OSC_IMP:
   default:
     table = NULL;
     break;
@@ -89,9 +89,15 @@ osc_sample_phase_mod(Osc osc, size_t phase_mod)
     phase_ind %= OSC_TABLE_SIZE;
   }
 
-  sample1 = table[phase_ind];
+  if (osc->type == OSC_IMP) {
+    sample1 = imp_sample(osc->u.imp.duty_cycle, phase_ind);
+  } else {
+    sample1 = table[phase_ind];
+  }
 
-  if ((phase_ind + 1) == OSC_TABLE_SIZE) {
+  if (osc->type == OSC_IMP || osc->type == OSC_SQU) {
+    sample2 = sample1;
+  } else if ((phase_ind + 1) == OSC_TABLE_SIZE) {
     sample2 = table[0];
   } else {
     sample2 = table[phase_ind + 1];

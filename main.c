@@ -5,15 +5,17 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "src/pcm/pcm.h"
+#include "src/lib/macros.h"
+#include "src/osc/imp.h"
 #include "src/osc/osc.h"
 #include "src/osc/saw.h"
 #include "src/osc/sin.h"
 #include "src/osc/squ.h"
 #include "src/osc/tri.h"
-#include "src/lib/macros.h"
-
 #include "src/pcm/mixer.h"
+#include "src/pcm/pcm.h"
+#include "src/midi/midi.h"
+
 
 int
 main()
@@ -21,17 +23,17 @@ main()
   const double max_amp = 1.0;
 
   double sample_freq = DEFAULT_SAMPLE_FREQUENCY;
-  double tone_freq = 261.626; // middle C
+  double tone_freq = midi_note_to_freq_table[60]; // middle C
   double dur = 5; // in seconds
 
   size_t N = sample_freq * dur;
   double scale = max_amp / (double)N;
 
   Mixer mixer = mixer_init(NULL, 0, 1.0);
-  mixer->gain = 1.0;
 
-  Osc car_gen = sin_alloc(tone_freq, sample_freq);
-  Osc mod_gen = sin_alloc(3 /*tone_freq * 7.0 / 2.0*/, sample_freq);
+  Osc car_gen = saw_alloc(tone_freq, sample_freq);
+  Osc mod_gen = imp_alloc(tone_freq * 7.0 / 2.0, 0.1, sample_freq);
+  //Osc mod_gen = sin_alloc(3, sample_freq);
 
   Channel left = &mixer->busses[0].channels[0];
   Channel right = &mixer->busses[0].channels[1];

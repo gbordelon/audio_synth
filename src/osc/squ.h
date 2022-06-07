@@ -19,7 +19,7 @@ for i in range(int(N/2), int(N)):
 print('};')
 EOF
 */
-static const FTYPE osc_saw[OSC_TABLE_SIZE] = {
+static const FTYPE osc_squ[OSC_TABLE_SIZE] = {
   1.0,
   1.0,
   1.0,

@@ -35,9 +35,9 @@ mmap_init() {
     return NULL;
   }
 
-  ftruncate(map->fd, MMAP_SIZE * sizeof(FTYPE) + MMAP_HEADER_SIZE);
+  ftruncate(map->fd, MMAP_SIZE * sizeof(float) + MMAP_HEADER_SIZE);
 
-  map->mmap_addr = mmap(NULL, MMAP_SIZE * sizeof(FTYPE) + MMAP_HEADER_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FILE, map->fd, 0);
+  map->mmap_addr = mmap(NULL, MMAP_SIZE * sizeof(float) + MMAP_HEADER_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FILE, map->fd, 0);
   if (map->mmap_addr == MAP_FAILED) {
     perror("mmap() failed");
     close(map->fd);

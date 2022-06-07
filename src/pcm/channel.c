@@ -46,6 +46,7 @@ channels_init(size_t num_channels)
   for(c = chans; c - chans < num_channels; c++) {
     // calloc should set everything 0 including the buf array
     //c->offset_r = c->page_r = c->dirty_map = 0;
+    c->gain = 1.0;
   }
 
   return chans;
@@ -68,6 +69,7 @@ channel_cleanup(Channel chan)
 {
   channels_cleanup(chan, 1);
 }
+
 // TODO take into account that a read may occur on a page that is still being concurrently written
 // i.e. only read the part of the page which has been written then remember with successive read calls to only mark the page clean once it is both done being written to and has been completely read.
 int
@@ -133,7 +135,7 @@ channel_write(Channel chan, FTYPE sample)
     chan->dirty_map |= dirty_page_3;
   }
 
-  chan->u_buf.buf[chan->offset_w++] = sample;
+  chan->u_buf.buf[chan->offset_w++] = sample * chan->gain;
 
   if (chan->offset_w == page_30_boundary) {
       chan->offset_w = 0;
