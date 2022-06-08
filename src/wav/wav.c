@@ -31,7 +31,7 @@ riff_alloc(const uint16_t format_code, const uint16_t number_of_channels)
 
   rc->format_chunk->format_code = format_code;
   rc->format_chunk->number_of_channels = number_of_channels;
-  rc->format_chunk->samples_per_second = DEFAULT_SAMPLE_FREQUENCY;
+  rc->format_chunk->samples_per_second = DEFAULT_SAMPLE_RATE;
   rc->format_chunk->bytes_per_second = rc->format_chunk->samples_per_second * number_of_channels * (format_code == 3 ? 4 : 2);
   rc->format_chunk->bytes_per_sample_frame = number_of_channels * (format_code == 3 ? 4 : 2);
   rc->format_chunk->bits_per_sample = CHAR_BIT * (format_code == 3 ? 4 : 2);

@@ -1,13 +1,11 @@
-#include <stdlib.h>
-
 #include "osc.h"
 #include "imp.h"
 #include "../lib/macros.h"
 
 Osc
-imp_alloc(FTYPE tone_freq, FTYPE duty_cycle, FTYPE sample_freq)
+imp_init(FTYPE tone_freq, FTYPE duty_cycle)
 {
-  Osc rv = osc_alloc(OSC_IMP, tone_freq, sample_freq);
+  Osc rv = osc_init(OSC_IMP, tone_freq);
   // null checks
   if (duty_cycle > 1.0) {
     duty_cycle = 1.0;
@@ -19,7 +17,7 @@ imp_alloc(FTYPE tone_freq, FTYPE duty_cycle, FTYPE sample_freq)
 }
 
 void
-imp_free(Osc osc)
+imp_cleanup(Osc osc)
 {
-  free(osc);
+  osc_cleanup(osc);
 }

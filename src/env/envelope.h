@@ -5,6 +5,7 @@
 #include "../lib/macros.h"
 
 #define env_reset(e) ((e)->p_ind = 0)
+#define env_set_duration(e,d) ((e)->dur = (d))
 
 // TODO support other function types for more interesting envelope shapes.
 // assume linear function between sections of the envelope.

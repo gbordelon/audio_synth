@@ -4,8 +4,8 @@
 #include "osc.h"
 #include "../lib/macros.h"
 
-Osc squ_alloc(FTYPE tone_freq, FTYPE sample_freq);
-void squ_free(Osc osc);
+Osc squ_init(FTYPE tone_freq);
+void squ_cleanup(Osc osc);
 
 /*
 python3 >/tmp/test.c <<EOF

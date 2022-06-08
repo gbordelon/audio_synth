@@ -11,15 +11,15 @@
 
 
 Osc
-osc_alloc(enum osc_type type, FTYPE tone_freq, FTYPE sample_freq)
+osc_alloc_many(size_t num)
 {
-  Osc rv = calloc(1, sizeof(struct oscillator));
-  // null checks
-  rv->type = type;
-  rv->sample_freq = sample_freq;
-  osc_set_freq(rv, tone_freq);
-  rv->p_ind = 0;
-  return rv;
+  return calloc(num, sizeof(struct oscillator));
+}
+
+Osc
+osc_alloc()
+{
+  return osc_alloc_many(1);
 }
 
 void
@@ -32,8 +32,32 @@ void
 osc_set_freq(Osc osc, FTYPE tone_freq)
 {
   osc->tone_freq = tone_freq;
-  osc->p_inc_whole = floor(OSC_TABLE_SIZE * tone_freq / osc->sample_freq);
-  osc->p_inc_frac = fmod(OSC_TABLE_SIZE * tone_freq / osc->sample_freq, 1);
+  osc->p_inc_whole = floor(OSC_TABLE_SIZE * tone_freq / (FTYPE)DEFAULT_SAMPLE_RATE);
+  osc->p_inc_frac = fmod(OSC_TABLE_SIZE * tone_freq / (FTYPE)DEFAULT_SAMPLE_RATE, 1);
+}
+
+void
+osc_set(Osc osc, enum osc_type type, FTYPE tone_freq)
+{
+  osc->type = type;
+  osc_set_freq(osc, tone_freq);
+  osc_reset_phase(osc);
+}
+
+Osc
+osc_init(enum osc_type type, FTYPE tone_freq)
+{
+  Osc rv = osc_alloc();
+  // null checks
+  osc_set(rv, type, tone_freq);
+
+  return rv;
+}
+
+void
+osc_cleanup(Osc osc)
+{
+  osc_free(osc);
 }
 
 FTYPE

@@ -4,8 +4,8 @@
 #include "osc.h"
 #include "../lib/macros.h"
 
-Osc sin_alloc(FTYPE tone_freq, FTYPE sample_freq);
-void sin_free(Osc osc);
+Osc sin_init(FTYPE tone_freq);
+void sin_cleanup(Osc osc);
 
 
 /*

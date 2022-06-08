@@ -1,6 +1,8 @@
 #ifndef OSC_H
 #define OSC_H
 
+#include <stdlib.h>
+
 #include "../lib/macros.h"
 
 #define osc_reset_phase(o) ((o)->p_ind = 0)
@@ -16,7 +18,6 @@ enum osc_type {
 typedef struct oscillator {
   enum osc_type type;
   FTYPE tone_freq;
-  FTYPE sample_freq;
   uint32_t p_inc_whole;
   FTYPE p_inc_frac;
   uint32_t p_ind;
@@ -27,8 +28,11 @@ typedef struct oscillator {
   } u;
 } *Osc;
 
-Osc osc_alloc(enum osc_type type, FTYPE tone_freq, FTYPE sample_freq);
-void osc_free(Osc osc);
+
+Osc osc_alloc_many(size_t num);
+Osc osc_init(enum osc_type type, FTYPE tone_freq);
+void osc_cleanup(Osc osc);
+void osc_set(Osc osc, enum osc_type type, FTYPE tone_freq);
 void osc_set_freq(Osc osc, FTYPE tone_freq);
 
 FTYPE osc_sample(Osc osc);

@@ -1,19 +1,17 @@
-#include <stdlib.h>
-
 #include "osc.h"
 #include "tri.h"
 #include "../lib/macros.h"
 
 Osc
-tri_alloc(FTYPE tone_freq, FTYPE sample_freq)
+tri_init(FTYPE tone_freq)
 {
-  Osc rv = osc_alloc(OSC_TRI, tone_freq, sample_freq);
+  Osc rv = osc_init(OSC_TRI, tone_freq);
   // null checks
   return rv;
 }
 
 void
-tri_free(Osc osc)
+tri_cleanup(Osc osc)
 {
-  free(osc);
+  osc_cleanup(osc);
 }

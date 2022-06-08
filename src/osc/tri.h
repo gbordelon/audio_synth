@@ -4,8 +4,8 @@
 #include "osc.h"
 #include "../lib/macros.h"
 
-Osc tri_alloc(FTYPE tone_freq, FTYPE sample_freq);
-void tri_free(Osc osc);
+Osc tri_init(FTYPE tone_freq);
+void tri_cleanup(Osc osc);
 
 /*
 python3 >/tmp/test.c <<EOF

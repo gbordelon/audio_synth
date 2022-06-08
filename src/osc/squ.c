@@ -1,19 +1,17 @@
-#include <stdlib.h>
-
 #include "osc.h"
 #include "squ.h"
 #include "../lib/macros.h"
 
 Osc
-squ_alloc(FTYPE tone_freq, FTYPE sample_freq)
+squ_init(FTYPE tone_freq)
 {
-  Osc rv = osc_alloc(OSC_SQU, tone_freq, sample_freq);
+  Osc rv = osc_init(OSC_SQU, tone_freq);
   // null checks
   return rv;
 }
 
 void
-squ_free(Osc osc)
+squ_cleanup(Osc osc)
 {
-  free(osc);
+  osc_cleanup(osc);
 }
