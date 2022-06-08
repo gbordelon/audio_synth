@@ -1,6 +1,10 @@
 #ifndef MIDI_H
 #define MIDI_H
 
+/*
+ * RIP Dave Smith, who led the development of the MIDI spec, and who died today.
+ */
+
 static const FTYPE midi_note_to_freq_table[128] = {
      8.18,
      8.66,

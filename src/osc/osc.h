@@ -5,7 +5,7 @@
 
 #define osc_reset_phase(o) ((o)->p_ind = 0)
 
-enum Osc_type {
+enum osc_type {
   OSC_SIN,
   OSC_TRI,
   OSC_SAW,
@@ -14,7 +14,7 @@ enum Osc_type {
 };
 
 typedef struct oscillator {
-  enum Osc_type type;
+  enum osc_type type;
   FTYPE tone_freq;
   FTYPE sample_freq;
   uint32_t p_inc_whole;
@@ -27,7 +27,7 @@ typedef struct oscillator {
   } u;
 } *Osc;
 
-Osc osc_alloc(enum Osc_type type, FTYPE tone_freq, FTYPE sample_freq);
+Osc osc_alloc(enum osc_type type, FTYPE tone_freq, FTYPE sample_freq);
 void osc_free(Osc osc);
 FTYPE osc_sample(Osc osc);
 FTYPE osc_sample_phase_osc(Osc osc, Osc mod);

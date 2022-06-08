@@ -9,8 +9,11 @@
 #include "tri.h"
 #include "../lib/macros.h"
 
+
+// TODO support realtime updates of tone_freq which requires updating p_inc_whole and p_inc_frac
+// useful for pitch bends?
 Osc
-osc_alloc(enum Osc_type type, FTYPE tone_freq, FTYPE sample_freq)
+osc_alloc(enum osc_type type, FTYPE tone_freq, FTYPE sample_freq)
 {
   Osc rv = calloc(1, sizeof(struct oscillator));
   // null checks
