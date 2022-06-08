@@ -49,15 +49,15 @@ env_populate_table(Envelope env)
 void
 env_default(Envelope env, uint32_t duration)
 {
-  env->a_amp = 0.2;
-  env->d_amp = 0.99;
+  env->a_amp = 0.5;
+  env->d_amp = 0.9;
   env->s_amp = 0.4;
-  env->r_amp = 0.4;
+  env->r_amp = 0.2;
 
   env->a_dur = floor(0.05 * (FTYPE)duration);
-  env->d_dur = floor(0.10 * (FTYPE)duration);
-  env->s_dur = floor(0.65 * (FTYPE)duration);
-  env->r_dur = floor(0.20 * (FTYPE)duration);
+  env->d_dur = floor(0.05 * (FTYPE)duration);
+  env->s_dur = floor(0.85 * (FTYPE)duration);
+  env->r_dur = floor(0.05 * (FTYPE)duration);
 
   // TODO find a better way to deal with the rounding slop
   env->r_dur += duration - (env->a_dur + env->d_dur + env->s_dur + env->r_dur);

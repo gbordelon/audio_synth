@@ -10,18 +10,14 @@
 #include "../lib/macros.h"
 
 
-// TODO support realtime updates of tone_freq which requires updating p_inc_whole and p_inc_frac
-// useful for pitch bends?
 Osc
 osc_alloc(enum osc_type type, FTYPE tone_freq, FTYPE sample_freq)
 {
   Osc rv = calloc(1, sizeof(struct oscillator));
   // null checks
   rv->type = type;
-  rv->tone_freq = tone_freq;
   rv->sample_freq = sample_freq;
-  rv->p_inc_whole = floor(OSC_TABLE_SIZE * tone_freq / sample_freq);
-  rv->p_inc_frac = fmod(OSC_TABLE_SIZE * tone_freq / sample_freq, 1);
+  osc_set_freq(rv, tone_freq);
   rv->p_ind = 0;
   return rv;
 }
@@ -30,6 +26,14 @@ void
 osc_free(Osc osc)
 {
   free(osc);
+}
+
+void
+osc_set_freq(Osc osc, FTYPE tone_freq)
+{
+  osc->tone_freq = tone_freq;
+  osc->p_inc_whole = floor(OSC_TABLE_SIZE * tone_freq / osc->sample_freq);
+  osc->p_inc_frac = fmod(OSC_TABLE_SIZE * tone_freq / osc->sample_freq, 1);
 }
 
 FTYPE

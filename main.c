@@ -23,9 +23,11 @@ main()
 {
   const double max_amp = 1.0;
 
+  size_t midi_note = 45;
   double sample_freq = DEFAULT_SAMPLE_FREQUENCY;
-  double tone_freq = midi_note_to_freq_table[60]; // middle C
+  double tone_freq = midi_note_to_freq_table[midi_note]; // middle C
   double dur = 5; // in seconds
+  size_t note_dur_in_samps = 10000;
 
   size_t N = sample_freq * dur;
   double scale = max_amp / (double)N;
@@ -34,7 +36,7 @@ main()
 
   Osc car_gen = saw_alloc(tone_freq, sample_freq);
   Osc mod_gen = imp_alloc(tone_freq * 7.0 / 2.0, 0.1, sample_freq);
-  Envelope env = env_init(N);
+  Envelope env = env_init(note_dur_in_samps);
 
   //Osc mod_gen = sin_alloc(3, sample_freq);
 
@@ -59,6 +61,15 @@ main()
     if (m++ == CHUNK_SIZE) {
       mixer_commit(mixer);
       m = 0;
+    }
+
+    if (n % note_dur_in_samps == 1) {
+      env_reset(env);
+      osc_set_freq(car_gen, midi_note_to_freq_table[midi_note]);
+      osc_set_freq(mod_gen, midi_note_to_freq_table[midi_note++] * 7.0 / 2.0);
+      if (midi_note >= 128) {
+        midi_note = 21;
+      }
     }
   }
 
