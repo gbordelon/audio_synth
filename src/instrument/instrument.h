@@ -24,7 +24,7 @@ typedef struct instrument_t {
 
 Instrument instrument_init(Channel channels, size_t channel_num);
 void instrument_cleanup();
-void instrument_play_resume(Instrument instr);
+void instrument_play_chunk(Instrument instr);
 void instrument_play_config(Instrument instr, uint8_t midi_note, FTYPE dur);
 
 #endif

@@ -23,38 +23,32 @@
 int
 main()
 {
-  const double max_amp = 1.0;
-
-  size_t midi_note = 45;
+  uint8_t midi_notes[15] = {45, 49, 47, 50, 49, 52, 50, 54, 52, 56, 54, 57, 56, 59, 57};
   double sample_rate = DEFAULT_SAMPLE_RATE;
-  double tone_freq = midi_note_to_freq_table[midi_note]; // middle C
-  double dur = 5; // in seconds
+  double dur = 4.8; // in seconds
   double note_duration = 0.3; // in seconds
 
   size_t N = sample_rate * dur;
-  double scale = max_amp / (double)N;
 
   Mixer mixer = mixer_init(NULL, 0, 1.0);
   Channel chans = mixer->busses[0].channels;
 
   Instrument instr = instrument_init(chans, NUM_CHANNELS);
-  instrument_play_config(instr, midi_note, note_duration);
+  instrument_play_config(instr, midi_notes[0], note_duration);
 
-  int n, m;
-  double amp;
-  double sample;
-  double samples[NUM_CHANNELS];
-  double e_sample;
-  for (n = m = 0; n < N; n++) {
-    amp = ((double)n) * scale;
-    instrument_play_resume(instr);
-    if (m++ == CHUNK_SIZE) {
+  instrument_play_chunk(instr);
+
+  int n, m, j = 1;
+  for (n = m = 0; n < N; n++, m++) {
+    if (m == CHUNK_SIZE) {
+      instrument_play_chunk(instr);
       mixer_commit(mixer);
       m = 0;
+      // TODO user input to change parameters
       if (!instrument_playing(instr)) {
-        instrument_play_config(instr, ++midi_note, note_duration);
-        if (midi_note >= 128) {
-          midi_note = 21;
+        instrument_play_config(instr, midi_notes[j++], note_duration);
+        if (j == 15) {
+          j = 0;
         }
       }
     }

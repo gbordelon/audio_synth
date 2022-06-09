@@ -32,8 +32,8 @@ instrument_init(Channel channels, size_t channel_num)
   rv->oscillators = osc_alloc_many(2);
   rv->osc_num = 2;
   osc_set(rv->oscillators, OSC_SIN, midi_note_to_freq_table[45]);
-  osc_set(&rv->oscillators[1], OSC_IMP, midi_note_to_freq_table[45] * 7.0 / 2.0);
-  imp_set_duty_cycle(&rv->oscillators[1], 0.1);
+  osc_set(rv->oscillators + 1, OSC_IMP, midi_note_to_freq_table[45] * 7.0 / 2.0);
+  imp_set_duty_cycle(rv->oscillators + 1, 0.1);
 
   rv->env = env_init(DEFAULT_SAMPLE_RATE);
   rv->max_dur = 0;
@@ -51,45 +51,49 @@ instrument_cleanup(Instrument instr)
   instrument_free(instr);
 }
 
+/*
+ * 1024 samples at 48000/sec means 21.33 milliseconds of play time.
+ * ignoring user input during a chunk means a control signal will be 21.33 ms latent
+ */
 void
-instrument_play_resume(Instrument instr)
+instrument_play_chunk(Instrument instr)
 {
   Channel left = instr->channels;
-  Channel right = &instr->channels[1];
+  Channel right = instr->channels + 1;
 
   FTYPE t_sample, e_sample;
-  FTYPE sample[2];
 
   Osc car_gen = instr->oscillators;
-  Osc mod_gen = &instr->oscillators[1];
-  //printf("mod gen\n  type: %d\n  tone_freq: %f\n  p_inc_whole: %u\n  p_inc_frac: %f\n  p_ind: %u\n  duty_cycle: %f\n", mod_gen->type, mod_gen->tone_freq, mod_gen->p_inc_whole, mod_gen->p_inc_frac, mod_gen->p_ind, mod_gen->u.imp.duty_cycle);
+  Osc mod_gen = instr->oscillators + 1;
 
-  t_sample = osc_sample_phase_osc(car_gen, mod_gen);
-  e_sample = env_sample(instr->env);
+  int i;
+  for (i = 0; i < CHUNK_SIZE; i++) {
+    t_sample = osc_sample_phase_osc(car_gen, mod_gen);
+    e_sample = env_sample(instr->env);
 
-  sample[0] = t_sample * e_sample;
-  sample[1] = t_sample * e_sample;
+    channel_write(left, t_sample * e_sample);
+    channel_write(right, t_sample * e_sample);
+  }
 
-  channel_write(left, sample[0]);
-  channel_write(right, sample[1]);
-
-  instr->cur_dur++;
+  instr->cur_dur += CHUNK_SIZE;
 }
 
 // TODO support other instruments
-// currently assumes two oscillators
+// currently assumes two oscillators in a phase modulation setup
 void
 instrument_play_config(Instrument instr, uint8_t midi_note, FTYPE dur /* in seconds */)
 {
   instr->cur_dur = 0;
   instr->max_dur = DEFAULT_SAMPLE_RATE * dur;
+
   env_reset(instr->env);
   env_set_duration(instr->env, instr->max_dur);
+
   // for osc in oscillators
   //    set freq
-  //    reset phase?
+  //    reset phase
   osc_set_freq(instr->oscillators, midi_note_to_freq_table[midi_note]);
-  osc_set_freq(&instr->oscillators[1], midi_note_to_freq_table[midi_note] * 7.0 / 2.0);
+  osc_set_freq(instr->oscillators + 1, midi_note_to_freq_table[midi_note] * 7.0 / 2.0);
   osc_reset_phase(instr->oscillators);
-  osc_reset_phase(&instr->oscillators[1]);
+  osc_reset_phase(instr->oscillators + 1);
 }
