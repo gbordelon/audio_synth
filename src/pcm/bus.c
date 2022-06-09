@@ -90,9 +90,9 @@ busses_cleanup(Bus busses, size_t num_busses)
 int
 bus_read(Bus bus, FTYPE buf_w[2][CHUNK_SIZE])
 {
-  static FTYPE read_buf[2][CHUNK_SIZE] = {0};
-  Channel left = &bus->channels[0];
-  Channel right = &bus->channels[1];
+  static FTYPE read_buf[2][CHUNK_SIZE];
+  Channel left = bus->channels;
+  Channel right = bus->channels + 1;
   FTYPE *read_buf_l = read_buf[0];
   FTYPE *read_buf_r = read_buf[1];
 
@@ -109,7 +109,7 @@ bus_read(Bus bus, FTYPE buf_w[2][CHUNK_SIZE])
     *write_buf_r = *read_buf_r * bus->gain;
   }
 
-  memset(read_buf, 0, CHUNK_SIZE * 2 * sizeof(FTYPE));
+  //memset(read_buf, 0, CHUNK_SIZE * 2 * sizeof(FTYPE));
   return CHUNK_SIZE;
 }
 

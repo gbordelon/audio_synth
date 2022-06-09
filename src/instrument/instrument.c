@@ -61,19 +61,23 @@ instrument_play_chunk(Instrument instr)
   Channel left = instr->channels;
   Channel right = instr->channels + 1;
 
-  FTYPE t_sample, e_sample;
+  static FTYPE t_sample[CHUNK_SIZE];
+  static FTYPE e_sample[CHUNK_SIZE];
+  FTYPE *t = t_sample;
+  FTYPE *e = e_sample;
 
   Osc car_gen = instr->oscillators;
   Osc mod_gen = instr->oscillators + 1;
 
   int i;
-  for (i = 0; i < CHUNK_SIZE; i++) {
-    t_sample = osc_sample_phase_osc(car_gen, mod_gen);
-    e_sample = env_sample(instr->env);
-
-    channel_write(left, t_sample * e_sample);
-    channel_write(right, t_sample * e_sample);
+  for (i = 0; i < CHUNK_SIZE; i++, t++, e++) {
+    *t = osc_sample_phase_osc(car_gen, mod_gen);
+    *e = env_sample(instr->env);
   }
+
+  // TODO check rv
+  channel_write(left, t_sample);
+  channel_write(right, t_sample);
 
   instr->cur_dur += CHUNK_SIZE;
 }

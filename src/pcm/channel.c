@@ -108,21 +108,14 @@ channel_read(Channel chan, FTYPE *buf_w)
   return -1;
 }
 
-/*
- * eventually write and read concurrently
- * i only want the mixer to read completed pages
- * this implies some state to indicate pending vs completed reads
- * block on writing if all pages are dirty?
- */
-// TODO channel_write_page function. more complex arithmetic with wrapping to consider
-void
-channel_write(Channel chan, FTYPE sample)
+int
+channel_write_helper(Channel chan)
 {
   if ((chan->offset_w == 0 && (chan->dirty_map & dirty_page_0))
   ||  (chan->offset_w == page_01_boundary && (chan->dirty_map & dirty_page_1)) 
   ||  (chan->offset_w == page_12_boundary && (chan->dirty_map & dirty_page_2)) 
   ||  (chan->offset_w == page_23_boundary && (chan->dirty_map & dirty_page_3))) {
-    return;
+    return -1;
   }
 
   if (chan->offset_w == 0) {
@@ -133,6 +126,38 @@ channel_write(Channel chan, FTYPE sample)
     chan->dirty_map |= dirty_page_2;
   } else if (chan->offset_w == page_23_boundary) {
     chan->dirty_map |= dirty_page_3;
+  }
+
+  return 0;
+}
+
+size_t
+channel_write(Channel chan, FTYPE *page)
+{
+  if (channel_write_helper(chan) < 0) {
+    return 0;
+  }
+
+  size_t samples_count = page_30_boundary - chan->offset_w;
+  if (samples_count >= CHUNK_SIZE) {
+    samples_count = CHUNK_SIZE;
+  }
+
+  memmove(chan->u_buf.buf + chan->offset_w, page, samples_count * sizeof(FTYPE));
+  chan->offset_w += samples_count;
+
+  if (chan->offset_w >= page_30_boundary) {
+      chan->offset_w = 0;
+  }
+
+  return samples_count;
+}
+
+void
+channel_write_single(Channel chan, FTYPE sample)
+{
+  if (channel_write_helper(chan) < 0) {
+    return;
   }
 
   chan->u_buf.buf[chan->offset_w++] = sample * chan->gain;

@@ -7,7 +7,15 @@
 #define CHANNEL_BUFFER_LEN (BUS_BUFFER_LEN*CHUNK_SIZE)
 
 #define channel_ready(c) (c->dirty_map>0)
- 
+
+/*
+ * TODO
+ * eventually write and read concurrently
+ * i only want the mixer to read completed pages
+ * this implies some state to indicate pending vs completed reads
+ * block on writing if all pages are dirty?
+ */
+
 typedef struct channel_t {
   union {
     FTYPE buf[CHANNEL_BUFFER_LEN];
@@ -48,7 +56,8 @@ void channel_cleanup(Channel chan);
 Channel channels_init(size_t num_channels);
 void channels_cleanup(Channel chans, size_t num_channels);
 
-void channel_write(Channel chan, FTYPE sample);
+size_t channel_write(Channel chan, FTYPE *page);
+void channel_write_single(Channel chan, FTYPE sample);
 int channel_read(Channel chan, FTYPE *buf_w);
 
 #endif

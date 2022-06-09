@@ -8,6 +8,7 @@ typedef struct bus_t {
   Channel channels;
   size_t num_channels;
   FTYPE gain;
+  // TODO signal chain to apply fx like reverb
 } *Bus;
 
 Bus bus_init(size_t num_channels, FTYPE gain);
