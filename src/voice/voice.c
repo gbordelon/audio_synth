@@ -3,29 +3,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "instrument.h"
+#include "voice.h"
 #include "../env/envelope.h"
 #include "../lib/macros.h"
 #include "../osc/imp.h"
 #include "../osc/osc.h"
 #include "../midi/midi.h"
 
-Instrument
-instrument_alloc()
+Voice
+voice_alloc()
 {
-  return calloc(1, sizeof(struct instrument_t));
+  return calloc(1, sizeof(struct voice_t));
 }
 
 void
-instrument_free(Instrument instr)
+voice_free(Voice voice)
 {
-  free(instr);
+  free(voice);
 }
 
-Instrument
-instrument_init(Channel channels, size_t channel_num)
+Voice
+voice_init(Channel channels, size_t channel_num)
 {
-  Instrument rv = instrument_alloc();
+  Voice rv = voice_alloc();
   rv->channels = channels;
   rv->channel_num = channel_num;
   // TODO for channel in channels: increment refcount
@@ -43,12 +43,12 @@ instrument_init(Channel channels, size_t channel_num)
 }
 
 void
-instrument_cleanup(Instrument instr)
+voice_cleanup(Voice voice)
 {
   // TODO for channel in channels: reduce refcount
-  osc_cleanup(instr->oscillators);
-  env_cleanup(instr->env);
-  instrument_free(instr);
+  osc_cleanup(voice->oscillators);
+  env_cleanup(voice->env);
+  voice_free(voice);
 }
 
 /*
@@ -56,48 +56,48 @@ instrument_cleanup(Instrument instr)
  * ignoring user input during a chunk means a control signal will be 21.33 ms latent
  */
 void
-instrument_play_chunk(Instrument instr)
+voice_play_chunk(Voice voice)
 {
-  Channel left = instr->channels;
-  Channel right = instr->channels + 1;
+  Channel left = voice->channels;
+  Channel right = voice->channels + 1;
 
   static FTYPE t_sample[CHUNK_SIZE];
   static FTYPE e_sample[CHUNK_SIZE];
   FTYPE *t = t_sample;
   FTYPE *e = e_sample;
 
-  Osc car_gen = instr->oscillators;
-  Osc mod_gen = instr->oscillators + 1;
+  Osc car_gen = voice->oscillators;
+  Osc mod_gen = voice->oscillators + 1;
 
   int i;
   for (i = 0; i < CHUNK_SIZE; i++, t++, e++) {
     *t = osc_sample_phase_osc(car_gen, mod_gen);
-    *e = env_sample(instr->env);
+    *e = env_sample(voice->env);
   }
 
   // TODO check rv
   channel_write(left, t_sample);
   channel_write(right, t_sample);
 
-  instr->cur_dur += CHUNK_SIZE;
+  voice->cur_dur += CHUNK_SIZE;
 }
 
-// TODO support other instruments
+// TODO support other voices
 // currently assumes two oscillators in a phase modulation setup
 void
-instrument_play_config(Instrument instr, uint8_t midi_note, FTYPE dur /* in seconds */)
+voice_play_config(Voice voice, uint8_t midi_note, FTYPE dur /* in seconds */)
 {
-  instr->cur_dur = 0;
-  instr->max_dur = DEFAULT_SAMPLE_RATE * dur;
+  voice->cur_dur = 0;
+  voice->max_dur = DEFAULT_SAMPLE_RATE * dur;
 
-  env_reset(instr->env);
-  env_set_duration(instr->env, instr->max_dur);
+  env_reset(voice->env);
+  env_set_duration(voice->env, voice->max_dur);
 
   // for osc in oscillators
   //    set freq
   //    reset phase
-  osc_set_freq(instr->oscillators, midi_note_to_freq_table[midi_note]);
-  osc_set_freq(instr->oscillators + 1, midi_note_to_freq_table[midi_note] * 7.0 / 2.0);
-  osc_reset_phase(instr->oscillators);
-  osc_reset_phase(instr->oscillators + 1);
+  osc_set_freq(voice->oscillators, midi_note_to_freq_table[midi_note]);
+  osc_set_freq(voice->oscillators + 1, midi_note_to_freq_table[midi_note] * 7.0 / 2.0);
+  osc_reset_phase(voice->oscillators);
+  osc_reset_phase(voice->oscillators + 1);
 }

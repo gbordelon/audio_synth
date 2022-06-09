@@ -8,7 +8,7 @@
 #include "src/lib/macros.h"
 
 #include "src/env/envelope.h"
-#include "src/instrument/instrument.h"
+#include "src/voice/voice.h"
 #include "src/osc/imp.h"
 #include "src/osc/osc.h"
 #include "src/osc/saw.h"
@@ -33,20 +33,20 @@ main()
   Mixer mixer = mixer_init(NULL, 0, 1.0);
   Channel chans = mixer->busses[0].channels;
 
-  Instrument instr = instrument_init(chans, NUM_CHANNELS);
-  instrument_play_config(instr, midi_notes[0], note_duration);
+  Voice voice = voice_init(chans, NUM_CHANNELS);
+  voice_play_config(voice, midi_notes[0], note_duration);
 
-  instrument_play_chunk(instr);
+  voice_play_chunk(voice);
 
   int n, m, j = 1;
   for (n = m = 0; n < N; n++, m++) {
     if (m == CHUNK_SIZE) {
-      instrument_play_chunk(instr);
+      voice_play_chunk(voice);
       mixer_commit(mixer);
       m = 0;
       // TODO user input to change parameters
-      if (!instrument_playing(instr)) {
-        instrument_play_config(instr, midi_notes[j++], note_duration);
+      if (!voice_playing(voice)) {
+        voice_play_config(voice, midi_notes[j++], note_duration);
         if (j == 15) {
           j = 0;
         }
@@ -55,7 +55,7 @@ main()
 
   }
 
-  instrument_cleanup(instr);
+  voice_cleanup(voice);
   mixer_cleanup(mixer);
   return 0;
 }
