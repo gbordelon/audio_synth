@@ -66,7 +66,7 @@ _busses_init(size_t num_busses, size_t *num_channels_per_bus, FTYPE *gain_per_bu
 }
 
 Bus
-busses_init()
+bus_default_init()
 {
   size_t num_channels = NUM_CHANNELS;
   FTYPE gain = 1.0;

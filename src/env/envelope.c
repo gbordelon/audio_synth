@@ -68,16 +68,24 @@ env_default(Envelope env, uint32_t duration)
   env->r_curve = ENV_LINEAR;
 }
 
+void
+env_set_duration(Envelope env, uint32_t duration)
+{
+  env_reset(env);
+  if (env->dur < duration) {
+    env->table = realloc(env->table, 1 * duration * sizeof(FTYPE));
+    // null checks
+  }
+  env->dur = duration;
+}
+
 Envelope
 env_init(uint32_t duration)
 {
   Envelope env = env_alloc();
   // null checks
 
-  env->p_ind = 0;
-  env->dur = duration;
-  env->table = calloc(1, duration * sizeof(FTYPE));
-  // null checks
+  env_set_duration(env, duration);
 
   env_default(env, duration);
   env_populate_table(env);
@@ -99,4 +107,15 @@ env_sample(Envelope env)
   }
 
   return env->table[env->p_ind++];
+}
+
+void
+env_sample_chunk(Envelope env, FTYPE *buf)
+{
+  int i;
+  for (i = 0; i < CHUNK_SIZE; i++, buf++) {
+    *buf = (env->p_ind >= env->dur)
+           ? 0.0
+           : env->table[env->p_ind++];
+  }
 }

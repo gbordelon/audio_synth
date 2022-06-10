@@ -13,7 +13,7 @@ typedef struct bus_t {
 
 Bus bus_init(size_t num_channels, FTYPE gain);
 void bus_cleanup(Bus bus);
-Bus busses_init();
+Bus bus_default_init();
 void busses_cleanup(Bus busses, size_t num_busses);
 
 int bus_read(Bus bus, FTYPE buf_w[2][CHUNK_SIZE]);

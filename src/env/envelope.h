@@ -5,7 +5,6 @@
 #include "../lib/macros.h"
 
 #define env_reset(e) ((e)->p_ind = 0)
-#define env_set_duration(e,d) ((e)->dur = (d))
 
 // TODO support other function types for more interesting envelope shapes.
 // assume linear function between sections of the envelope.
@@ -43,6 +42,8 @@ Envelope env_init(uint32_t duration); // at 48khz this allows for ~1000s tone le
 // TODO more powerful constructor
 void env_cleanup(Envelope env);
 
+void env_set_duration(Envelope env, uint32_t duration);
 FTYPE env_sample(Envelope env); // sampling an envelope after it expires should return 0.
+void env_sample_chunk(Envelope env, FTYPE *buf);
 
 #endif

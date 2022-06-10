@@ -39,5 +39,6 @@ FTYPE osc_sample(Osc osc);
 FTYPE osc_sample_phase_osc(Osc osc, Osc mod);
 FTYPE osc_sample_phase_sample(Osc osc, FTYPE sample_mod);
 FTYPE osc_sample_phase_mod(Osc osc, size_t phase_mod);
+void osc_sample_chunk(Osc osc, Osc mod, FTYPE *buf);
 
 #endif

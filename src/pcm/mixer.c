@@ -30,7 +30,7 @@ mixer_init(Bus busses, size_t num_busses, FTYPE gain)
 {
   Mixer mix = mixer_alloc(gain);
   if (!num_busses) {
-    busses = busses_init();
+    busses = bus_default_init();
     num_busses = 1;
   }
   mix->busses = busses;

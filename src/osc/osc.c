@@ -136,3 +136,113 @@ osc_sample_phase_mod(Osc osc, size_t phase_mod)
 
   return (1.0 - osc->p_inc_frac) * sample1 + osc->p_inc_frac * sample2;
 }
+
+void
+osc_sample_chunk(Osc car, Osc mod, FTYPE *buf)
+{
+  const FTYPE *car_table, *mod_table;
+  FTYPE car_sample1, car_sample2, mod_sample1, mod_sample2;
+  size_t car_phase_ind, mod_phase_ind;
+  long phase_mod;
+
+  switch(car->type) {
+  case OSC_SIN:
+    car_table = osc_sin;
+    break;
+  case OSC_TRI:
+    car_table = osc_tri;
+    break;
+  case OSC_SAW:
+    car_table = osc_saw;
+    break;
+  case OSC_SQU:
+    car_table = osc_squ;
+    break;
+  case OSC_IMP:
+  default:
+    car_table = NULL;
+    break;
+  }
+
+  if (mod) {
+    switch(mod->type) {
+    case OSC_SIN:
+      mod_table = osc_sin;
+      break;
+    case OSC_TRI:
+      mod_table = osc_tri;
+      break;
+    case OSC_SAW:
+      mod_table = osc_saw;
+      break;
+    case OSC_SQU:
+      mod_table = osc_squ;
+      break;
+    case OSC_IMP:
+    default:
+      mod_table = NULL;
+      break;
+    }
+  }
+
+  int i;
+  for (i = 0; i < CHUNK_SIZE; i++, buf++) {
+    if (mod) {
+      mod->p_ind += mod->p_inc_whole;
+      if (mod->p_ind >= OSC_TABLE_SIZE) {
+        mod->p_ind %= OSC_TABLE_SIZE;
+      }
+      mod_phase_ind = mod->p_ind;
+      if (mod_phase_ind >= OSC_TABLE_SIZE) {
+        mod_phase_ind %= OSC_TABLE_SIZE;
+      }
+
+      if (mod->type == OSC_IMP) {
+        mod_sample1 = imp_sample(mod->u.imp.duty_cycle, mod_phase_ind);
+      } else {
+        mod_sample1 = mod_table[mod_phase_ind];
+      }
+
+      if (mod->type == OSC_IMP || mod->type == OSC_SQU) {
+        mod_sample2 = mod_sample1;
+      } else if ((mod_phase_ind + 1) == OSC_TABLE_SIZE) {
+        mod_sample2 = mod_table[0];
+      } else {
+        mod_sample2 = mod_table[mod_phase_ind + 1];
+      }
+
+      mod_sample1 = (1.0 - mod->p_inc_frac) * mod_sample1 + mod->p_inc_frac * mod_sample2;
+      phase_mod = lround(mod_sample1 * OSC_TABLE_SIZE / 4.0);
+      if (phase_mod < 0) {
+        phase_mod += OSC_TABLE_SIZE;
+      }
+    } else {
+      phase_mod = 0;
+    }
+
+    car->p_ind += car->p_inc_whole;
+    if (car->p_ind >= OSC_TABLE_SIZE) {
+      car->p_ind %= OSC_TABLE_SIZE;
+    }
+    car_phase_ind = car->p_ind + (size_t)phase_mod;
+    if (car_phase_ind >= OSC_TABLE_SIZE) {
+      car_phase_ind %= OSC_TABLE_SIZE;
+    }
+
+    if (car->type == OSC_IMP) {
+      car_sample1 = imp_sample(car->u.imp.duty_cycle, car_phase_ind);
+    } else {
+      car_sample1 = car_table[car_phase_ind];
+    }
+
+    if (car->type == OSC_IMP || car->type == OSC_SQU) {
+      car_sample2 = car_sample1;
+    } else if ((car_phase_ind + 1) == OSC_TABLE_SIZE) {
+      car_sample2 = car_table[0];
+    } else {
+      car_sample2 = car_table[car_phase_ind + 1];
+    }
+
+    *buf = (1.0 - car->p_inc_frac) * car_sample1 + car->p_inc_frac * car_sample2;
+  }
+}
