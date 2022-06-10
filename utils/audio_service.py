@@ -4,6 +4,7 @@ from array import array
 import numpy
 import mmap
 import pygame
+import time
 
 # 4096 frames, 2 samples per frame, each sample is a float
 n = 1024 * 2 * 32
@@ -20,8 +21,10 @@ def loop():
           sound = pygame.mixer.Sound(chunk)
           mm[:4] = b'0000'
           while pygame.mixer.get_busy():
-            continue
+            time.sleep(0.01)
           sound.play()
+        else:
+          time.sleep(0.02)
 
 def init():
   pygame.mixer.pre_init(frequency=48000, size=32, channels=2, buffer=1024)
