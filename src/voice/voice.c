@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "voice.h"
-#include "../env/envelope.h"
+#include "simple_synth.h"
 #include "../lib/macros.h"
 #include "../osc/imp.h"
 #include "../osc/osc.h"
@@ -47,13 +47,7 @@ voice_init(Channel channels, size_t channel_num)
 
   MonoVoice mv;
   for (mv = rv->voices; mv - rv->voices < NUM_VOICES; mv++) {
-    mv->oscillators = osc_alloc_many(2);
-    mv->osc_num = 2;
-    osc_set(mv->oscillators, OSC_SIN, midi_note_to_freq_table[45]);
-    osc_set(mv->oscillators + 1, OSC_IMP, midi_note_to_freq_table[45] * 7.0 / 2.0);
-    imp_set_duty_cycle(mv->oscillators + 1, 0.1);
-
-    mv->env = env_init(DEFAULT_SAMPLE_RATE);
+    simple_synth_init(mv);
     mv->max_dur = 0;
     mv->cur_dur = 0;
   }
@@ -67,8 +61,7 @@ voice_cleanup(Voice voice)
   // TODO for channel in channels: reduce refcount
   MonoVoice mv;
   for (mv = voice->voices; mv - voice->voices < NUM_VOICES; mv++) {
-    osc_cleanup(mv->oscillators);
-    env_cleanup(mv->env);
+    simple_synth_cleanup(mv);
   }
   voice_free(voice);
 }
@@ -83,8 +76,7 @@ voice_play_chunk(Voice voice)
   Channel left = voice->channels;
   Channel right = voice->channels + 1;
 
-  static FTYPE t_sample[CHUNK_SIZE];
-  static FTYPE e_sample[CHUNK_SIZE];
+  static FTYPE samples[2][CHUNK_SIZE];
   static FTYPE accum[CHUNK_SIZE];
   FTYPE *t, *e, *a;
 
@@ -94,13 +86,11 @@ voice_play_chunk(Voice voice)
   MonoVoice mv;
   for (mv = voice->voices; mv - voice->voices < NUM_VOICES; mv++) {
     if (voice_playing(mv)) {
-      osc_sample_chunk(mv->oscillators, mv->oscillators + 1, t_sample);
-      env_sample_chunk(mv->env, e_sample);
+      simple_synth_play_chunk(mv, samples);
 
-      for (a = accum, t = t_sample, e = e_sample; t - t_sample < CHUNK_SIZE; t++, e++, a++) {
+      for (a = accum, t = samples[0], e = samples[1]; a - accum < CHUNK_SIZE; t++, e++, a++) {
         *a += *t * *e;
       }
-      mv->cur_dur += CHUNK_SIZE;
     }
   }
 
@@ -118,17 +108,7 @@ voice_play_config(Voice voice, uint8_t midi_note, FTYPE dur /* in seconds */)
     if (!voice_playing(mv)) {
       mv->cur_dur = 0;
       mv->max_dur = DEFAULT_SAMPLE_RATE * dur;
-
-      env_reset(mv->env);
-      env_set_duration(mv->env, mv->max_dur);
-
-      // for osc in oscillators
-      //    set freq
-      //    reset phase
-      osc_set_freq(mv->oscillators, midi_note_to_freq_table[midi_note]);
-      osc_set_freq(mv->oscillators + 1, midi_note_to_freq_table[midi_note] * 7.0 / 2.0);
-      osc_reset_phase(mv->oscillators);
-      osc_reset_phase(mv->oscillators + 1);
+      simple_synth_play_config(mv, midi_note);
       break;
     }
   }

@@ -26,7 +26,7 @@ main()
   uint8_t midi_notes[15] = {45, 49, 47, 50, 49, 52, 50, 54, 52, 56, 54, 57, 56, 59, 57};
   double sample_rate = DEFAULT_SAMPLE_RATE;
   double dur = 4.8; // in seconds
-  double note_duration = 2.4; // in seconds
+  double note_duration = 0.3; // in seconds
 
   size_t N = sample_rate * dur;
   size_t M = sample_rate * 0.3;//note_duration;
@@ -35,6 +35,7 @@ main()
   Channel chans = mixer->busses[0].channels;
 
   Voice voice = voice_init(chans, NUM_CHANNELS);
+  printf("voice\n");
 
   int n, m, j = 0;
   for (n = m = 0; n < N; n++, m++) {
