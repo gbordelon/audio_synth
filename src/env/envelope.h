@@ -1,10 +1,9 @@
 #ifndef ENVELOPE_H
 #define ENVELOPE_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include "../lib/macros.h"
-
-#define env_reset(e) ((e)->p_ind = 0)
 
 // TODO support other function types for more interesting envelope shapes.
 // assume linear function between sections of the envelope.
@@ -12,6 +11,13 @@
 // I'm guessing I would precompute a table for each function, like with the oscillators
 enum env_curve {
   ENV_LINEAR,
+};
+
+enum env_state {
+  ENV_ATTACK,
+  ENV_DECAY,
+  ENV_SUSTAIN,
+  ENV_RELEASE
 };
 
 typedef struct envelope_t {
@@ -35,6 +41,7 @@ typedef struct envelope_t {
 
   uint32_t p_ind; // phase index
   uint32_t dur; // phase index
+  enum env_state state;
   FTYPE *table;
 } *Envelope;
 
@@ -44,6 +51,6 @@ void env_cleanup(Envelope env);
 
 void env_set_duration(Envelope env, uint32_t duration);
 FTYPE env_sample(Envelope env); // sampling an envelope after it expires should return 0.
-void env_sample_chunk(Envelope env, FTYPE *buf);
+void env_sample_chunk(Envelope env, bool sustain, FTYPE *buf);
 
 #endif

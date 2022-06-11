@@ -30,6 +30,27 @@ simple_synth_cleanup(MonoVoice mv)
 }
 
 void
+simple_synth_note_on(MonoVoice mv, uint8_t midi_note)
+{
+  env_set_duration(mv->env, mv->max_dur);
+
+  osc_set_freq(mv->oscillators, midi_note_to_freq_table[midi_note]);
+  osc_set_freq(mv->oscillators + 1, midi_note_to_freq_table[midi_note] * 7.0 / 2.0);
+  // only reset phase if the note is not currently playing otherwise might hear blips
+  if (!voice_playing(mv)) {
+    mv->sustain = true;
+    osc_reset_phase(mv->oscillators);
+    osc_reset_phase(mv->oscillators + 1);
+  }
+}
+
+void
+simple_synth_note_off(MonoVoice mv)
+{
+  mv->sustain = false;
+}
+
+void
 simple_synth_play_config(MonoVoice mv, uint8_t midi_note)
 {
   env_set_duration(mv->env, mv->max_dur);
@@ -50,8 +71,9 @@ simple_synth_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE])
   FTYPE *e_sample = *(bufs + 1);
 
   osc_sample_chunk(mv->oscillators, mv->oscillators + 1, t_sample);
-  env_sample_chunk(mv->env, e_sample);
+  env_sample_chunk(mv->env, mv->sustain, e_sample);
 
   mv->cur_dur += CHUNK_SIZE;
 }
+
 #endif

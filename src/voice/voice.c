@@ -99,7 +99,34 @@ voice_play_chunk(Voice voice)
   channel_write(right, accum);
 }
 
-// TODO currently assumes two oscillators in a phase modulation setup
+// return index of monovoice which starts playing
+uint8_t
+voice_note_on(Voice voice, uint8_t midi_note)
+{
+  MonoVoice mv;
+  for (mv = voice->voices; mv - voice->voices < NUM_VOICES; mv++) {
+    if (!voice_playing(mv)) {
+      mv->cur_dur = 0;
+      mv->max_dur = DEFAULT_SAMPLE_RATE * 1.0;
+      simple_synth_note_on(mv, midi_note);
+      return mv - voice->voices;
+    }
+  }
+
+  return 0xff;
+}
+
+void
+voice_note_off(Voice voice, uint8_t mono_voice_index)
+{
+  MonoVoice mv = voice->voices + mono_voice_index;
+  if (voice_playing(mv)) {
+    simple_synth_note_off(mv);
+  } else {
+    // TODO what?
+  }
+}
+
 void
 voice_play_config(Voice voice, uint8_t midi_note, FTYPE dur /* in seconds */)
 {

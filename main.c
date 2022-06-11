@@ -4,6 +4,9 @@
 #include <math.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
+
+#include "portmidi.h"
 
 #include "src/lib/macros.h"
 
@@ -24,6 +27,7 @@ int
 main()
 {
   uint8_t midi_notes[15] = {45, 49, 47, 50, 49, 52, 50, 54, 52, 56, 54, 57, 56, 59, 57};
+  bool active_voices[NUM_VOICES] = {0};
   double sample_rate = DEFAULT_SAMPLE_RATE;
   double dur = 4.8; // in seconds
   double note_duration = 0.3; // in seconds
@@ -35,9 +39,10 @@ main()
   Channel chans = mixer->busses[0].channels;
 
   Voice voice = voice_init(chans, NUM_CHANNELS);
-  printf("voice\n");
+  srand(time(NULL));
 
   int n, m, j = 0;
+  uint8_t note_ind;
   for (n = m = 0; n < N; n++, m++) {
     if (m == CHUNK_SIZE) {
       voice_play_chunk(voice);
@@ -46,7 +51,22 @@ main()
     }
     // TODO user input to change parameters
     if (n % M == 0) {
-      voice_play_config(voice, midi_notes[j++], note_duration);
+      note_ind = voice_note_on(voice, midi_notes[j++]);
+      active_voices[note_ind] = true;
+      size_t num_active_notes = 0;
+      int i;
+      for (i = 0; i < NUM_VOICES; i++) {
+        if (active_voices[i]) {
+          num_active_notes++;
+        }
+      }
+      if (num_active_notes > 2) {
+        note_ind = rand() % num_active_notes;
+        if (active_voices[note_ind]) {
+          voice_note_off(voice, note_ind);
+          active_voices[note_ind] = false;
+        }
+      }
       if (j == 15) {
         j = 0;
       }

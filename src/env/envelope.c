@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -80,6 +81,13 @@ env_default(Envelope env, uint32_t duration)
 }
 
 void
+env_reset(Envelope env)
+{
+  env->p_ind = 0;
+  env->state = ENV_ATTACK;
+}
+
+void
 env_set_duration(Envelope env, uint32_t duration)
 {
   env_reset(env);
@@ -121,12 +129,35 @@ env_sample(Envelope env)
 }
 
 void
-env_sample_chunk(Envelope env, FTYPE *buf)
+env_sample_chunk(Envelope env, bool sustain, FTYPE *buf)
 {
   int i;
   for (i = 0; i < CHUNK_SIZE; i++, buf++) {
     *buf = (env->p_ind >= env->dur)
            ? 0.0
            : env->table[env->p_ind++];
+    switch(env->state) {
+    case ENV_ATTACK:
+      if (env->p_ind == env->a_dur) {
+        env->state = ENV_DECAY;
+      }
+      break;
+    case ENV_DECAY:
+      if (env->p_ind == env->a_dur + env->d_dur) {
+        env->state = ENV_SUSTAIN;
+      }
+      break;
+    case ENV_SUSTAIN:
+      // TODO do something more interesting?
+      if (sustain) {
+        env->p_ind--;
+      }
+      if (env->p_ind == env->a_dur + env->d_dur + env->s_dur) {
+        env->state = ENV_RELEASE;
+      }
+      break;
+    case ENV_RELEASE:
+      break;
+    } 
   }
 }
