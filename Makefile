@@ -20,7 +20,7 @@ exe: $(EXE)
 
 
 $(EXE): $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ -lportmidi
 
 $(OBJDIR)/%.$(OFILES): $(SRCDIR)/%.$(CFILES) $(DEPS)
 	mkdir -p $(dir $@)
