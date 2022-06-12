@@ -80,7 +80,6 @@ uint32_t notescount = 0;        /* #notes since last request */
 uint32_t notestotal = 0;        /* total #notes */
 
 PmQueue *midi_to_main;
-PmQueue *main_to_midi;
 
 static void
 output(PmMessage data)
@@ -88,7 +87,6 @@ output(PmMessage data)
     int command;    /* the current command */
     int chan;   /* the midi channel of the current event */
     int len;    /* used to get constant field width */
-    int32_t msg;
 
     /* printf("output data %8x; ", data); */
 
@@ -112,14 +110,13 @@ output(PmMessage data)
         }
         //showbytes(data, i, verbose);
         //if (verbose) printf("System Exclusive\n");
-    } else if (command == MIDI_ON_NOTE && Pm_MessageData2(data) != 0) {
+    } else if (command == MIDI_ON_NOTE) {
         notescount++;
         // TODO
         //Pm_MessageData1(data); // note number
         //Pm_MessageData2(data); // velocity
         // convert data1 and data2 into msg
-        msg = data;
-        Pm_Enqueue(midi_to_main, &msg);
+        Pm_Enqueue(midi_to_main, &data);
         if (notes) {
             //showbytes(data, 3, verbose);
             if (verbose) {
@@ -128,14 +125,12 @@ output(PmMessage data)
                 //printf(vel_format + len, Pm_MessageData2(data));
             }
         }
-    } else if ((command == MIDI_ON_NOTE /* && Pm_MessageData2(data) == 0 */ ||
-               command == MIDI_OFF_NOTE) && notes) {
+    } else if (command == MIDI_OFF_NOTE) {
         // TODO
         //Pm_MessageData1(data); // note number
         //Pm_MessageData2(data); // velocity
-        msg = data;
         // convert data1 and data2 into msg
-        Pm_Enqueue(midi_to_main, &msg);
+        Pm_Enqueue(midi_to_main, &data);
         //showbytes(data, 3, verbose);
         if (verbose) {
             //printf("NoteOff Chan %2d Key %3d ", chan, Pm_MessageData1(data));
@@ -246,7 +241,7 @@ output(PmMessage data)
     } else if (Pm_MessageStatus(data) == MIDI_STOP && realdata) {
         //showbytes(data, 1, verbose);
         if (verbose) {
-            printf("    Stop\n");
+            //printf("    Stop\n");
         }
     } else if (Pm_MessageStatus(data) == MIDI_SYS_RESET && realdata) {
         //showbytes(data, 1, verbose);
@@ -275,6 +270,23 @@ output(PmMessage data)
     //fflush(stdout);
 }
 
+typedef struct mixer_voice_t {
+  Mixer mixer;
+  Voice voice;
+} *MV_t;
+
+void
+push_to_python(PtTimestamp timestamp, void *userData)
+{
+    if (!active) {
+      return;
+    }
+    Mixer mixer = ((MV_t)userData)->mixer;
+    Voice voice = ((MV_t)userData)->voice;
+    voice_play_chunk(voice);
+    mixer_commit(mixer);
+}
+
 void
 receive_poll(PtTimestamp timestamp, void *userData)
 {
@@ -287,7 +299,7 @@ receive_poll(PtTimestamp timestamp, void *userData)
     }
 }
 
-static int
+static void
 put_pitch(int p)
 {
     char result[8];
@@ -295,33 +307,26 @@ put_pitch(int p)
         "c", "cs", "d", "ef", "e", "f", "fs", "g",
         "gs", "a", "bf", "b"    };
     /* note octave correction below */
-    sprintf(result, "%s%d", ptos[p % 12], (p / 12) - 1);
+    sprintf(result, "%s%d\n", ptos[p % 12], (p / 12) - 1);
     printf(result);
     fflush(stdout);
-    return strlen(result);
 }
 
 int
 main()
 {
-  uint8_t active_voices[128];
-  double sample_rate = DEFAULT_SAMPLE_RATE;
-  double dur = 4.8; // in seconds
-  double note_duration = 0.3; // in seconds
-
-  size_t N = sample_rate * dur;
-  size_t M = sample_rate * 0.3;//note_duration;
   PmError err;
+  uint8_t active_voices[128];
+  Mixer mixer = mixer_init(NULL, 0, 1.0);
+  Channel chans = mixer->busses[0].channels;
+  Voice voice = voice_init(chans, NUM_CHANNELS);
+  MV_t mix_voice = {mixer, voice};
 
   memset(active_voices, 64, 128);
 
-  Mixer mixer = mixer_init(NULL, 0, 1.0);
-  Channel chans = mixer->busses[0].channels;
-
-  Voice voice = voice_init(chans, NUM_CHANNELS);
-  //srand(time(NULL));
-
   Pt_Start(1, receive_poll, 0); // start midi listener
+  Pt_Start(1, push_to_python, &mix_voice); // start pcm mmap writer
+
   Pm_Initialize();
 
   // assume my privia keyboard is input 0
@@ -338,13 +343,15 @@ main()
   // check midi_to_main != NULL
 
   active = true;
+
   int32_t msg;
   int command;    /* the current command */
 
   int spin;
-  int n, m, j = 0;
+  int m;
   uint8_t note_ind;
-  for (n = m = 0; ; n++, m++) {
+  int num_active_notes = 0;
+  for (m = 0; ; m++) {
     if (m == CHUNK_SIZE) {
       voice_play_chunk(voice);
       mixer_commit(mixer);
@@ -360,12 +367,17 @@ main()
         put_pitch(Pm_MessageData1(msg));
         note_ind = voice_note_on(voice, Pm_MessageData1(msg));
         active_voices[Pm_MessageData1(msg)] = note_ind;
+        num_active_notes++;
       } else if (command == MIDI_OFF_NOTE) {
         put_pitch(Pm_MessageData1(msg));
         if (active_voices[Pm_MessageData1(msg)] < 64) {
           voice_note_off(voice, active_voices[Pm_MessageData1(msg)]);
           active_voices[Pm_MessageData1(msg)] = 64;
+          num_active_notes--;
         }
+      }
+      if (num_active_notes) {
+        mixer->gain = 1.0 / num_active_notes;
       }
     }
   }
