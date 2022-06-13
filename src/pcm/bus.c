@@ -99,10 +99,15 @@ bus_read(Bus bus, FTYPE buf_w[2][CHUNK_SIZE])
   FTYPE *write_buf_l = *buf_w;
   FTYPE *write_buf_r = *(buf_w + 1);
 
-  // TODO check for read ready
-  channel_read(left, read_buf_l);
-  channel_read(right, read_buf_r);
+  int rv;
+  rv = channel_read(left, read_buf_l);
+  rv += channel_read(right, read_buf_r);
 
+  if (rv <= 0) {
+    return rv;
+  }
+
+  // read from at least one channel
   int i;
   for (i = 0; i < CHUNK_SIZE; i++, write_buf_l++, write_buf_r++, read_buf_l++, read_buf_r++) {
     *write_buf_l = *read_buf_l * bus->gain;

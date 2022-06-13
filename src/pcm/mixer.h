@@ -1,6 +1,8 @@
 #ifndef MIXER_H
 #define MIXER_H
 
+#include <stdbool.h>
+
 #include "../lib/macros.h"
 #include "../map/mmap.h"
 
@@ -16,6 +18,6 @@ typedef struct mixer_t {
 
 Mixer mixer_init(Bus busses, size_t num_busses, FTYPE gain);
 void mixer_cleanup(Mixer mix);
-void mixer_commit(Mixer mix);
+bool mixer_commit(Mixer mix);
 
 #endif

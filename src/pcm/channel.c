@@ -97,7 +97,7 @@ channel_read(Channel chan, FTYPE *buf_w)
 
   if (buf_r) {
     memmove(buf_w, buf_r, CHUNK_SIZE * sizeof(FTYPE));
-    memset(buf_r, 0, CHUNK_SIZE * sizeof(FTYPE));
+    //memset(buf_r, 0, CHUNK_SIZE * sizeof(FTYPE));
     chan->page_r++;
     if (chan->page_r == BUS_BUFFER_LEN) {
       chan->page_r = 0;

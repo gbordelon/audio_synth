@@ -95,11 +95,11 @@ voice_play_chunk(Voice voice)
   }
 
   // TODO check rv
-  channel_write(left, accum);
-  channel_write(right, accum);
+  size_t rv = 0;
+  rv = channel_write(left, accum);
+  rv = channel_write(right, accum);
 }
 
-// return index of monovoice which starts playing
 uint8_t
 voice_note_on(Voice voice, uint8_t midi_note)
 {
@@ -113,7 +113,7 @@ voice_note_on(Voice voice, uint8_t midi_note)
     }
   }
 
-  return 0xff;
+  return 64;
 }
 
 void
