@@ -39,7 +39,8 @@ mixer_init(Bus busses, size_t num_busses, FTYPE gain)
   mix->gain = 1.0;
 
   mix->map = mmap_init();
-  mix->write_buf = calloc(MMAP_SIZE, sizeof(float));
+  mix->write_buf = calloc(MMAP_SIZE, sizeof(FTYPE));
+  mix->needs_write = false;
 
   return mix;
 }
@@ -56,23 +57,21 @@ mixer_cleanup(Mixer mix)
 }
 
 // interleave samples to create stereo frames
-bool
+void
 mixer_update(Mixer mix)
 {
   static FTYPE read_buf[NUM_CHANNELS][CHUNK_SIZE] = {0};
   int i,j, rv;
   Bus bus;
   FTYPE *read_buf_l, *read_buf_r;
-  float *write_buf_l, *write_buf_r;
-  bool wrote = false;
+  FTYPE *write_buf_l, *write_buf_r;
 
   for (j = 0, bus = mix->busses; j < mix->num_busses; j++, bus++) {
     // TODO check for read failure
     rv = bus_read(bus, read_buf);
 
     if (rv > 0) {
-      wrote = true;
-      for (i = 0, read_buf_l = read_buf[0], read_buf_r = read_buf[1], write_buf_l = (float *)mix->write_buf, write_buf_r = write_buf_l + 1;
+      for (i = 0, read_buf_l = read_buf[0], read_buf_r = read_buf[1], write_buf_l = mix->write_buf, write_buf_r = write_buf_l + 1;
            i < CHUNK_SIZE;
            i++, write_buf_l+=NUM_CHANNELS, write_buf_r+=NUM_CHANNELS, read_buf_l++, read_buf_r++) {
         *write_buf_l += *read_buf_l * mix->gain;
@@ -80,26 +79,7 @@ mixer_update(Mixer mix)
       }
       memset(read_buf, 0, CHUNK_SIZE * NUM_CHANNELS * sizeof(FTYPE));
     } else {
-      printf("bus_read() failed\n");
-      fflush(stdout);
     }
   }
-  return wrote;
   // TODO scale or clip amplitudes for values outside the range [-1.0,1.0]
-}
-
-bool
-mixer_commit(Mixer mix)
-{
-  static bool waiting_on_write = false;
-  if (!waiting_on_write) {
-    waiting_on_write = mixer_update(mix);
-  }
-  if (waiting_on_write) {
-    if (mmap_write(mix->map, mix->write_buf, MMAP_SIZE * sizeof(float)) > 0) {
-      waiting_on_write = false;
-      memset(mix->write_buf, 0, MMAP_SIZE * sizeof(float));
-    }
-  }
-  return waiting_on_write;
 }

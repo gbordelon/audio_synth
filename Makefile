@@ -20,7 +20,7 @@ exe: $(EXE)
 
 
 $(EXE): $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^ -lportmidi
+	$(CC) $(CFLAGS) -o $@ $^ -lportmidi -framework CoreAudio -framework CoreServices -framework AudioUnit -framework AudioToolBox
 
 $(OBJDIR)/%.$(OFILES): $(SRCDIR)/%.$(CFILES) $(DEPS)
 	mkdir -p $(dir $@)

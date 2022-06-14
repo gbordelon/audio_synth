@@ -29,18 +29,19 @@ osc_free(Osc osc)
 }
 
 void
-osc_set_freq(Osc osc, FTYPE tone_freq)
+osc_set_freq(Osc osc, FTYPE tone_freq, FTYPE velocity)
 {
   osc->tone_freq = tone_freq;
+  osc->velocity = velocity;
   osc->p_inc_whole = floor(OSC_TABLE_SIZE * tone_freq / (FTYPE)DEFAULT_SAMPLE_RATE);
   osc->p_inc_frac = fmod(OSC_TABLE_SIZE * tone_freq / (FTYPE)DEFAULT_SAMPLE_RATE, 1);
 }
 
 void
-osc_set(Osc osc, enum osc_type type, FTYPE tone_freq)
+osc_set(Osc osc, enum osc_type type, FTYPE tone_freq, FTYPE velocity)
 {
   osc->type = type;
-  osc_set_freq(osc, tone_freq);
+  osc_set_freq(osc, tone_freq, velocity);
   osc_reset_phase(osc);
 }
 
@@ -49,7 +50,7 @@ osc_init(enum osc_type type, FTYPE tone_freq)
 {
   Osc rv = osc_alloc();
   // null checks
-  osc_set(rv, type, tone_freq);
+  osc_set(rv, type, tone_freq, 0.5);
 
   return rv;
 }
@@ -134,7 +135,7 @@ osc_sample_phase_mod(Osc osc, size_t phase_mod)
     sample2 = table[phase_ind + 1];
   }
 
-  return (1.0 - osc->p_inc_frac) * sample1 + osc->p_inc_frac * sample2;
+  return osc->velocity * ((1.0 - osc->p_inc_frac) * sample1 + osc->p_inc_frac * sample2);
 }
 
 void
@@ -212,6 +213,7 @@ osc_sample_chunk(Osc car, Osc mod, FTYPE *buf)
       }
 
       mod_sample1 = (1.0 - mod->p_inc_frac) * mod_sample1 + mod->p_inc_frac * mod_sample2;
+      mod_sample1 *= mod->velocity;
       phase_mod = lround(mod_sample1 * OSC_TABLE_SIZE / 4.0);
       if (phase_mod < 0) {
         phase_mod += OSC_TABLE_SIZE;
@@ -243,6 +245,6 @@ osc_sample_chunk(Osc car, Osc mod, FTYPE *buf)
       car_sample2 = car_table[car_phase_ind + 1];
     }
 
-    *buf = (1.0 - car->p_inc_frac) * car_sample1 + car->p_inc_frac * car_sample2;
+    *buf = car->velocity * ((1.0 - car->p_inc_frac) * car_sample1 + car->p_inc_frac * car_sample2);
   }
 }

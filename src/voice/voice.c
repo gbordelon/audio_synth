@@ -95,19 +95,22 @@ voice_play_chunk(Voice voice)
   }
 
   // TODO check rv
-  size_t rv = 0;
-  rv = channel_write(left, accum);
-  rv = channel_write(right, accum);
+  //size_t rv = 0;
+  //rv = channel_write(left, accum);
+  //rv = channel_write(right, accum);
+  channel_write(left, accum);
+  channel_write(right, accum);
 }
 
 uint8_t
-voice_note_on(Voice voice, uint8_t midi_note)
+voice_note_on(Voice voice, uint8_t midi_note, uint8_t midi_velocity)
 {
   MonoVoice mv;
   for (mv = voice->voices; mv - voice->voices < NUM_VOICES; mv++) {
     if (!voice_playing(mv)) {
       mv->cur_dur = 0;
       mv->max_dur = DEFAULT_SAMPLE_RATE * 1.0;
+      mv->velocity = ((FTYPE)midi_velocity) / 127.0;
       simple_synth_note_on(mv, midi_note);
       return mv - voice->voices;
     }
@@ -127,8 +130,10 @@ voice_note_off(Voice voice, uint8_t mono_voice_index)
   }
 }
 
+/*
+// duration in seconds
 void
-voice_play_config(Voice voice, uint8_t midi_note, FTYPE dur /* in seconds */)
+voice_play_config(Voice voice, uint8_t midi_note, FTYPE dur)
 {
   MonoVoice mv;
   for (mv = voice->voices; mv - voice->voices < NUM_VOICES; mv++) {
@@ -140,3 +145,4 @@ voice_play_config(Voice voice, uint8_t midi_note, FTYPE dur /* in seconds */)
     }
   }
 }
+*/

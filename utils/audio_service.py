@@ -5,21 +5,31 @@ import numpy
 import mmap
 import pygame
 import time
-import sys
+import multiprocessing as mp
+import copy
 
 # 4096 frames, 2 samples per frame, each sample is a float
 chunk_size = 2048
 max_millis = 50
 chunk_size = 1024
 max_millis = 23
-chunk_size = 512
-max_millis = 12
-chunk_size = 256
+#chunk_size = 512
+#max_millis = 12
+#chunk_size = 256
 #max_millis = 6
 n = chunk_size * 2 * 32
-sound_queue = []
 
-def loop():
+def play_loop(q, done):
+  init()
+  while not done.value:
+    if not q.empty():
+      while pygame.mixer.get_busy():
+        continue
+      chunk = q.get()
+      sound = pygame.mixer.Sound(chunk)
+      sound.play(maxtime=max_millis)
+
+def read_loop(q):
   # TODO truncate ./DEADBEEF to the correct size
   with open("./DEADBEEF", "r+b") as f:
     with mmap.mmap(f.fileno(), 0) as mm:
@@ -28,15 +38,16 @@ def loop():
       while True:
         head = array('b', mm[:4])
         if bytes(head) == b'AAAA':
-          chunk = numpy.frombuffer(mm[4:n], dtype=float).reshape((chunk_size>>1,2))
-          sound_queue.append(pygame.mixer.Sound(chunk))
+          chunk1 = numpy.frombuffer(mm[4:n], dtype=float).reshape((chunk_size>>1,2))
+          chunk2 = copy.deepcopy(chunk1)
           mm[:4] = b'0000'
-        # TODO separate into another thread
-        if len(sound_queue) > 0:
-          while len(sound_queue) > 0:
-            if not pygame.mixer.get_busy(): #determined by sound length in samples
-              sound = sound_queue.pop()
-              sound.play(maxtime=max_millis) #maxtime doesnt determine mixer.get_busy()
+          q.put(chunk2)
+          while not q.empty():
+            while pygame.mixer.get_busy():
+              continue
+            chunk = q.get()
+            sound = pygame.mixer.Sound(chunk)
+            sound.play(maxtime=max_millis)
 
 def init():
   pygame.mixer.pre_init(frequency=48000, size=32, channels=2, buffer=chunk_size)
@@ -48,9 +59,17 @@ if __name__ == '__main__':
   import sys
   #sys.argv...
   init()
-  try:
-    loop()
-  except KeyboardInterrupt:
-    print('')
-  finally:
-    print('quitting')
+  with mp.Manager() as manager:
+    sound_queue = mp.Queue()
+    done = manager.Value('d', False)
+    #p = mp.Process(target=play_loop, args=(sound_queue, done))
+
+    try:
+      #p.start()
+      read_loop(sound_queue)
+    except KeyboardInterrupt:
+      done.value = True
+      print('')
+    finally:
+      #p.join()
+      print('quitting')

@@ -6,11 +6,15 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <AudioUnit/AudioUnit.h>
+
 #include "porttime.h"
 #include "portmidi.h"
 #include "pmutil.h"
 
 #include "src/lib/macros.h"
+
+#include "src/mac_audio/audio_unit.h"
 
 #include "src/env/envelope.h"
 #include "src/voice/voice.h"
@@ -81,17 +85,20 @@ uint32_t notestotal = 0;        /* total #notes */
 
 PmQueue *midi_to_main;
 
+Mixer gmix;
+Voice gvoice;
+
 static void
-output(PmMessage data)
+handle_midi_in(PmMessage data)
 {
     int command;    /* the current command */
-    int chan;   /* the midi channel of the current event */
-    int len;    /* used to get constant field width */
+    //int chan;   /* the midi channel of the current event */
+    //int len;    /* used to get constant field width */
 
-    /* printf("output data %8x; ", data); */
+    /* printf("handle_midi_in data %8x; ", data); */
 
     command = Pm_MessageStatus(data) & MIDI_CODE_MASK;
-    chan = Pm_MessageStatus(data) & MIDI_CHN_MASK;
+    //chan = Pm_MessageStatus(data) & MIDI_CHN_MASK;
 
     if (in_sysex || Pm_MessageStatus(data) == MIDI_SYSEX) {
 #define sysex_max 16
@@ -270,41 +277,23 @@ output(PmMessage data)
     //fflush(stdout);
 }
 
-typedef struct mixer_voice_t {
-  Mixer mixer;
-  Voice voice;
-  bool needs_write;
-} *MV_t;
-
-void
-push_to_python(PtTimestamp timestamp, void *userData)
-{
-    if (!active) {
-      return;
-    }
-    Mixer mixer = ((MV_t)userData)->mixer;
-    Voice voice = ((MV_t)userData)->voice;
-    voice_play_chunk(voice);
-    mixer_commit(mixer);
-}
-
 void
 receive_poll(PtTimestamp timestamp, void *userData)
 {
     PmEvent event;
     int count;
     if (!active) return;
-//    Mixer mixer = ((MV_t)userData)->mixer;
-    Voice voice = ((MV_t)userData)->voice;
-    ;
-    if (!((MV_t)userData)->needs_write) {
+
+/*
+    Voice voice = (Voice)userData;
+    if (!gmix->needs_write) {
       voice_play_chunk(voice);
-      ((MV_t)userData)->needs_write = true;
+      gmix->needs_write = true;
     }
-//    mixer_commit(mixer);
+*/
     while ((count = Pm_Read(midi_in, &event, 1))) {
         if (count == 1) {
-          output(event.message);
+          handle_midi_in(event.message);
         } else {
           printf(Pm_GetErrorText(count));
           fflush(stdout);
@@ -330,22 +319,15 @@ main()
 {
   PmError err;
   uint8_t active_voices[128];
-  clock_t t;
-  double tt;
-  Mixer mixer = mixer_init(NULL, 0, 1.0);
-  Channel chans = mixer->busses[0].channels;
-  Voice voice = voice_init(chans, NUM_CHANNELS);
-  MV_t mix_voice = (MV_t)malloc(sizeof(struct mixer_voice_t));
-  mix_voice->mixer = mixer;
-  mix_voice->voice = voice;
-  mix_voice->needs_write = false;
-  bool *needs_write = &(mix_voice->needs_write);
+  gmix = mixer_init(NULL, 0, 1.0);
+  Channel chans = gmix->busses[0].channels;
+  gvoice = voice_init(chans, NUM_CHANNELS);
+
+  AudioComponentInstance audio_unit = audio_unit_init();
 
   memset(active_voices, 64, 128);
 
-  Pt_Start(1, receive_poll, mix_voice); // start midi listener
-  //Pt_Start(1, receive_poll, 0); // start midi listener
-  //Pt_Start(1, push_to_python, mix_voice); // start pcm mmap writer
+  Pt_Start(1, receive_poll, NULL); // start midi listener
 
   Pm_Initialize();
 
@@ -354,8 +336,8 @@ main()
   if (err) {
       printf(Pm_GetErrorText(err));
       Pt_Stop();
-      voice_cleanup(voice);
-      mixer_cleanup(mixer);
+      voice_cleanup(gvoice);
+      mixer_cleanup(gmix);
       exit(1);
   }
 
@@ -364,31 +346,16 @@ main()
 
   active = true;
 
-/*
-    t = clock();
-    // function call
-    t = clock() - t;
-    tt = ((double)t)/CLOCKS_PER_SEC;
-    printf("function call took %f seconds to execute\n", tt);
-    fflush(stdout);
-*/
+  audio_unit_go(audio_unit);
+
   int32_t msg;
   int command;    /* the current command */
+  gmix->gain = 0.5;
 
   int spin;
-  int m;
   uint8_t note_ind;
   int num_active_notes = 0;
   for (;;) {
-    if (*needs_write) {
-      // TODO at a regular interval in another thread
-      *needs_write = mixer_commit(mixer);
-    } else {
-      // TODO at regular interval in another thread
-      //voice_play_chunk(voice);
-      //needs_write = true;
-    }
-
     // read midi messages
     spin = Pm_Dequeue(midi_to_main, &msg);
     if (spin) {
@@ -397,24 +364,19 @@ main()
       //Pm_MessageData2(msg); // velocity
       if (command == MIDI_ON_NOTE) {
         put_pitch(Pm_MessageData1(msg));
-        note_ind = voice_note_on(voice, Pm_MessageData1(msg));
         if (active_voices[Pm_MessageData1(msg)] == 64) {
+          note_ind = voice_note_on(gvoice, Pm_MessageData1(msg), Pm_MessageData2(msg));
           active_voices[Pm_MessageData1(msg)] = note_ind;
           num_active_notes++;
         } else {
-          printf("miseed a MIDI_OFF_NOTE?\n");
-          fflush(stdout);
         }
       } else if (command == MIDI_OFF_NOTE) {
         //put_pitch(Pm_MessageData1(msg));
         if (active_voices[Pm_MessageData1(msg)] < 64) {
-          voice_note_off(voice, active_voices[Pm_MessageData1(msg)]);
+          voice_note_off(gvoice, active_voices[Pm_MessageData1(msg)]);
           active_voices[Pm_MessageData1(msg)] = 64;
           num_active_notes--;
         }
-      }
-      if (num_active_notes) {
-        mixer->gain = 1.0 / num_active_notes;
       }
     }
   }
@@ -425,7 +387,7 @@ main()
   Pm_Close(midi_in);
   Pm_Terminate();
 
-  voice_cleanup(voice);
-  mixer_cleanup(mixer);
+  voice_cleanup(gvoice);
+  mixer_cleanup(gmix);
   return 0;
 }

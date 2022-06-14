@@ -1,0 +1,225 @@
+#include "audio_unit.h"
+
+/*
+ * https://developer.apple.com/library/archive/technotes/tn2097/_index.html#//apple_ref/doc/uid/DTS10003287-CH1-PART4
+ */
+
+void
+audio_unit_init()
+{
+  //An AudioUnit is an OS component.
+  //A component description must be setup, then used to
+  //initialize an AudioUnit
+
+  ComponentDescription desc;
+  Component comp;
+
+  //There are several Different types of AudioUnits.
+  //Some audio units serve as Outputs, Mixers, or DSP
+  //units. See AUComponent.h for listing
+
+  desc.componentType = kAudioUnitType_Output;
+
+  //Every Component has a subType, which will give a clearer picture
+  //of what this components function will be.
+
+  desc.componentSubType = kAudioUnitSubType_DefaultOutput;
+
+  //All AudioUnits in AUComponent.h must use
+  //"kAudioUnitManufacturer_Apple" as the Manufacturer
+
+  desc.componentManufacturer = kAudioUnitManufacturer_Apple;
+  desc.componentFlags = 0;
+  desc.componentFlagsMask = 0;
+
+  //Finds a component that meets the desc spec's
+  comp = FindNextComponent(NULL, &desc);
+  if (comp == NULL) exit (-1);
+
+  AudioUnit theOutputUnit;
+
+  //gains access to the services provided by the component
+  err = OpenAComponent(comp, theOutputUnit);
+
+  return theOutputUnit;
+}
+
+
+{
+  //AudioUnit *theUnit - points to the current AudioUnit
+  //AudioStreamBasicDescription *theDesc - current ASBD for user output
+   
+  /***Getting the size of a Property***/
+  UInt32 size;
+   
+   
+  //Gets the size of the Stream Format Property and if it is writable
+  OSStatus result = AudioUnitGetPropertyInfo(*theUnit,
+                              kAudioUnitProperty_StreamFormat,
+                              kAudioUnitScope_Output,
+                              0,
+                              &size,
+                              &outWritable);
+   
+  //Get the current stream format of the output
+  result = AudioUnitGetProperty (*theUnit,
+                              kAudioUnitProperty_StreamFormat,
+                              kAudioUnitScope_Output,
+                              0,
+                              theDesc,
+                              &size);
+   
+  //Set the stream format of the output to match the input
+  result = AudioUnitSetProperty (*theUnit,
+                              kAudioUnitProperty_StreamFormat,
+                              kAudioUnitScope_Input,
+                              theInputBus,
+                              theDesc,
+                              size);
+}
+
+
+OSStatus
+SetupCallbacks(AudioUnit *theOutputUnit, AURenderCallbackStruct *renderCallback)
+{
+  OSStatus err= noErr;
+  memset(renderCallback, 0, sizeof(AURenderCallbackStruct));
+
+
+  //inputProc takes a name of a method that will be used as the
+  //input procedure when rendering data to the AudioUnit.
+  //The input procedure will be called only when the Audio Converter needs
+  //more data to process.
+
+
+  //Set "fileRenderProc" as the name of the input proc
+  renderCallback->inputProc = MyFileRenderProc;
+  //Can pass ref Con with callback, but this isnt needed in out example
+  renderCallback->inputProcRefCon =0;
+
+  //Sets the callback for the AudioUnit to the renderCallback
+
+  err = AudioUnitSetProperty (*theOutputUnit,
+                              kAudioUnitProperty_SetRenderCallback,
+                              kAudioUnitScope_Input,
+                              0,
+                              renderCallback,
+                              sizeof(AURenderCallbackStruct));
+  //Note: Some old V1 examples may use
+  //"kAudioUnitProperty_SetInputCallback" which existed in
+  //the old API, instead of "kAudioUnitProperty_SetRenderCallback".
+  //"kAudioUnitProperty_SetRenderCallback" should
+  //be used from now on.
+
+
+  return err;
+}
+
+
+{
+  AudioStreamBasicDescription *source_AudioStreamBasicDescription;
+  AudioStreamBasicDescription *destination_AudioStreamBasicDescription;
+  AudioConverterRef *converter;
+ 
+...
+ 
+  AudioConverterNew(source_AudioStreamBasicDescription,
+                    destination_AudioStreamBasicDescription ,
+                    converter);
+}
+
+OSStatus
+MyFileRenderProc(void *inRefCon,
+                 AudioUnitRenderActionFlags *inActionFlags,
+                 const AudioTimeStamp *inTimeStamp,
+                 UInt32 inBusNumber,
+                 UInt32 inNumFrames,
+                 AudioBufferList *ioData)
+{
+  OSStatus err= noErr;
+  //To obtain a data buffer of converted data from a complex input
+  //source(compressed files, etc.) use AudioConverterFillComplexBuffer.
+  AudioConverterFillComplexBuffer(converter,
+              MyACComplexInputProc ,
+              0 ,
+              &inNumFrames,
+              ioData,
+              0);
+
+  return err;
+}
+/*
+Parameters for AudioConverterFillComplexBuffer()
+ 
+converter - the converter being used
+ 
+MyACComplexInputProc() - input procedure to supply data to the Audio
+ Converter.
+ 
+inNumFrames - The amount of requested data on input. On output, this
+number is the amount actually received.
+ 
+ioData - Buffer of the converted data recieved on return
+*/
+
+OSStatus
+MyACComplexInputProc(AudioConverterRef inAudioConverter,
+                     UInt32 *ioNumberDataPackets,
+                     AudioBufferList *ioData,
+                     AudioStreamPacketDescription **outDataPacketDescription,
+                     void *inUserData)
+{
+  OSStatus    err = noErr;
+  UInt32  bytesCopied = 0;
+
+  // initialize in case of failure
+  ioData->mBuffers[0].mData = NULL;
+  ioData->mBuffers[0].mDataByteSize = 0;
+
+  //if there are not enough packets to satisfy request,
+  //then read what's left
+  if (gPacketOffset + *ioNumberDataPackets > gTotalPacketCount) {
+    *ioNumberDataPackets = gTotalPacketCount - gPacketOffset;
+  }
+
+  // do nothing if there are no packets available
+  if (*ioNumberDataPackets)
+  {
+    if (gSourceBuffer != NULL) {
+      free(gSourceBuffer);
+      gSourceBuffer = NULL;
+    }
+
+    //the total amount of data requested by the AudioConverter
+    bytesCopied = *ioNumberDataPackets * gMaxPacketSize;
+    //alloc a small buffer for the AudioConverter to use.
+    gSourceBuffer = (void *) calloc (1, bytesCopied);
+
+    //copy the amount of data needed (bytesCopied)
+    //from buffer of audio file
+    memcpy(gSourceBuffer, gEntireFileBuffer + gByteOffset,bytesCopied);
+
+    // keep track of where we want to read from next time
+    gByteOffset +=*ioNumberDataPackets * gMaxPacketSize;
+    gPacketOffset += *ioNumberDataPackets;
+
+    // tell the Audio Converter where it's source data is
+    ioData->mBuffers[0].mData = gSourceBuffer;
+    // tell the Audio Converter how much data in each buffer
+    ioData->mBuffers[0].mDataByteSize = bytesCopied;
+  }
+  else
+  {
+    // there aren't any more packets to read.
+    // Set the amount of data read (mDataByteSize) to zero
+    // and return noErr to signal the AudioConverter there are
+    // no packets left.
+
+    ioData->mBuffers[0].mData = NULL;
+    ioData->mBuffers[0].mDataByteSize = 0;
+    gIsPlaying=FALSE;
+    err = noErr;
+  }
+
+  return err;
+}
