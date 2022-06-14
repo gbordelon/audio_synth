@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include "../lib/macros.h"
-#include "../map/mmap.h"
 
 #include "mixer.h"
 #include "bus.h"
@@ -38,8 +37,7 @@ mixer_init(Bus busses, size_t num_busses, FTYPE gain)
   mix->num_busses = num_busses;
   mix->gain = 1.0;
 
-  mix->map = mmap_init();
-  mix->write_buf = calloc(MMAP_SIZE, sizeof(FTYPE));
+  mix->write_buf = calloc(CHUNK_SIZE * NUM_CHANNELS, sizeof(FTYPE));
   mix->needs_write = false;
 
   return mix;
@@ -51,7 +49,6 @@ mixer_cleanup(Mixer mix)
   if (mix->busses) {
     busses_cleanup(mix->busses, mix->num_busses);
   }
-  mmap_clean(mix->map);
   free(mix->write_buf);
   mixer_free(mix);
 }

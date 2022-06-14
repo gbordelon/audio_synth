@@ -350,7 +350,7 @@ main()
 
   int32_t msg;
   int command;    /* the current command */
-  gmix->gain = 0.5;
+  gmix->gain = 0.7;
 
   int spin;
   uint8_t note_ind;
