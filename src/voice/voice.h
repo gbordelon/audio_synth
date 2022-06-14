@@ -27,6 +27,10 @@ typedef struct mono_voice_t {
 typedef struct voice_t {
   Channel channels;
   size_t channel_num;
+  Envelope env_proto;
+  // TODO allow envelope parameters to be tunable
+  // this means updating each of the monovoice envelopes
+  // this means recalculating all the envelope tables
   MonoVoice voices;
   size_t voice_num;
 } *Voice;

@@ -44,6 +44,7 @@ voice_init(Channel channels, size_t channel_num)
   // TODO for channel in channels: increment refcount
   rv->voices = mono_voice_alloc();
   rv->voice_num = NUM_VOICES;
+  rv->env_proto = env_init(DEFAULT_SAMPLE_RATE);
 
   MonoVoice mv;
   for (mv = rv->voices; mv - rv->voices < NUM_VOICES; mv++) {
@@ -63,6 +64,7 @@ voice_cleanup(Voice voice)
   for (mv = voice->voices; mv - voice->voices < NUM_VOICES; mv++) {
     simple_synth_cleanup(mv);
   }
+  env_cleanup(voice->env_proto);
   voice_free(voice);
 }
 

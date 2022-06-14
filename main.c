@@ -17,7 +17,8 @@
 #include "src/mac_audio/audio_unit.h"
 
 #include "src/env/envelope.h"
-#include "src/voice/voice.h"
+#include "src/midi/midi.h"
+#include "src/midi/tunable.h"
 #include "src/osc/imp.h"
 #include "src/osc/osc.h"
 #include "src/osc/saw.h"
@@ -26,7 +27,7 @@
 #include "src/osc/tri.h"
 #include "src/pcm/mixer.h"
 #include "src/pcm/pcm.h"
-#include "src/midi/midi.h"
+#include "src/voice/voice.h"
 
 #define MIDI_CODE_MASK  0xf0
 #define MIDI_CHN_MASK   0x0f
@@ -352,6 +353,9 @@ main()
   int command;    /* the current command */
   gmix->gain = 0.7;
 
+  tunable_register(&gmix->gain, 0);
+  tunable_register(&gmix->busses[0].gain, 1);
+  
   int spin;
   uint8_t note_ind;
   int num_active_notes = 0;
@@ -363,7 +367,7 @@ main()
       //Pm_MessageData1(msg); // note number
       //Pm_MessageData2(msg); // velocity
       if (command == MIDI_ON_NOTE) {
-        put_pitch(Pm_MessageData1(msg));
+        //put_pitch(Pm_MessageData1(msg));
         if (active_voices[Pm_MessageData1(msg)] == 64) {
           note_ind = voice_note_on(gvoice, Pm_MessageData1(msg), Pm_MessageData2(msg));
           active_voices[Pm_MessageData1(msg)] = note_ind;
@@ -376,6 +380,11 @@ main()
           voice_note_off(gvoice, active_voices[Pm_MessageData1(msg)]);
           active_voices[Pm_MessageData1(msg)] = 64;
           num_active_notes--;
+        }
+      } else if (command == MIDI_CTRL) {
+        if (Pm_MessageData1(msg) < MIDI_ALL_SOUND_OFF) {
+           tunable_set((FTYPE)Pm_MessageData2(msg) / 127.0, Pm_MessageData1(msg));
+        } else {
         }
       }
     }
