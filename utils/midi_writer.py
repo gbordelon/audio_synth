@@ -6,7 +6,8 @@ import random
 
 delay = 0.8
 velocity_range = (40,120)
-note_range = (30,100)
+#note_range = (30,100)
+note_choice = [30, 34, 37, 41, 42, 44, 46, 49, 53, 54, 56, 58, 61, 65, 68]
 notes_on = []
 
 def init():
@@ -28,7 +29,8 @@ def loop(output):
 
     if len(notes_on) == 0 or random.randint(0,4) > 0:
       # random note on
-      note = random.randint(*note_range)
+      #note = random.randint(*note_range)
+      note = random.choice(note_choice)
       output.note_on(note, random.randint(*velocity_range))
       notes_on.append(note)
 
