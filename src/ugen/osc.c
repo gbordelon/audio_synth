@@ -5,7 +5,6 @@
 #include "imp.h"
 #include "saw.h"
 #include "sin.h"
-#include "squ.h"
 #include "tri.h"
 #include "../lib/macros.h"
 
@@ -49,11 +48,11 @@ osc_set_velocity_freq(Osc osc, FTYPE freq)
 void
 osc_set_tone_freq(Osc osc, FTYPE freq)
 {
-  ugen_set_freq(&sc->frequency, freq);
+  ugen_set_freq(osc->frequency, freq);
 }
 
 void
-osc_set(Osc osc, enum ugen_type velocity_type, enum ugen_type frequncy_type, FTYPE velocity_freq, FTYPE tone_freq, FTYPE gain)
+osc_set(Osc osc, enum ugen_type velocity_type, enum ugen_type frequency_type, FTYPE velocity_freq, FTYPE tone_freq, FTYPE gain)
 {
   osc_set_tone_freq(osc, tone_freq);
   osc_set_velocity_freq(osc, velocity_freq);
@@ -61,46 +60,46 @@ osc_set(Osc osc, enum ugen_type velocity_type, enum ugen_type frequncy_type, FTY
 
   switch (frequency_type) {
   case UGEN_OSC_IMP:
-    osc->frequency.sample = imp_sample;
+    osc->frequency->sample = imp_sample;
     break;
   case UGEN_OSC_SAW:
-    osc->frequency.sample = saw_sample;
+    osc->frequency->sample = saw_sample;
     break;
   case UGEN_OSC_SIN:
-    osc->frequency.sample = sin_sample;
+    osc->frequency->sample = sin_sample;
     break;
   case UGEN_OSC_TRI:
-    osc->frequency.sample = tri_sample;
+    osc->frequency->sample = tri_sample;
     break;
   case UGEN_CONSTANT:
     // fall through
   default:
-    osc->frequency.sample = ugen_sample_constant;
+    osc->frequency->sample = ugen_sample_constant;
     break;
   }
 
   switch (velocity_type) {
   case UGEN_OSC_IMP:
-    osc->velocity.sample = imp_sample;
+    osc->velocity->sample = imp_sample;
     break;
   case UGEN_OSC_SAW:
-    osc->velocity.sample = saw_sample;
+    osc->velocity->sample = saw_sample;
     break;
   case UGEN_OSC_SIN:
-    osc->velocity.sample = sin_sample;
+    osc->velocity->sample = sin_sample;
     break;
   case UGEN_OSC_TRI:
-    osc->velocity.sample = tri_sample;
+    osc->velocity->sample = tri_sample;
     break;
   case UGEN_CONSTANT:
     // fall through
   default:
-    osc->velocity.sample = ugen_sample_constant;
+    osc->velocity->sample = ugen_sample_constant;
     break;
   }
 
-  ugen_reset_phase(&osc->velocity);
-  ugen_reset_phase(&osc->frequency);
+  ugen_reset_phase(osc->velocity);
+  ugen_reset_phase(osc->frequency);
 }
 
 Osc
@@ -115,7 +114,7 @@ osc_init(enum ugen_type velocity_type, enum ugen_type frequency_type, FTYPE velo
   ugen_set_freq(rv->velocity, velocity_freq);
   ugen_set_freq(rv->frequency, tone_freq);
 
-  osc_set(rv, velocity_type, tone_type, velocity_freq, tone_freq, 0.5);
+  osc_set(rv, velocity_type, frequency_type, velocity_freq, tone_freq, 0.5);
 
   return rv;
 }

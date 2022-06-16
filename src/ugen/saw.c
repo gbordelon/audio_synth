@@ -4,6 +4,12 @@
 #include "saw.h"
 #include "ugen.h"
 
+FTYPE
+saw_sample(Ugen ugen, size_t phase_ind)
+{
+  return osc_saw[phase_ind];
+}
+
 Osc
 saw_init(FTYPE velocity_freq, FTYPE tone_freq)
 {

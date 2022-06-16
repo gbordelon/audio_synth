@@ -14,7 +14,7 @@ typedef struct osc_t {
 } *Osc;
 
 
-Osc osc_init(enum ugen_type type, FTYPE tone_freq);
+Osc osc_init(enum ugen_type velocity_type, enum ugen_type frequency_type, FTYPE velocity_freq, FTYPE tone_freq);
 void osc_cleanup(Osc osc);
 void osc_set(Osc osc, enum ugen_type velocity_type, enum ugen_type frequency_type, FTYPE velocity_freq, FTYPE tone_freq, FTYPE velocity);
 void osc_set_velocity_freq(Osc osc, FTYPE freq);
@@ -23,6 +23,6 @@ void osc_set_velocity_gain(Osc osc, FTYPE gain);
 
 void osc_reset_phase(Osc osc);
 FTYPE osc_sample(Osc osc);
-void osc_chunk_sample(Osc osc, Osc mod, FTYPE *buf);
+void osc_chunk_sample(Osc osc, FTYPE *buf);
 
 #endif

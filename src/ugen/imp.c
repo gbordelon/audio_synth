@@ -47,8 +47,8 @@ imp_init_default(FTYPE tone_freq)
 void
 imp_cleanup(Osc osc)
 {
-  if (osc->frequency.u.impulse.duty_cycle) {
-    ugen_cleanup(osc->frequency.u.impulse.duty_cycle);
+  if (osc->frequency->u.impulse.duty_cycle) {
+    ugen_cleanup(osc->frequency->u.impulse.duty_cycle);
   }
   osc_cleanup(osc);
 }

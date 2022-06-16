@@ -4,6 +4,12 @@
 #include "tri.h"
 #include "ugen.h"
 
+FTYPE
+tri_sample(Ugen ugen, size_t phase_ind)
+{
+  return osc_tri[phase_ind];
+}
+
 Osc
 tri_init(FTYPE velocity_freq, FTYPE tone_freq)
 {

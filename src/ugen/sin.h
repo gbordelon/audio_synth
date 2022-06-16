@@ -6,6 +6,8 @@
 #include "osc.h"
 #include "ugen.h"
 
+FTYPE sin_sample(Ugen ugen, size_t phase_ind);
+
 Osc sin_init(FTYPE velocity_freq, FTYPE tone_freq);
 Osc sin_init_default(FTYPE tone_freq);
 void sin_cleanup(Osc osc);

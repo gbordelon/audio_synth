@@ -7,8 +7,8 @@
 #include "voice.h"
 #include "simple_synth.h"
 #include "../lib/macros.h"
-#include "../osc/imp.h"
-#include "../osc/osc.h"
+#include "../ugen/imp.h"
+#include "../ugen/osc.h"
 #include "../midi/midi.h"
 
 MonoVoice

@@ -32,7 +32,7 @@ ugen_init()
   // null checks
 
   rv->sample = ugen_sample_null;
-  rv->u.impulse.duty_cycle = 0.5;
+  rv->u.impulse.duty_cycle_c = 0.5;
 
   return rv;
 }
@@ -53,11 +53,11 @@ ugen_cleanup(Ugen ugen)
 void
 ugen_set_freq(Ugen ugen, FTYPE freq)
 {
-  ugen->p_inc_whole = floor(UGEN_TABLE_SIZE * tone_freq / (FTYPE)DEFAULT_SAMPLE_RATE);
+  ugen->p_inc_whole = floor(UGEN_TABLE_SIZE * freq / (FTYPE)DEFAULT_SAMPLE_RATE);
   if (ugen->p_inc_whole < 1) {
     ugen->p_inc_whole = 1;
   }
-  ugen->p_inc_frac = fmod(UGEN_TABLE_SIZE * tone_freq / (FTYPE)DEFAULT_SAMPLE_RATE, 1);
+  ugen->p_inc_frac = fmod(UGEN_TABLE_SIZE * freq / (FTYPE)DEFAULT_SAMPLE_RATE, 1);
 }
 
 void
@@ -112,9 +112,12 @@ ugen_sample_mod(Ugen ugen, size_t phase_mod)
   }
 
   sample1 = ugen->sample(ugen, phase_ind);
+/*
   if (ugen->type == UGEN_OSC_IMP) {
     sample2 = sample1;
-  } else if ((phase_ind + 1) == UGEN_TABLE_SIZE) {
+  } else
+*/
+  if ((phase_ind + 1) == UGEN_TABLE_SIZE) {
       sample2 = ugen->sample(ugen, 0);
   } else {
       sample2 = ugen->sample(ugen, phase_ind + 1);

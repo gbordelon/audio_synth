@@ -6,6 +6,8 @@
 #include "osc.h"
 #include "ugen.h"
 
+FTYPE saw_sample(Ugen ugen, size_t phase_ind);
+
 Osc saw_init(FTYPE velocity_freq, FTYPE tone_freq);
 Osc saw_init_default(FTYPE tone_freq);
 void saw_cleanup(Osc osc);

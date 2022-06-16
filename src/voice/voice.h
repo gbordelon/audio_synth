@@ -7,7 +7,7 @@
 #include "../lib/macros.h"
 
 #include "../env/envelope.h"
-#include "../osc/osc.h"
+#include "../ugen/osc.h"
 #include "../pcm/channel.h"
 
 #define NUM_VOICES 64
@@ -15,7 +15,7 @@
 #define voice_playing(i) ((i)->sustain)
 
 typedef struct mono_voice_t {
-  Osc oscillators;
+  Osc *oscillators;
   size_t osc_num;
   Envelope env;
   size_t max_dur;
