@@ -9,39 +9,29 @@
 // assume linear function between sections of the envelope.
 // e.g. circular, sinusoidal, quadratic, cubic, quartic, exponential, logarithmic.
 // I'm guessing I would precompute a table for each function, like with the oscillators
-enum env_curve {
+typedef enum env_curve_e {
   ENV_LINEAR,
-};
+} env_curve;
 
-enum env_state {
+typedef enum env_state_e {
   ENV_ATTACK,
   ENV_DECAY,
   ENV_SUSTAIN,
   ENV_RELEASE
-};
+} env_state;
 
 typedef struct envelope_t {
   // between 0 and 1
-  FTYPE a_amp;
-  FTYPE d_amp;
-  FTYPE s_amp;
-  FTYPE r_amp;
+  FTYPE amps[4];
 
   // amount time spend in each envelope section represented as a number of samples
   // sum to duration of tone for the sample rate.
-  uint32_t a_dur;
-  uint32_t d_dur;
-  uint32_t s_dur;
-  uint32_t r_dur;
-
-  enum env_curve a_curve;
-  enum env_curve d_curve;
-  enum env_curve s_curve;
-  enum env_curve r_curve;
+  uint32_t durs[4];
+  env_curve curves[4];
 
   uint32_t p_ind; // phase index
   uint32_t dur; // phase index
-  enum env_state state;
+  env_state state;
   FTYPE *table;
 } *Envelope;
 

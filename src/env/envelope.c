@@ -35,41 +35,41 @@ env_populate_table_section_linear(FTYPE start, FTYPE end, size_t num_steps, FTYP
 void
 env_populate_table(Envelope env)
 {
-  env_populate_table_section_linear(env->a_amp, env->d_amp, env->a_dur, env->table);
-  env_populate_table_section_linear(env->d_amp, env->s_amp, env->d_dur, env->table + env->a_dur);
-  env_populate_table_section_linear(env->s_amp, env->r_amp, env->s_dur, env->table + env->a_dur + env->d_dur);
-  env_populate_table_section_linear(env->r_amp, 0.0, env->r_dur, env->table + env->a_dur + env->d_dur + env->s_dur);
+  env_populate_table_section_linear(env->amps[0], env->amps[1], env->durs[0], env->table);
+  env_populate_table_section_linear(env->amps[1], env->amps[2], env->durs[1], env->table + env->durs[0]);
+  env_populate_table_section_linear(env->amps[2], env->amps[3], env->durs[2], env->table + env->durs[0] + env->durs[1]);
+  env_populate_table_section_linear(env->amps[3], 0.0, env->durs[3], env->table + env->durs[0] + env->durs[1] + env->durs[2]);
 }
 
 void
 env_default_amp(Envelope env)
 {
-  env->a_amp = 0.5;
-  env->d_amp = 0.9;
-  env->s_amp = 0.4;
-  env->r_amp = 0.2;
+  env->amps[0] = 0.5;
+  env->amps[1] = 0.9;
+  env->amps[2] = 0.4;
+  env->amps[3] = 0.2;
 }
 
 void
 env_default_dur(Envelope env, uint32_t duration)
 {
-  env->a_dur = floor(0.05 * (FTYPE)duration);
-  env->d_dur = floor(0.05 * (FTYPE)duration);
-  env->s_dur = floor(0.85 * (FTYPE)duration);
-  env->r_dur = floor(0.05 * (FTYPE)duration);
+  env->durs[0] = floor(0.05 * (FTYPE)duration);
+  env->durs[1] = floor(0.05 * (FTYPE)duration);
+  env->durs[2] = floor(0.85 * (FTYPE)duration);
+  env->durs[3] = floor(0.05 * (FTYPE)duration);
 
   // TODO find a better way to deal with the rounding slop
-  env->r_dur += duration - (env->a_dur + env->d_dur + env->s_dur + env->r_dur);
+  env->durs[3] += duration - (env->durs[0] + env->durs[1] + env->durs[2] + env->durs[3]);
   env_set_duration(env, duration);
 }
 
 void
 env_default_curve(Envelope env)
 {
-  env->a_curve = ENV_LINEAR;
-  env->d_curve = ENV_LINEAR;
-  env->s_curve = ENV_LINEAR;
-  env->r_curve = ENV_LINEAR;
+  env->curves[0] = ENV_LINEAR;
+  env->curves[1] = ENV_LINEAR;
+  env->curves[2] = ENV_LINEAR;
+  env->curves[3] = ENV_LINEAR;
 }
 
 void
@@ -136,14 +136,15 @@ env_sample_chunk(Envelope env, bool sustain, FTYPE *buf)
     *buf = (env->p_ind >= env->dur)
            ? 0.0
            : env->table[env->p_ind++];
+
     switch(env->state) {
     case ENV_ATTACK:
-      if (env->p_ind == env->a_dur) {
+      if (env->p_ind == env->durs[0]) {
         env->state = ENV_DECAY;
       }
       break;
     case ENV_DECAY:
-      if (env->p_ind == env->a_dur + env->d_dur) {
+      if (env->p_ind == env->durs[0] + env->durs[1]) {
         env->state = ENV_SUSTAIN;
       }
       break;
@@ -152,7 +153,7 @@ env_sample_chunk(Envelope env, bool sustain, FTYPE *buf)
       if (sustain) {
         env->p_ind--;
       }
-      if (env->p_ind == env->a_dur + env->d_dur + env->s_dur) {
+      if (env->p_ind == env->durs[0] + env->durs[1] + env->durs[2]) {
         env->state = ENV_RELEASE;
       }
       break;
