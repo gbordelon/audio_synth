@@ -10,6 +10,19 @@
 #include "sin.h"
 #include "tri.h"
 
+#include "ramp_circle.h"
+#include "ramp_linear.h"
+
+void
+ugen_generate_tables()
+{
+  ugen_generate_table_saw();
+  ugen_generate_table_sin();
+  ugen_generate_table_tri();
+  ugen_generate_table_ramp_circle_down();
+  ugen_generate_table_ramp_linear_up();
+}
+
 Ugen
 ugen_alloc()
 {
@@ -88,6 +101,38 @@ ugen_init_tri(FTYPE freq)
   ugen->sample = ugen_sample_tri;
   ugen_set_freq(ugen, freq);
 
+  return ugen;
+}
+
+Ugen
+ugen_init_ramp_circle_down()
+{
+  Ugen ugen = ugen_init();
+  ugen->sample = ugen_sample_ramp_circle_down;
+  return ugen;
+}
+
+Ugen
+ugen_init_ramp_circle_up()
+{
+  Ugen ugen = ugen_init();
+  ugen->sample = ugen_sample_ramp_circle_up;
+  return ugen;
+}
+
+Ugen
+ugen_init_ramp_linear_down()
+{
+  Ugen ugen = ugen_init();
+  ugen->sample = ugen_sample_ramp_linear_down;
+  return ugen;
+}
+
+Ugen
+ugen_init_ramp_linear_up()
+{
+  Ugen ugen = ugen_init();
+  ugen->sample = ugen_sample_ramp_linear_up;
   return ugen;
 }
 

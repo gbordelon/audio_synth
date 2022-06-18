@@ -53,13 +53,17 @@ typedef struct ugen_t {
   uint32_t p_ind;
 } *Ugen;
 
-Ugen ugen_init(); // TODO remove this. should only be called from ugen.c
+void ugen_generate_tables();
 
 Ugen ugen_init_constant();
 Ugen ugen_init_imp(FTYPE freq, FTYPE duty_cycle);
 Ugen ugen_init_saw(FTYPE freq);
 Ugen ugen_init_sin(FTYPE freq);
 Ugen ugen_init_tri(FTYPE freq);
+
+Ugen ugen_init_ramp_circle_down(FTYPE freq);
+Ugen ugen_init_ramp_circle_up(FTYPE freq);
+Ugen ugen_init_ramp_linear(FTYPE freq);
 
 void ugen_cleanup(Ugen ugen);
 

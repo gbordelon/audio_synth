@@ -104,6 +104,15 @@ audio_unit_init()
   return audioUnit;
 }
 
+static void
+pull_samples()
+{
+  voice_play_chunk(gvoice);
+  mixer_update(gmix);
+  memcpy(_buffer, gmix->write_buf, MMAP_SIZE * sizeof(FTYPE));
+  memset(gmix->write_buf, 0, MMAP_SIZE * sizeof(FTYPE));
+}
+
 static OSStatus
 playbackCallback(void *inRefCon, 
                  AudioUnitRenderActionFlags *ioActionFlags, 
@@ -113,10 +122,7 @@ playbackCallback(void *inRefCon,
                  AudioBufferList *ioData) 
 {
   if (_index >= MMAP_SIZE) {
-    voice_play_chunk(gvoice);
-    mixer_update(gmix);
-    memcpy(_buffer, gmix->write_buf, MMAP_SIZE * sizeof(FTYPE));
-    memset(gmix->write_buf, 0, MMAP_SIZE * sizeof(FTYPE));
+    pull_samples();
     _index = 0;
   }
 
@@ -130,10 +136,7 @@ playbackCallback(void *inRefCon,
         memcpy(ioData->mBuffers[i].mData, _buffer + _index, samplesLeft * sizeof(FTYPE));
         _index += samplesLeft;
 
-        voice_play_chunk(gvoice);
-        mixer_update(gmix);
-        memcpy(_buffer, gmix->write_buf, MMAP_SIZE * sizeof(FTYPE));
-        memset(gmix->write_buf, 0, MMAP_SIZE * sizeof(FTYPE));
+        pull_samples();
         memcpy(((FTYPE*)ioData->mBuffers[i].mData) + samplesLeft, _buffer, (numSamples - samplesLeft) * sizeof(FTYPE));
         _index = numSamples - samplesLeft;
       } else {

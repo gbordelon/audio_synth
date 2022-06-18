@@ -22,9 +22,6 @@
 #include "src/pcm/mixer.h"
 #include "src/pcm/pcm.h"
 #include "src/voice/voice.h"
-#include "src/ugen/saw.h"
-#include "src/ugen/sin.h"
-#include "src/ugen/tri.h"
 
 #define MIDI_CODE_MASK  0xf0
 #define MIDI_CHN_MASK   0x0f
@@ -308,9 +305,7 @@ main()
   fflush(stdout);
 
   clock_t t = clock();
-  ugen_generate_table_saw();
-  ugen_generate_table_sin();
-  ugen_generate_table_tri();
+  ugen_generate_tables();
   t = clock() - t;
   double tt = t / CLOCKS_PER_SEC;
   printf("took %f seconds.\n", tt);
