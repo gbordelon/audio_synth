@@ -22,6 +22,9 @@
 #include "src/pcm/mixer.h"
 #include "src/pcm/pcm.h"
 #include "src/voice/voice.h"
+#include "src/ugen/saw.h"
+#include "src/ugen/sin.h"
+#include "src/ugen/tri.h"
 
 #define MIDI_CODE_MASK  0xf0
 #define MIDI_CHN_MASK   0x0f
@@ -296,29 +299,31 @@ receive_poll(PtTimestamp timestamp, void *userData)
     }
 }
 
-static void
-put_pitch(int p)
-{
-    char result[8];
-    static char *ptos[] = {
-        "c", "cs", "d", "ef", "e", "f", "fs", "g",
-        "gs", "a", "bf", "b"    };
-    /* note octave correction below */
-    sprintf(result, "%s%d\n", ptos[p % 12], (p / 12) - 1);
-    printf(result);
-    fflush(stdout);
-}
-
 int
 main()
 {
   PmError err;
   uint8_t active_voices[128];
+  printf("generating wave tables... ");
+  fflush(stdout);
+
+  clock_t t = clock();
+  ugen_generate_table_saw();
+  ugen_generate_table_sin();
+  ugen_generate_table_tri();
+  t = clock() - t;
+  double tt = t / CLOCKS_PER_SEC;
+  printf("took %f seconds.\n", tt);
+
   gmix = mixer_init(NULL, 0, 1.0);
+  printf("mixer initialized.\n");
+
   Channel chans = gmix->busses[0].channels;
   gvoice = voice_init(chans, NUM_CHANNELS);
+  printf("instrument initialized.\n");
 
   AudioComponentInstance audio_unit = audio_unit_init();
+  printf("AudioUnit initialized.\n");
 
   memset(active_voices, 64, 128);
 
@@ -340,8 +345,11 @@ main()
   // check midi_to_main != NULL
 
   active = true;
+  printf("MIDI in initialized.\n");
 
   audio_unit_go(audio_unit);
+  printf("Synth started.\n");
+  fflush(stdout);
 
   int32_t msg;
   int command;    /* the current command */

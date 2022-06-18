@@ -43,7 +43,7 @@ simple_synth_init(MonoVoice mv)
   mv->ugens[0] = ugen_init_sin(midi_note_to_freq_table[45]); // sin carrier
   mv->ugens[1] = ugen_init_imp(midi_note_to_freq_table[45] * 7.0, 0.1); // impulse 10% duty cycle modulator
   mv->ugens[2] = ugen_init_sin(0.5); // LFO for modulator gain
-  mv->ugens[3] = ugen_init_sin(0.5); // LFO for modulator duty_cycle
+  mv->ugens[3] = ugen_init_sin(0.1); // LFO for modulator duty_cycle
 
   ugen_set_gain_c(*mv->ugens, 0.7);
 
