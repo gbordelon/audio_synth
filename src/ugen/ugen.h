@@ -24,7 +24,8 @@ enum ugen_type {
   UGEN_OSC_TRI,
   UGEN_RAMP_CIRCLE_DOWN,
   UGEN_RAMP_CIRCLE_UP,
-  UGEN_RAMP_LINEAR
+  UGEN_RAMP_LINEAR_DOWN,
+  UGEN_RAMP_LINEAR_UP
 };
 
 typedef struct ugen_t {
@@ -63,7 +64,8 @@ Ugen ugen_init_tri(FTYPE freq);
 
 Ugen ugen_init_ramp_circle_down(FTYPE freq);
 Ugen ugen_init_ramp_circle_up(FTYPE freq);
-Ugen ugen_init_ramp_linear(FTYPE freq);
+Ugen ugen_init_ramp_linear_down(FTYPE freq);
+Ugen ugen_init_ramp_linear_up(FTYPE freq);
 
 void ugen_cleanup(Ugen ugen);
 

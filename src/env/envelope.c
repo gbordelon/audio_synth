@@ -3,7 +3,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <stdio.h>
+
 #include "../lib/macros.h"
+
+#include "../ugen/ugen.h"
+
 #include "envelope.h"
 
 Envelope
@@ -20,28 +25,6 @@ env_free(Envelope env)
 }
 
 void
-env_populate_table_section_linear(FTYPE start, FTYPE end, size_t num_steps, FTYPE *buf)
-{
-  FTYPE step = (end - start) / (FTYPE)num_steps;
-  FTYPE *b;
-
-  *buf = start;
-  for (b = buf; b - buf + 1 < num_steps; b++) {
-    *(b + 1) = *b + step;
-  }
-}
-
-// TODO support more than just linear
-void
-env_populate_table(Envelope env)
-{
-  env_populate_table_section_linear(env->amps[0], env->amps[1], env->durs[0], env->table);
-  env_populate_table_section_linear(env->amps[1], env->amps[2], env->durs[1], env->table + env->durs[0]);
-  env_populate_table_section_linear(env->amps[2], env->amps[3], env->durs[2], env->table + env->durs[0] + env->durs[1]);
-  env_populate_table_section_linear(env->amps[3], 0.0, env->durs[3], env->table + env->durs[0] + env->durs[1] + env->durs[2]);
-}
-
-void
 env_default_amp(Envelope env)
 {
   env->amps[0] = 0.5;
@@ -51,33 +34,26 @@ env_default_amp(Envelope env)
 }
 
 void
-env_default_dur(Envelope env, uint32_t duration)
+env_default_durations(Envelope env)
 {
-  env->durs[0] = floor(0.05 * (FTYPE)duration);
-  env->durs[1] = floor(0.05 * (FTYPE)duration);
-  env->durs[2] = floor(0.85 * (FTYPE)duration);
-  env->durs[3] = floor(0.05 * (FTYPE)duration);
+  env->durs[0] = 0.05;
+  env->durs[1] = 0.10;
+  env->durs[2] = 0.85;
+  env->durs[3] = 0.05;
 
-  // TODO find a better way to deal with the rounding slop
-  env->durs[3] += duration - (env->durs[0] + env->durs[1] + env->durs[2] + env->durs[3]);
-  env_set_duration(env, duration);
+  env->max_samples[0] = floor(DEFAULT_SAMPLE_RATE * env->durs[0]);
+  env->max_samples[1] = floor(DEFAULT_SAMPLE_RATE * env->durs[1]);
+  env->max_samples[2] = floor(DEFAULT_SAMPLE_RATE * env->durs[2]);
+  env->max_samples[3] = floor(DEFAULT_SAMPLE_RATE * env->durs[3]);
 }
 
 void
-env_default_curve(Envelope env)
+env_default_ugens(Envelope env)
 {
-  env->curves[0] = ENV_LINEAR;
-  env->curves[1] = ENV_LINEAR;
-  env->curves[2] = ENV_LINEAR;
-  env->curves[3] = ENV_LINEAR;
-}
-
-void
-env_default(Envelope env, uint32_t duration)
-{
-  env_default_amp(env);
-  env_default_curve(env);
-  env_default_dur(env, duration);
+  env->ugens[0] = ugen_init_ramp_linear_up(1.0 / env->durs[0]);
+  env->ugens[1] = ugen_init_ramp_linear_down(1.0 / env->durs[1]);
+  env->ugens[2] = ugen_init_ramp_linear_down(1.0 / env->durs[2]);
+  env->ugens[3] = ugen_init_ramp_linear_down(1.0 / env->durs[3]);
 }
 
 void
@@ -88,26 +64,30 @@ env_reset(Envelope env)
 }
 
 void
-env_set_duration(Envelope env, uint32_t duration)
+env_set_duration(Envelope env, FTYPE duration/*in seconds*/, env_state stage)
 {
   env_reset(env);
-  if (env->dur < duration) {
-    env->table = realloc(env->table, 1 * duration * sizeof(FTYPE));
-    // null checks
-  }
-  if (env->dur != duration) {
-    env->dur = duration;
-    env_populate_table(env);
-  }
+  env->durs[stage] = duration;
+  env->max_samples[stage] = floor(DEFAULT_SAMPLE_RATE * env->durs[stage]);
+  ugen_set_freq(env->ugens[stage], 1.0 / duration);
 }
 
 Envelope
-env_init(uint32_t duration)
+env_init()
 {
   Envelope env = env_alloc();
   // null checks
 
-  env_default(env, duration);
+  return env;
+}
+
+Envelope
+env_init_default()
+{
+  Envelope env = env_init();
+  env_default_amp(env);
+  env_default_durations(env);
+  env_default_ugens(env);
 
   return env;
 }
@@ -115,17 +95,51 @@ env_init(uint32_t duration)
 void
 env_cleanup(Envelope env)
 {
+  ugen_cleanup(env->ugens[0]);
+  ugen_cleanup(env->ugens[1]);
+  ugen_cleanup(env->ugens[2]);
+  ugen_cleanup(env->ugens[3]);
   env_free(env);
 }
 
 FTYPE
-env_sample(Envelope env)
+env_sample(Envelope env, bool sustain)
 {
-  if (env->p_ind >= env->dur) {
+  if (env->p_ind >= env->max_samples[0] + env->max_samples[1] + env->max_samples[2] + env->max_samples[3]) {
     return 0.0;
   }
 
-  return env->table[env->p_ind++];
+  FTYPE sample;
+
+  sample = ugen_sample(env->ugens[env->state]);
+  sample *= env->amps[env->state];
+  env->p_ind++;
+
+  switch(env->state) {
+  case ENV_ATTACK:
+    if (env->p_ind == env->max_samples[0]) {
+      env->state = ENV_DECAY;
+    }
+    break;
+  case ENV_DECAY:
+    if (env->p_ind == env->max_samples[0] + env->max_samples[1]) {
+      env->state = ENV_SUSTAIN;
+    }
+    break;
+  case ENV_SUSTAIN:
+    // TODO do something more interesting?
+    if (sustain) {
+      env->p_ind--;
+    }
+    if (env->p_ind == env->max_samples[0] + env->max_samples[1] + env->max_samples[2]) {
+      env->state = ENV_RELEASE;
+    }
+    break;
+  case ENV_RELEASE:
+    break;
+  }
+
+  return sample; 
 }
 
 void
@@ -133,32 +147,6 @@ env_sample_chunk(Envelope env, bool sustain, FTYPE *buf)
 {
   int i;
   for (i = 0; i < CHUNK_SIZE; i++, buf++) {
-    *buf = (env->p_ind >= env->dur)
-           ? 0.0
-           : env->table[env->p_ind++];
-
-    switch(env->state) {
-    case ENV_ATTACK:
-      if (env->p_ind == env->durs[0]) {
-        env->state = ENV_DECAY;
-      }
-      break;
-    case ENV_DECAY:
-      if (env->p_ind == env->durs[0] + env->durs[1]) {
-        env->state = ENV_SUSTAIN;
-      }
-      break;
-    case ENV_SUSTAIN:
-      // TODO do something more interesting?
-      if (sustain) {
-        env->p_ind--;
-      }
-      if (env->p_ind == env->durs[0] + env->durs[1] + env->durs[2]) {
-        env->state = ENV_RELEASE;
-      }
-      break;
-    case ENV_RELEASE:
-      break;
-    } 
+    *buf = env_sample(env, sustain);
   }
 }

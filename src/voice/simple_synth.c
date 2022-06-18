@@ -56,7 +56,7 @@ simple_synth_init(MonoVoice mv)
   (*(mv->ugens + 2))->sample = sample_adjust_to_0308;
   (*(mv->ugens + 3))->sample = sample_adjust_to_001;
 
-  mv->env = env_init(DEFAULT_SAMPLE_RATE);
+  mv->env = env_init_default();
 }
 
 void
@@ -72,8 +72,6 @@ simple_synth_cleanup(MonoVoice mv)
 void
 simple_synth_note_on(MonoVoice mv, uint8_t midi_note)
 {
-  env_set_duration(mv->env, mv->max_dur);
-
   ugen_set_freq(*mv->ugens, midi_note_to_freq_table[midi_note]);
   ugen_set_gain_c(*mv->ugens, mv->velocity);
   ugen_set_freq(*(mv->ugens + 1), midi_note_to_freq_table[midi_note] * 7.0);// * 7.0 / 2.0);

@@ -43,7 +43,7 @@ voice_init(Channel channels, size_t channel_num)
   // TODO for channel in channels: increment refcount
   rv->voices = mono_voice_alloc();
   rv->voice_num = NUM_VOICES;
-  rv->env_proto = env_init(DEFAULT_SAMPLE_RATE);
+  rv->env_proto = env_init_default();
 
   MonoVoice mv;
   for (mv = rv->voices; mv - rv->voices < NUM_VOICES; mv++) {
