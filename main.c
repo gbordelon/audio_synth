@@ -21,6 +21,8 @@
 #include "src/midi/tunable.h"
 #include "src/pcm/mixer.h"
 #include "src/pcm/pcm.h"
+#include "src/ugen/sin.h"
+#include "src/ugen/ugen.h"
 #include "src/voice/voice.h"
 
 #define MIDI_CODE_MASK  0xf0
@@ -296,6 +298,12 @@ receive_poll(PtTimestamp timestamp, void *userData)
     }
 }
 
+FTYPE
+cr_sin(Ugen ugen, size_t phase_ind)
+{
+  return (1.0 + ugen_sample_sin(ugen, phase_ind)) / 2.0;
+}
+
 int
 main()
 {
@@ -315,6 +323,9 @@ main()
 
   Channel chans = gmix->busses[0].channels;
   gvoice = voice_init(chans, NUM_CHANNELS);
+  ugen_cleanup(gvoice->pan);
+  gvoice->pan = ugen_init_sin(0.2);
+  gvoice->pan->sample = cr_sin;
   printf("instrument initialized.\n");
 
   AudioComponentInstance audio_unit = audio_unit_init();

@@ -31,6 +31,7 @@ typedef struct voice_t {
   Envelope env_proto;
   MonoVoice voices;
   size_t voice_num;
+  Ugen pan; // control rate. 0 full left. 1 full right.
 } *Voice;
 
 Voice voice_init(Channel channels, size_t channel_num);

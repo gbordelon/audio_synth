@@ -4,6 +4,7 @@
 
 #include "../lib/macros.h"
 #include "../midi/midi.h"
+#include "../ugen/ugen.h"
 
 #include "voice.h"
 
@@ -34,6 +35,12 @@ voice_free(Voice voice)
   free(voice);
 }
 
+FTYPE
+cons_05(Ugen ugen, size_t phase_ind)
+{
+  return 0.5;
+}
+
 Voice
 voice_init(Channel channels, size_t channel_num)
 {
@@ -52,6 +59,9 @@ voice_init(Channel channels, size_t channel_num)
     mv->cur_dur = 0;
   }
 
+  rv->pan = ugen_init_constant();
+  rv->pan->sample = cons_05;
+
   return rv;
 }
 
@@ -64,12 +74,12 @@ voice_cleanup(Voice voice)
     simple_synth_cleanup(mv);
   }
   env_cleanup(voice->env_proto);
+  ugen_cleanup(voice->pan);
   voice_free(voice);
 }
 
 /*
- * 1024 samples at 48000/sec means 21.33 milliseconds of play time.
- * ignoring user input during a chunk means a control signal will be 21.33 ms latent
+ * TODO don't force two channels
  */
 void
 voice_play_chunk(Voice voice)
@@ -78,10 +88,13 @@ voice_play_chunk(Voice voice)
   Channel right = voice->channels + 1;
 
   static FTYPE samples[2][CHUNK_SIZE];
-  static FTYPE accum[CHUNK_SIZE];
-  FTYPE *t, *e, *a;
+  static FTYPE accum_l[CHUNK_SIZE];
+  static FTYPE accum_r[CHUNK_SIZE];
+  FTYPE *t, *e, *L, *R;
+  FTYPE pan;
 
-  memset(accum, 0, CHUNK_SIZE * sizeof(FTYPE));
+  memset(accum_l, 0, CHUNK_SIZE * sizeof(FTYPE));
+  memset(accum_r, 0, CHUNK_SIZE * sizeof(FTYPE));
 
   // iterate over 64 voices
   MonoVoice mv;
@@ -89,18 +102,17 @@ voice_play_chunk(Voice voice)
     if (voice_playing(mv)) {
       simple_synth_play_chunk(mv, samples);
 
-      for (a = accum, t = samples[0], e = samples[1]; a - accum < CHUNK_SIZE; t++, e++, a++) {
-        *a += *t * *e;
+      for (L = accum_l, R = accum_r, t = samples[0], e = samples[1]; L - accum_l < CHUNK_SIZE; t++, e++, L++, R++) {
+        pan = ugen_sample(voice->pan);
+        *L += *t * *e * (1.0 - pan);
+        *R += *t * *e * (pan);
       }
     }
   }
 
   // TODO check rv
-  //size_t rv = 0;
-  //rv = channel_write(left, accum);
-  //rv = channel_write(right, accum);
-  channel_write(left, accum);
-  channel_write(right, accum);
+  channel_write(left, accum_l);
+  channel_write(right, accum_r);
 }
 
 uint8_t

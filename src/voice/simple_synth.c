@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -69,12 +70,14 @@ simple_synth_cleanup(MonoVoice mv)
   env_cleanup(mv->env);
 }
 
+
 void
 simple_synth_note_on(MonoVoice mv, uint8_t midi_note)
 {
+  FTYPE mod = round(mv->velocity * 11.0);
   ugen_set_freq(*mv->ugens, midi_note_to_freq_table[midi_note]);
   ugen_set_gain_c(*mv->ugens, mv->velocity);
-  ugen_set_freq(*(mv->ugens + 1), midi_note_to_freq_table[midi_note] * 7.0);// * 7.0 / 2.0);
+  ugen_set_freq(*(mv->ugens + 1), midi_note_to_freq_table[midi_note] * mod);
   //ugen_set_gain_c(*(mv->ugens + 1), 1.0);//mv->velocity);
   //ugen_set_duty_cycle_c(*(mv->ugens + 2), 1.0 - mv->velocity);
 
