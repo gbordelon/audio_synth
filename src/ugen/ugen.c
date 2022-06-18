@@ -5,6 +5,10 @@
 #include "../lib/macros.h"
 
 #include "ugen.h"
+#include "imp.h"
+#include "saw.h"
+#include "sin.h"
+#include "tri.h"
 
 Ugen
 ugen_alloc()
@@ -14,13 +18,13 @@ ugen_alloc()
 }
 
 FTYPE
-ugen_sample_constant(Ugen ugen, size_t phase_mod)
+ugen_sample_constant(Ugen ugen, size_t phase_ind)
 {
   return 1.0;
 }
 
 FTYPE
-ugen_sample_null(Ugen ugen, size_t phase_mod)
+ugen_sample_null(Ugen ugen, size_t phase_ind)
 {
   return 0.0;
 }
@@ -33,8 +37,58 @@ ugen_init()
 
   rv->sample = ugen_sample_null;
   rv->u.impulse.duty_cycle_c = 0.5;
+  rv->gain_c = 1.0;
 
   return rv;
+}
+
+Ugen
+ugen_init_constant()
+{
+  Ugen ugen = ugen_init();
+  ugen->sample = ugen_sample_constant;
+  return ugen;
+}
+
+Ugen
+ugen_init_imp(FTYPE freq, FTYPE duty_cycle)
+{
+  Ugen ugen = ugen_init();
+  ugen->sample = ugen_sample_imp;
+  ugen->u.impulse.duty_cycle_c = duty_cycle;
+  ugen_set_freq(ugen, freq);
+
+  return ugen;
+}
+
+Ugen
+ugen_init_saw(FTYPE freq)
+{
+  Ugen ugen = ugen_init();
+  ugen->sample = ugen_sample_saw;
+  ugen_set_freq(ugen, freq);
+
+  return ugen;
+}
+
+Ugen
+ugen_init_sin(FTYPE freq)
+{
+  Ugen ugen = ugen_init();
+  ugen->sample = ugen_sample_sin;
+  ugen_set_freq(ugen, freq);
+
+  return ugen;
+}
+
+Ugen
+ugen_init_tri(FTYPE freq)
+{
+  Ugen ugen = ugen_init();
+  ugen->sample = ugen_sample_tri;
+  ugen_set_freq(ugen, freq);
+
+  return ugen;
 }
 
 void
@@ -60,6 +114,19 @@ ugen_set_freq(Ugen ugen, FTYPE freq)
   ugen->p_inc_frac = fmod(UGEN_TABLE_SIZE * freq / (FTYPE)DEFAULT_SAMPLE_RATE, 1);
 }
 
+/*
+ * Caller is responsible for freeing the optional attached ugens
+ */
+void
+ugen_set_gain(Ugen car, Ugen gain)
+{
+  if (!car->gain) {
+    car->gain = gain;
+  } else {
+    // TODO complain
+  }
+}
+
 void
 ugen_set_mod(Ugen car, Ugen mod)
 {
@@ -71,7 +138,28 @@ ugen_set_mod(Ugen car, Ugen mod)
 }
 
 void
-ugen_set_duty_cycle(Ugen ugen, FTYPE duty_cycle)
+ugen_set_duty_cycle(Ugen ugen, Ugen duty_cycle)
+{
+  if (!ugen->u.impulse.duty_cycle) {
+    ugen->u.impulse.duty_cycle = duty_cycle;
+  } else {
+    // complain
+  }
+}
+
+void
+ugen_set_gain_c(Ugen ugen, FTYPE gain)
+{
+  if (gain > 1.0) {
+    gain = 1.0;
+  } else if (gain < 0.0) {
+    gain = 0.0;
+  }
+  ugen->gain_c = gain;
+}
+
+void
+ugen_set_duty_cycle_c(Ugen ugen, FTYPE duty_cycle)
 {
   if (duty_cycle > 1.0) {
     duty_cycle = 1.0;
@@ -79,20 +167,6 @@ ugen_set_duty_cycle(Ugen ugen, FTYPE duty_cycle)
     duty_cycle = 0.0;
   }
   ugen->u.impulse.duty_cycle_c = duty_cycle;
-}
-
-/*
- * Caller is responsible for freeing the duty cycle ugen
- * Currently only impulse oscillators use duty cycle
- */
-void
-ugen_set_duty_cycle_ugen(Ugen ugen, Ugen duty_cycle)
-{
-  if (!ugen->u.impulse.duty_cycle) {
-    ugen->u.impulse.duty_cycle = duty_cycle;
-  } else {
-    // complain
-  }
 }
 
 FTYPE
@@ -129,34 +203,48 @@ ugen_sample_mod(Ugen ugen, size_t phase_mod)
 FTYPE
 ugen_sample(Ugen ugen)
 {
-  if (!ugen->mod) {
-    return ugen_sample_mod(ugen, 0);
+  FTYPE sample;
+  long phase_mod = 0;
+
+  if (ugen->mod) {
+    FTYPE phase_shift = ugen_sample(ugen->mod);
+
+    // This is intended for periodic functions. 1/4 of the table size for a
+    // table with one period's worth of samples means 90 deg phase shift
+    // Only want to use positive values, so adding the table size to a neg
+    // number is the same as using the neg number to shift phase.
+    phase_mod = lround(phase_shift * UGEN_TABLE_SIZE / 4.0);
+    if (phase_mod < 0) {
+      phase_mod += UGEN_TABLE_SIZE;
+    }
+  }
+  sample = ugen_sample_mod(ugen, (size_t)phase_mod);
+
+  if (ugen->gain) {
+    sample *= ugen_sample(ugen->gain);
+  } else {
+    sample *= ugen->gain_c;
   }
 
-  FTYPE phase_shift = ugen_sample(ugen->mod);
-
-  // This is intended for periodic functions. 1/4 of the table size for a
-  // table with one period's worth of samples means 90 deg phase shift
-  // Only want to use positive values, so adding the table size to a neg
-  // number is the same as using the neg number to shift phase.
-  long phase_mod = lround(phase_shift * UGEN_TABLE_SIZE / 4.0);
-  if (phase_mod < 0) {
-    phase_mod += UGEN_TABLE_SIZE;
-  }
-
-  return ugen_sample_mod(ugen, (size_t)phase_mod);
+  return sample;
 }
 
 void
-ugen_chunk_sample_mod(Ugen ugen, size_t phase_mod[CHUNK_SIZE], FTYPE buf[CHUNK_SIZE])
+ugen_chunk_sample_mod(Ugen ugen, size_t phase_mod[CHUNK_SIZE], FTYPE gain[CHUNK_SIZE], FTYPE buf[CHUNK_SIZE])
 {
   size_t *phase = phase_mod;
   FTYPE *rv = buf;
+  FTYPE *g = gain;
   for (; rv - buf < CHUNK_SIZE; phase++, rv++) {
     if (phase_mod) {
       *rv = ugen_sample_mod(ugen, *phase);
     } else {
       *rv = ugen_sample_mod(ugen, 0.0);
+    }
+    if (gain) {
+      *rv *= *g++;
+    } else {
+      *rv *= ugen->gain_c;
     }
   }
 }
@@ -165,9 +253,17 @@ void
 ugen_chunk_sample(Ugen ugen, FTYPE buf[CHUNK_SIZE])
 {
   static size_t phase_chunk[CHUNK_SIZE] = {0};
+  static FTYPE gain_chunk[CHUNK_SIZE] = {0};
+  FTYPE *gain_ptr = NULL;
+
+  if (ugen->gain) {
+    // get a chunk of gains
+    ugen_chunk_sample(ugen->gain, gain_chunk);
+    gain_ptr = gain_chunk;
+  }
 
   if (!ugen->mod) {
-    ugen_chunk_sample_mod(ugen, NULL, buf);
+    ugen_chunk_sample_mod(ugen, NULL, gain_ptr, buf);
     return;
   }
 
@@ -183,5 +279,5 @@ ugen_chunk_sample(Ugen ugen, FTYPE buf[CHUNK_SIZE])
     }
   }
 
-  ugen_chunk_sample_mod(ugen, phase_chunk, buf);
+  ugen_chunk_sample_mod(ugen, phase_chunk, gain_ptr, buf);
 }

@@ -1,15 +1,14 @@
-#include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "voice.h"
-#include "simple_synth.h"
 #include "../lib/macros.h"
-#include "../ugen/imp.h"
-#include "../ugen/osc.h"
 #include "../midi/midi.h"
+
+#include "voice.h"
+
+// TODO create more instruments
+#include "simple_synth.h"
 
 MonoVoice
 mono_voice_alloc()
@@ -131,20 +130,3 @@ voice_note_off(Voice voice, uint8_t mono_voice_index)
     // TODO what?
   }
 }
-
-/*
-// duration in seconds
-void
-voice_play_config(Voice voice, uint8_t midi_note, FTYPE dur)
-{
-  MonoVoice mv;
-  for (mv = voice->voices; mv - voice->voices < NUM_VOICES; mv++) {
-    if (!voice_playing(mv)) {
-      mv->cur_dur = 0;
-      mv->max_dur = DEFAULT_SAMPLE_RATE * dur;
-      simple_synth_play_config(mv, midi_note);
-      break;
-    }
-  }
-}
-*/

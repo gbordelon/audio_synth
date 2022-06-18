@@ -30,17 +30,21 @@ enum ugen_type {
 typedef struct ugen_t {
   // ugen to be used as a phase modulator
   struct ugen_t *mod;
+  // ugen to be used as a gain/velocity modulator
+  struct ugen_t *gain;
+  // constant gain to be used when no gain modulator is assoc'd
+  FTYPE gain_c;
 
   // struct for ugen-specific vars
   union {
-    // use constant if ugen is null
     struct {
+    // use constant if ugen is null
       FTYPE duty_cycle_c;
       struct ugen_t *duty_cycle; // imagine LFO duty cycle shifting :)
     } impulse;
   } u;
 
-  // sample fn determines the wave table
+  // sample fn determines the wave table to use
   FTYPE (*sample)(struct ugen_t *, size_t);
 
   // phase management for table indexing
@@ -49,15 +53,21 @@ typedef struct ugen_t {
   uint32_t p_ind;
 } *Ugen;
 
-FTYPE ugen_sample_constant(Ugen ugen, size_t phase_mod);
+Ugen ugen_init(); // TODO remove this. should only be called from ugen.c
 
-// called by other ugen inits
-Ugen ugen_init();
+Ugen ugen_init_constant();
+Ugen ugen_init_imp(FTYPE freq, FTYPE duty_cycle);
+Ugen ugen_init_saw(FTYPE freq);
+Ugen ugen_init_sin(FTYPE freq);
+Ugen ugen_init_tri(FTYPE freq);
+
 void ugen_cleanup(Ugen ugen);
 
 void ugen_set_mod(Ugen car, Ugen mod);
-void ugen_set_duty_cycle(Ugen ugen, FTYPE duty_cycle);
-void ugen_set_duty_cycle_ugen(Ugen ugen, Ugen duty_cycle);
+void ugen_set_gain(Ugen car, Ugen gain);
+void ugen_set_duty_cycle(Ugen ugen, Ugen duty_cycle);
+void ugen_set_gain_c(Ugen ugen, FTYPE gain);
+void ugen_set_duty_cycle_c(Ugen ugen, FTYPE duty_cycle);
 void ugen_set_freq(Ugen ugen, FTYPE freq);
 void ugen_chunk_sample(Ugen ugen, FTYPE buf[CHUNK_SIZE]);
 FTYPE ugen_sample(Ugen ugen);

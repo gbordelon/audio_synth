@@ -7,7 +7,7 @@
 #include "../lib/macros.h"
 
 #include "../env/envelope.h"
-#include "../ugen/osc.h"
+#include "../ugen/ugen.h"
 #include "../pcm/channel.h"
 
 #define NUM_VOICES 64
@@ -15,8 +15,8 @@
 #define voice_playing(i) ((i)->sustain)
 
 typedef struct mono_voice_t {
-  Osc *oscillators;
-  size_t osc_num;
+  Ugen *ugens;
+  size_t ugen_num;
   Envelope env;
   size_t max_dur;
   size_t cur_dur;
@@ -24,13 +24,11 @@ typedef struct mono_voice_t {
   FTYPE velocity;
 } *MonoVoice;
 
+// TODO add a constant and ugen for LR pan
 typedef struct voice_t {
   Channel channels;
   size_t channel_num;
   Envelope env_proto;
-  // TODO allow envelope parameters to be tunable
-  // this means updating each of the monovoice envelopes
-  // this means recalculating all the envelope tables
   MonoVoice voices;
   size_t voice_num;
 } *Voice;

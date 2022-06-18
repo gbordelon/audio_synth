@@ -3,14 +3,9 @@
 
 #include "../lib/macros.h"
 
-#include "osc.h"
 #include "ugen.h"
 
-FTYPE tri_sample(Ugen ugen, size_t phase_ind);
-
-Osc tri_init(FTYPE velocity_freq, FTYPE tone_freq);
-Osc tri_init_default(FTYPE tone_freq);
-void tri_cleanup(Osc osc);
+FTYPE ugen_sample_tri(Ugen ugen, size_t phase_ind);
 
 /*
 python3 >/tmp/test.c <<EOF
