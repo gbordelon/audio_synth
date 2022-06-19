@@ -30,16 +30,16 @@ env_default_amp(Envelope env)
   env->amps[0] = 0.5;
   env->amps[1] = 0.9;
   env->amps[2] = 0.4;
-  env->amps[3] = 0.2;
+  env->amps[3] = 0.3;
 }
 
 void
 env_default_durations(Envelope env)
 {
   env->durs[0] = 0.05;
-  env->durs[1] = 0.10;
+  env->durs[1] = 0.05;
   env->durs[2] = 0.85;
-  env->durs[3] = 0.05;
+  env->durs[3] = 0.25;
 
   env->max_samples[0] = floor(DEFAULT_SAMPLE_RATE * env->durs[0]);
   env->max_samples[1] = floor(DEFAULT_SAMPLE_RATE * env->durs[1]);

@@ -13,22 +13,6 @@
 #include "voice.h"
 #include "simple_synth.h"
 
-// take an audio rate [-1.0,1.0] and translate it to [0.1,0.2]
-FTYPE
-sample_adjust_to_001(Ugen ugen, size_t phase_ind)
-{
-  FTYPE samp = ugen_sample_sin(ugen, phase_ind);
-  return 0.1 + (1.0 + samp) / 20.0;
-}
-
-// take an AR and xlate it to [0.3, 0.8]
-FTYPE
-sample_adjust_to_0308(Ugen ugen, size_t phase_ind)
-{
-  FTYPE samp = ugen_sample_sin(ugen, phase_ind);
-  return 0.3 + (1.0 + samp) / 4.0;
-}
-
 void
 simple_synth_init(MonoVoice mv)
 {
@@ -45,10 +29,8 @@ simple_synth_init(MonoVoice mv)
   ugen_set_gain(*(mv->ugens + 1), *(mv->ugens + 2));
   ugen_set_duty_cycle(*(mv->ugens + 1), *(mv->ugens + 3));
 
-  // translate from [-1,1] to [0,1]
-  // TODO this is why SuperCollider asks for audio rate vs control rate
-  (*(mv->ugens + 2))->sample = sample_adjust_to_0308;
-  (*(mv->ugens + 3))->sample = sample_adjust_to_001;
+  ugen_set_scale((*(mv->ugens + 2)), 0.3, 0.8);
+  ugen_set_scale((*(mv->ugens + 3)), 0.1, 0.2);
 
   mv->env = env_init_default();
 }

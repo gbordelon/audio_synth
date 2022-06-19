@@ -99,11 +99,24 @@ voice_play_chunk(Voice voice)
       simple_synth_play_chunk(mv, samples);
 
       for (L = accum_l, R = accum_r, t = samples[0], e = samples[1]; L - accum_l < CHUNK_SIZE; t++, e++, L++, R++) {
-        pan = ugen_sample(voice->pan);
-        *L += *t * *e * (1.0 - pan);
-        *R += *t * *e * (pan);
+        *L += *t * *e;
+        *R += *t * *e;
       }
     }
+  }
+
+#define stereo_fx_chain(L,R)
+
+  // after all monovoices have been summed apply fx
+  for (L = accum_l, R = accum_r; L - accum_l < CHUNK_SIZE; L++, R++) {
+    stereo_fx_chain(L,R);
+  }
+  
+  // after all fx have been applied, apply pan
+  for (L = accum_l, R = accum_r; L - accum_l < CHUNK_SIZE; L++, R++) {
+    pan = ugen_sample(voice->pan);
+    *L *= (1.0 - pan);
+    *R *= (pan);
   }
   
   // TODO check rv
