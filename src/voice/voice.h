@@ -24,14 +24,13 @@ typedef struct mono_voice_t {
   FTYPE velocity;
 } *MonoVoice;
 
-// TODO add a constant and ugen for LR pan
 typedef struct voice_t {
   Channel channels;
   size_t channel_num;
   Envelope env_proto;
   MonoVoice voices;
   size_t voice_num;
-  Ugen pan; // control rate. 0 full left. 1 full right.
+  Ugen pan; // 0 full left. 1 full right.
 } *Voice;
 
 Voice voice_init(Channel channels, size_t channel_num);

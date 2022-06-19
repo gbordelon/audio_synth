@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stdio.h>
+
 #include "../lib/macros.h"
 #include "../midi/midi.h"
 #include "../ugen/ugen.h"
@@ -35,12 +37,6 @@ voice_free(Voice voice)
   free(voice);
 }
 
-FTYPE
-cons_05(Ugen ugen, size_t phase_ind)
-{
-  return 0.5;
-}
-
 Voice
 voice_init(Channel channels, size_t channel_num)
 {
@@ -60,7 +56,7 @@ voice_init(Channel channels, size_t channel_num)
   }
 
   rv->pan = ugen_init_constant();
-  rv->pan->sample = cons_05;
+  ugen_set_scale(rv->pan, 0.5, 0.5);
 
   return rv;
 }
@@ -109,7 +105,7 @@ voice_play_chunk(Voice voice)
       }
     }
   }
-
+  
   // TODO check rv
   channel_write(left, accum_l);
   channel_write(right, accum_r);

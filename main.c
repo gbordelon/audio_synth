@@ -318,8 +318,8 @@ main()
   Channel chans = gmix->busses[0].channels;
   gvoice = voice_init(chans, NUM_CHANNELS);
   ugen_cleanup(gvoice->pan);
-  gvoice->pan = ugen_init_sin(0.05);
-  ugen_set_cr(gvoice->pan);
+  gvoice->pan = ugen_init_tri(0.05);
+  ugen_set_scale(gvoice->pan, 0.3, 0.7);
   printf("instrument initialized.\n");
 
   AudioComponentInstance audio_unit = audio_unit_init();

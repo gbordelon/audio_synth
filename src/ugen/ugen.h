@@ -8,8 +8,6 @@
 #include "../lib/macros.h"
 
 #define ugen_reset_phase(u) ((u)->p_ind = 0)
-
-#define ugen_ar_to_cr_conv(s) (1.0 - (s) / 2.0)
 #define ugen_set_cr(u) ((u)->cr = true)
 #define ugen_unset_cr(u) ((u)->cr = false)
 
@@ -33,6 +31,11 @@ typedef enum {
   UGEN_RAMP_LINEAR_UP
 } ugen_type_e;
 
+typedef struct ar_cr_t {
+  FTYPE bias;
+  FTYPE scale;
+} rate_converter;
+
 typedef struct ugen_t {
   // ugen to be used as a phase modulator
   struct ugen_t *mod;
@@ -53,6 +56,7 @@ typedef struct ugen_t {
   // sample fn determines the wave table to use
   FTYPE (*sample)(struct ugen_t *, size_t);
   //true if caller wants [0,1], false if [-1,1]
+  rate_converter conv;
   bool cr;
 
   // phase management for table indexing
@@ -63,8 +67,6 @@ typedef struct ugen_t {
 
 // sample fn determines the wave table to use
 typedef FTYPE (*sample_fn)(Ugen, size_t);
-
-sample_fn control_rate_scaler(sample_fn ar_fn);
 
 void ugen_generate_tables();
 
@@ -87,6 +89,8 @@ void ugen_set_duty_cycle(Ugen ugen, Ugen duty_cycle);
 void ugen_set_gain_c(Ugen ugen, FTYPE gain);
 void ugen_set_duty_cycle_c(Ugen ugen, FTYPE duty_cycle);
 void ugen_set_freq(Ugen ugen, FTYPE freq);
+void ugen_set_scale(Ugen ugen, FTYPE low, FTYPE high);
+
 void ugen_chunk_sample(Ugen ugen, FTYPE buf[CHUNK_SIZE]);
 FTYPE ugen_sample(Ugen ugen);
 

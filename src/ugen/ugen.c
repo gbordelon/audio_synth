@@ -51,6 +51,8 @@ ugen_init()
   rv->sample = ugen_sample_null;
   rv->u.impulse.duty_cycle_c = 0.5;
   rv->gain_c = 1.0;
+  rv->conv.bias = 0.0;
+  rv->conv.scale = 1.0;
   rv->cr = false;
 
   return rv;
@@ -214,6 +216,13 @@ ugen_set_duty_cycle_c(Ugen ugen, FTYPE duty_cycle)
   ugen->u.impulse.duty_cycle_c = duty_cycle;
 }
 
+void
+ugen_set_scale(Ugen ugen, FTYPE low, FTYPE high)
+{
+  ugen->conv.scale = (high - low) * 0.5;
+  ugen->conv.bias = low;
+}
+
 FTYPE
 ugen_sample_mod(Ugen ugen, size_t phase_mod)
 {
@@ -242,12 +251,12 @@ ugen_sample_mod(Ugen ugen, size_t phase_mod)
       sample2 = ugen->sample(ugen, phase_ind + 1);
   }
 
-  if (ugen->cr) {
-    sample1 = ugen_ar_to_cr_conv(sample1);
-    sample2 = ugen_ar_to_cr_conv(sample2);
-  }
+  sample1 = (1.0 - ugen->p_inc_frac) * sample1 + ugen->p_inc_frac * sample2;
 
-  return (1.0 - ugen->p_inc_frac) * sample1 + ugen->p_inc_frac * sample2;
+  if (ugen->cr) {
+    return sample1; // TODO come up with a control rate equation.
+  }
+  return ugen->conv.bias + ugen->conv.scale * (sample1 + 1.0);
 }
 
 FTYPE

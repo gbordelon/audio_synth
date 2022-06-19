@@ -54,6 +54,10 @@ env_default_ugens(Envelope env)
   env->ugens[1] = ugen_init_ramp_linear_down(1.0 / env->durs[1]);
   env->ugens[2] = ugen_init_ramp_linear_down(1.0 / env->durs[2]);
   env->ugens[3] = ugen_init_ramp_linear_down(1.0 / env->durs[3]);
+  ugen_set_cr(env->ugens[0]);
+  ugen_set_cr(env->ugens[1]);
+  ugen_set_cr(env->ugens[2]);
+  ugen_set_cr(env->ugens[3]);
 }
 
 void
