@@ -1,12 +1,17 @@
 #ifndef UGEN_H
 #define UGEN_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #include "../lib/macros.h"
 
 #define ugen_reset_phase(u) ((u)->p_ind = 0)
+
+#define ugen_ar_to_cr_conv(s) (1.0 - (s) / 2.0)
+#define ugen_set_cr(u) ((u)->cr = true)
+#define ugen_unset_cr(u) ((u)->cr = false)
 
 /*
  * Can be
@@ -16,7 +21,7 @@
  * filters
  * anything else?
  */
-enum ugen_type {
+typedef enum {
   UGEN_CONSTANT,
   UGEN_OSC_IMP,
   UGEN_OSC_SAW,
@@ -26,7 +31,7 @@ enum ugen_type {
   UGEN_RAMP_CIRCLE_UP,
   UGEN_RAMP_LINEAR_DOWN,
   UGEN_RAMP_LINEAR_UP
-};
+} ugen_type_e;
 
 typedef struct ugen_t {
   // ugen to be used as a phase modulator
@@ -47,12 +52,19 @@ typedef struct ugen_t {
 
   // sample fn determines the wave table to use
   FTYPE (*sample)(struct ugen_t *, size_t);
+  //true if caller wants [0,1], false if [-1,1]
+  bool cr;
 
   // phase management for table indexing
   uint32_t p_inc_whole;
   FTYPE p_inc_frac;
   uint32_t p_ind;
 } *Ugen;
+
+// sample fn determines the wave table to use
+typedef FTYPE (*sample_fn)(Ugen, size_t);
+
+sample_fn control_rate_scaler(sample_fn ar_fn);
 
 void ugen_generate_tables();
 

@@ -29,13 +29,6 @@ sample_adjust_to_0308(Ugen ugen, size_t phase_ind)
   return 0.3 + (1.0 + samp) / 4.0;
 }
 
-FTYPE
-sample_adjust_to_01(Ugen ugen, size_t phase_ind)
-{
-  FTYPE samp = ugen_sample_sin(ugen, phase_ind);
-  return (1.0 + samp) / 2.0;
-}
-
 void
 simple_synth_init(MonoVoice mv)
 {

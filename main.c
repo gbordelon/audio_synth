@@ -298,12 +298,6 @@ receive_poll(PtTimestamp timestamp, void *userData)
     }
 }
 
-FTYPE
-cr_sin(Ugen ugen, size_t phase_ind)
-{
-  return (1.0 + ugen_sample_sin(ugen, phase_ind)) / 2.0;
-}
-
 int
 main()
 {
@@ -324,8 +318,8 @@ main()
   Channel chans = gmix->busses[0].channels;
   gvoice = voice_init(chans, NUM_CHANNELS);
   ugen_cleanup(gvoice->pan);
-  gvoice->pan = ugen_init_sin(0.2);
-  gvoice->pan->sample = cr_sin;
+  gvoice->pan = ugen_init_sin(0.05);
+  ugen_set_cr(gvoice->pan);
   printf("instrument initialized.\n");
 
   AudioComponentInstance audio_unit = audio_unit_init();

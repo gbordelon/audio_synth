@@ -51,6 +51,7 @@ ugen_init()
   rv->sample = ugen_sample_null;
   rv->u.impulse.duty_cycle_c = 0.5;
   rv->gain_c = 1.0;
+  rv->cr = false;
 
   return rv;
 }
@@ -148,7 +149,6 @@ ugen_cleanup(Ugen ugen)
   ugen_free(ugen);
 }
 
-// min rate for an LFO is currently 0.5 hz
 void
 ugen_set_freq(Ugen ugen, FTYPE freq)
 {
@@ -240,6 +240,11 @@ ugen_sample_mod(Ugen ugen, size_t phase_mod)
       sample2 = ugen->sample(ugen, 0);
   } else {
       sample2 = ugen->sample(ugen, phase_ind + 1);
+  }
+
+  if (ugen->cr) {
+    sample1 = ugen_ar_to_cr_conv(sample1);
+    sample2 = ugen_ar_to_cr_conv(sample2);
   }
 
   return (1.0 - ugen->p_inc_frac) * sample1 + ugen->p_inc_frac * sample2;
