@@ -18,7 +18,7 @@ dsp_free(DSP_callback cb)
 }
 
 void
-dsp_mono_noop(FTYPE *L, FTYPE control)
+dsp_mono_noop(FTYPE *L, dsp_state *state, FTYPE control)
 {
   return;
 }
@@ -31,6 +31,7 @@ dsp_init()
   cb->control_ugen = NULL;
   cb->fn_type = DSP_MONO_L;
   cb->fn_u.mono = dsp_mono_noop;
+  // cb->state should be nulled out from calloc()
 
   return cb;
 }
@@ -59,14 +60,16 @@ dsp_cleanup(DSP_callback head)
   }
 }
 
-void
+DSP_callback
 dsp_add_to_chain(DSP_callback head, DSP_callback new_head)
 {
   new_head->next = head;
+  return new_head;
 }
 
 /*
  * TODO take into account functions in the chain which generate control signals for the next stage.
+ * probably have a return value;
  */
 void
 stereo_fx_chain(DSP_callback cb, FTYPE *L, FTYPE *R)
@@ -80,15 +83,15 @@ stereo_fx_chain(DSP_callback cb, FTYPE *L, FTYPE *R)
     }
     switch (cb->fn_type) {
     case DSP_MONO_L:
-      cb->fn_u.mono(L, ctrl);
+      cb->fn_u.mono(L, &cb->state, ctrl);
       break;
     case DSP_MONO_R:
-      cb->fn_u.mono(R, ctrl);
+      cb->fn_u.mono(R, &cb->state, ctrl);
       break;
     case DSP_STEREO:
       // fallthrough
     default:
-      cb->fn_u.stereo(L, R, ctrl);
+      cb->fn_u.stereo(L, R, &cb->state, ctrl);
       break;
     }
   }

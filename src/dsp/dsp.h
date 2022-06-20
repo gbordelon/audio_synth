@@ -11,11 +11,17 @@ typedef enum {
   DSP_STEREO
 } dsp_fn_type;
 
+typedef union {
+  struct {
+    FTYPE quantized_bit_depth;
+  } bitcrusher;
+} dsp_state;
+
 // sample pointer, control
-typedef void (*dsp_mono_fn)(FTYPE *, FTYPE);
+typedef void (*dsp_mono_fn)(FTYPE *, dsp_state *, FTYPE);
 
 // sample pointer, sample pointer, control
-typedef void (*dsp_stereo_fn)(FTYPE *, FTYPE *, FTYPE);
+typedef void (*dsp_stereo_fn)(FTYPE *, FTYPE *, dsp_state *, FTYPE);
 
 /*
  * start with panning
@@ -35,14 +41,19 @@ typedef struct dsp_callback_t {
     dsp_stereo_fn stereo;
   } fn_u;
 
+  dsp_state state;
 } *DSP_callback;
 
+DSP_callback dsp_init();
+
 DSP_callback dsp_init_default();
+DSP_callback dsp_init_bitcrusher();
 DSP_callback dsp_init_stereo_pan();
+
 void dsp_cleanup();
 
 // prepend a new cb chain structure to the current chain
-void dsp_add_to_chain(DSP_callback head, DSP_callback new_head);
+DSP_callback dsp_add_to_chain(DSP_callback head, DSP_callback new_head);
 
 // entry
 void stereo_fx_chain(DSP_callback cb, FTYPE *L, FTYPE *R);
