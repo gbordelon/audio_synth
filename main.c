@@ -16,6 +16,7 @@
 
 #include "src/mac_audio/audio_unit.h"
 
+#include "src/dsp/audio_filter.h"
 #include "src/dsp/bitcrusher.h"
 #include "src/dsp/dsp.h"
 #include "src/env/envelope.h"
@@ -325,14 +326,25 @@ main()
   gvoice->fx_chain->control_ugen = ugen_init_tri(0.05);
   ugen_set_scale(gvoice->fx_chain->control_ugen, 0.3, 0.7);
 
-  // precede stereo pan with a bitcrusher on each channel
-  DSP_callback dsp_fx_l = dsp_init_bitcrusher();
-  dsp_set_bitcrusher_param(&dsp_fx_l->state, 4.0);
-  DSP_callback dsp_fx_r = dsp_init_bitcrusher();
+/*
+  // preced stereo pan with LPF on each channel
+  DSP_callback dsp_fx_l = dsp_init_audio_filter();
+  dsp_audio_filter_set_params(&dsp_fx_l->state, AF_LPF2, 1000.0, 0.707, 0.0);
+  DSP_callback dsp_fx_r = dsp_init_audio_filter();
   dsp_fx_r->fn_type = DSP_MONO_R;
-  dsp_set_bitcrusher_param(&dsp_fx_r->state, 4.0);
+  dsp_audio_filter_set_params(&dsp_fx_r->state, AF_LPF2, 1000.0, 0.707, 0.0);
 
   // no need to free this memory. dsp code will do it
+  gvoice->fx_chain = dsp_add_to_chain(gvoice->fx_chain, dsp_fx_l);
+  gvoice->fx_chain = dsp_add_to_chain(gvoice->fx_chain, dsp_fx_r);
+*/
+  // precede LPF with a bitcrusher on each channel
+  dsp_fx_l = dsp_init_bitcrusher();
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, 12.0);
+  dsp_fx_r = dsp_init_bitcrusher();
+  dsp_fx_r->fn_type = DSP_MONO_R;
+  dsp_set_bitcrusher_param(&dsp_fx_r->state, 12.0);
+
   gvoice->fx_chain = dsp_add_to_chain(gvoice->fx_chain, dsp_fx_l);
   gvoice->fx_chain = dsp_add_to_chain(gvoice->fx_chain, dsp_fx_r);
 

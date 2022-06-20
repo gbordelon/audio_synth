@@ -6,6 +6,10 @@
 #include "bitcrusher.h"
 #include "../ugen/ugen.h"
 
+/*
+ * Using code from Designing Audio Effect Plugins in C++ by Prikle, pgs. 550:551
+ */
+
 void
 mono_bitcrush(FTYPE *L, dsp_state *state, FTYPE control)
 {

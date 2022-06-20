@@ -5,17 +5,21 @@
 
 #include "../ugen/ugen.h"
 
+#include "audio_filter.h"
+#include "biquad.h"
+
+typedef union dsp_state_u {
+  struct {
+    FTYPE quantized_bit_depth;
+  } bitcrusher;
+  audio_filter_params audio_filter;
+} dsp_state;
+
 typedef enum {
   DSP_MONO_L,
   DSP_MONO_R,
   DSP_STEREO
 } dsp_fn_type;
-
-typedef union {
-  struct {
-    FTYPE quantized_bit_depth;
-  } bitcrusher;
-} dsp_state;
 
 // sample pointer, control
 typedef void (*dsp_mono_fn)(FTYPE *, dsp_state *, FTYPE);
@@ -33,6 +37,7 @@ typedef struct dsp_callback_t {
 
   // TODO what about sidechain signals generated during the chain?
   // their ugens will be NULL
+  // TODO what about functions of multiple paramters? How about an array of ugens?
   Ugen control_ugen;
 
   dsp_fn_type fn_type;
@@ -46,8 +51,9 @@ typedef struct dsp_callback_t {
 
 DSP_callback dsp_init();
 
-DSP_callback dsp_init_default();
+DSP_callback dsp_init_audio_filter();
 DSP_callback dsp_init_bitcrusher();
+DSP_callback dsp_init_default();
 DSP_callback dsp_init_stereo_pan();
 
 void dsp_cleanup();
