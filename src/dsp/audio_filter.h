@@ -5,6 +5,10 @@
 
 #include "biquad.h"
 
+/*
+ * Based on code from Designing Audio Effect Plugins in C++ by Prikle, chapter 11
+ */
+
 typedef enum {
   AF_LPF1P,
   AF_LPF1,
