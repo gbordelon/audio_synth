@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <stdio.h>
-
+#include "../dsp/dsp.h"
 #include "../lib/macros.h"
 #include "../midi/midi.h"
 #include "../ugen/ugen.h"
@@ -55,8 +54,7 @@ voice_init(Channel channels, size_t channel_num)
     mv->cur_dur = 0;
   }
 
-  rv->pan = ugen_init_constant();
-  ugen_set_scale(rv->pan, 0.5, 0.5);
+  rv->fx_chain = dsp_init_stereo_pan();
 
   return rv;
 }
@@ -70,7 +68,7 @@ voice_cleanup(Voice voice)
     simple_synth_cleanup(mv);
   }
   env_cleanup(voice->env_proto);
-  ugen_cleanup(voice->pan);
+  dsp_cleanup(voice->fx_chain);
   voice_free(voice);
 }
 
@@ -87,7 +85,6 @@ voice_play_chunk(Voice voice)
   static FTYPE accum_l[CHUNK_SIZE];
   static FTYPE accum_r[CHUNK_SIZE];
   FTYPE *t, *e, *L, *R;
-  FTYPE pan;
 
   memset(accum_l, 0, CHUNK_SIZE * sizeof(FTYPE));
   memset(accum_r, 0, CHUNK_SIZE * sizeof(FTYPE));
@@ -98,27 +95,20 @@ voice_play_chunk(Voice voice)
     if (voice_playing(mv)) {
       simple_synth_play_chunk(mv, samples);
 
-      for (L = accum_l, R = accum_r, t = samples[0], e = samples[1]; L - accum_l < CHUNK_SIZE; t++, e++, L++, R++) {
+      for (L = accum_l, R = accum_r, t = samples[0], e = samples[1];
+           L - accum_l < CHUNK_SIZE;
+           t++, e++, L++, R++) {
         *L += *t * *e;
         *R += *t * *e;
       }
     }
   }
 
-#define stereo_fx_chain(L,R)
-
   // after all monovoices have been summed apply fx
   for (L = accum_l, R = accum_r; L - accum_l < CHUNK_SIZE; L++, R++) {
-    stereo_fx_chain(L,R);
+    stereo_fx_chain(voice->fx_chain, L, R);
   }
-  
-  // after all fx have been applied, apply pan
-  for (L = accum_l, R = accum_r; L - accum_l < CHUNK_SIZE; L++, R++) {
-    pan = ugen_sample(voice->pan);
-    *L *= (1.0 - pan);
-    *R *= (pan);
-  }
-  
+
   // TODO check rv
   channel_write(left, accum_l);
   channel_write(right, accum_r);

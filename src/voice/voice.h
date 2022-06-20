@@ -6,6 +6,7 @@
 
 #include "../lib/macros.h"
 
+#include "../dsp/dsp.h"
 #include "../env/envelope.h"
 #include "../ugen/ugen.h"
 #include "../pcm/channel.h"
@@ -30,7 +31,7 @@ typedef struct voice_t {
   Envelope env_proto;
   MonoVoice voices;
   size_t voice_num;
-  Ugen pan; // 0 full left. 1 full right.
+  DSP_callback fx_chain;
 } *Voice;
 
 Voice voice_init(Channel channels, size_t channel_num);
