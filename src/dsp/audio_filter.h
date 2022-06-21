@@ -26,7 +26,8 @@ typedef enum {
   AF_LowShelf,
   AF_HiShelf,
   AF_NCQParaEQ,
-  AF_CQParaEQ,
+  AF_CQParaEQBoost,
+  AF_CQParaEQCut,
   AF_LWRLPF2,
   AF_LWRHPF2,
   AF_APF1,
@@ -36,8 +37,8 @@ typedef enum {
   AF_MatchLP2B,
   AF_MatchBP2A,
   AF_MatchBP2B,
-  AF_ImpInvLP1,
-  AF_ImpInvLP2
+  AF_ImpInvLPF1,
+  AF_ImpInvLPF2
 } audio_filter_algorithm;
 
 typedef struct audio_filter_params_t {

@@ -326,7 +326,7 @@ main()
   gvoice->fx_chain->control_ugen = ugen_init_tri(0.05);
   ugen_set_scale(gvoice->fx_chain->control_ugen, 0.3, 0.7);
 
-/*
+
   // preced stereo pan with LPF on each channel
   DSP_callback dsp_fx_l = dsp_init_audio_filter();
   dsp_audio_filter_set_params(&dsp_fx_l->state, AF_LPF2, 1000.0, 0.707, 0.0);
@@ -337,7 +337,7 @@ main()
   // no need to free this memory. dsp code will do it
   gvoice->fx_chain = dsp_add_to_chain(gvoice->fx_chain, dsp_fx_l);
   gvoice->fx_chain = dsp_add_to_chain(gvoice->fx_chain, dsp_fx_r);
-*/
+
   // precede LPF with a bitcrusher on each channel
   dsp_fx_l = dsp_init_bitcrusher();
   dsp_set_bitcrusher_param(&dsp_fx_l->state, 12.0);
