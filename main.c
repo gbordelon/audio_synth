@@ -8,9 +8,9 @@
 
 #include <AudioUnit/AudioUnit.h>
 
-#include "porttime.h"
 #include "portmidi.h"
 #include "pmutil.h"
+#include "porttime.h"
 
 #include "src/lib/macros.h"
 
@@ -86,7 +86,8 @@ uint32_t notestotal = 0;        /* total #notes */
 PmQueue *midi_to_main;
 
 Mixer gmix;
-Voice gvoice;
+Voice gsynth;
+Voice gmic;
 
 static void
 handle_midi_in(PmMessage data)
@@ -319,39 +320,45 @@ main()
   printf("mixer initialized.\n");
 
   Channel chans = gmix->busses[0].channels;
-  gvoice = voice_init(chans, NUM_CHANNELS);
+  gsynth = voice_init_default(chans, NUM_CHANNELS);
+  gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN);
+  //gmic->fx_chain = dsp_init_stereo_pan();
+//  gmic->fx_chain->control_ugen = ugen_init_tri(0.05);
+//  ugen_set_scale(gmic->fx_chain->control_ugen, 0.3, 0.7);
 
-  // set slow sinusoidal stereo pan on gvoice
-  ugen_cleanup(gvoice->fx_chain->control_ugen);
-  gvoice->fx_chain->control_ugen = ugen_init_tri(0.05);
-  ugen_set_scale(gvoice->fx_chain->control_ugen, 0.3, 0.7);
+  // set slow sinusoidal stereo pan on gsynth
+  ugen_cleanup(gsynth->fx_chain->control_ugen);
+  gsynth->fx_chain->control_ugen = ugen_init_tri(0.05);
+  ugen_set_scale(gsynth->fx_chain->control_ugen, 0.3, 0.7);
 
 
-  // preced stereo pan with LPF on each channel
-  DSP_callback dsp_fx_l = dsp_init_audio_filter();
-  dsp_audio_filter_set_params(&dsp_fx_l->state, AF_LPF2, 1000.0, 0.707, 0.0);
-  DSP_callback dsp_fx_r = dsp_init_audio_filter();
+/*
+  // precede stereo pan with LPF on each channel
+  DSP_callback dsp_fx_l, dsp_fx_r;
+  dsp_fx_l = dsp_init_audio_filter();
+  dsp_audio_filter_set_params(&dsp_fx_l->state, AF_LPF2, 400.0, 0.707, 0.0);
+  dsp_fx_r = dsp_init_audio_filter();
   dsp_fx_r->fn_type = DSP_MONO_R;
-  dsp_audio_filter_set_params(&dsp_fx_r->state, AF_LPF2, 1000.0, 0.707, 0.0);
+  dsp_audio_filter_set_params(&dsp_fx_r->state, AF_LPF2, 400.0, 0.707, 0.0);
 
   // no need to free this memory. dsp code will do it
-  gvoice->fx_chain = dsp_add_to_chain(gvoice->fx_chain, dsp_fx_l);
-  gvoice->fx_chain = dsp_add_to_chain(gvoice->fx_chain, dsp_fx_r);
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_r);
 
   // precede LPF with a bitcrusher on each channel
   dsp_fx_l = dsp_init_bitcrusher();
-  dsp_set_bitcrusher_param(&dsp_fx_l->state, 12.0);
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, 4.0);
   dsp_fx_r = dsp_init_bitcrusher();
   dsp_fx_r->fn_type = DSP_MONO_R;
-  dsp_set_bitcrusher_param(&dsp_fx_r->state, 12.0);
+  dsp_set_bitcrusher_param(&dsp_fx_r->state, 5.0);
 
-  gvoice->fx_chain = dsp_add_to_chain(gvoice->fx_chain, dsp_fx_l);
-  gvoice->fx_chain = dsp_add_to_chain(gvoice->fx_chain, dsp_fx_r);
-
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_r);
+*/
   printf("instrument initialized.\n");
 
-  AudioComponentInstance audio_unit = audio_unit_init();
-  printf("AudioUnit initialized.\n");
+  AudioComponentInstance audio_unit_io = audio_unit_io_init();
+  printf("AudioUnit io initialized.\n");
 
   memset(active_voices, 64, 128);
 
@@ -364,7 +371,7 @@ main()
   if (err) {
       printf(Pm_GetErrorText(err));
       Pt_Stop();
-      voice_cleanup(gvoice);
+      voice_cleanup(gsynth);
       mixer_cleanup(gmix);
       exit(1);
   }
@@ -375,7 +382,8 @@ main()
   active = true;
   printf("MIDI in initialized.\n");
 
-  audio_unit_go(audio_unit);
+  //audio_unit_go(audio_unit_out);
+  audio_unit_go(audio_unit_io);
   printf("Synth started.\n");
   fflush(stdout);
 
@@ -383,11 +391,10 @@ main()
   int command;    /* the current command */
   gmix->gain = 0.7;
 
-  tunable_register(&gmix->gain, 0);
-  tunable_register(&gmix->busses[0].gain, 1);
+  uint8_t note_ind;
+  note_ind = voice_note_on(gmic, 30, 127);
   
   int spin;
-  uint8_t note_ind;
   int num_active_notes = 0;
   for (;;) {
     // read midi messages
@@ -399,7 +406,7 @@ main()
       if (command == MIDI_ON_NOTE) {
         //put_pitch(Pm_MessageData1(msg));
         if (active_voices[Pm_MessageData1(msg)] == 64) {
-          note_ind = voice_note_on(gvoice, Pm_MessageData1(msg), Pm_MessageData2(msg));
+          note_ind = voice_note_on(gsynth, Pm_MessageData1(msg), Pm_MessageData2(msg));
           active_voices[Pm_MessageData1(msg)] = note_ind;
           num_active_notes++;
         } else {
@@ -407,13 +414,13 @@ main()
       } else if (command == MIDI_OFF_NOTE) {
         //put_pitch(Pm_MessageData1(msg));
         if (active_voices[Pm_MessageData1(msg)] < 64) {
-          voice_note_off(gvoice, active_voices[Pm_MessageData1(msg)]);
+          voice_note_off(gsynth, active_voices[Pm_MessageData1(msg)]);
           active_voices[Pm_MessageData1(msg)] = 64;
           num_active_notes--;
         }
       } else if (command == MIDI_CTRL) {
         if (Pm_MessageData1(msg) < MIDI_ALL_SOUND_OFF) {
-           tunable_set((FTYPE)Pm_MessageData2(msg) / 127.0, Pm_MessageData1(msg));
+           //tunable_set((FTYPE)Pm_MessageData2(msg) / 127.0, Pm_MessageData1(msg));
         } else {
         }
       }
@@ -426,7 +433,8 @@ main()
   Pm_Close(midi_in);
   Pm_Terminate();
 
-  voice_cleanup(gvoice);
+  voice_cleanup(gmic);
+  voice_cleanup(gsynth);
   mixer_cleanup(gmix);
   return 0;
 }

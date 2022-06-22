@@ -3,7 +3,10 @@
 
 #include <AudioUnit/AudioUnit.h>
 
-AudioComponentInstance audio_unit_init();
+AudioComponentInstance audio_unit_input_init();
+AudioComponentInstance audio_unit_io_init();
+AudioComponentInstance audio_unit_output_init();
+
 void audio_unit_go(AudioComponentInstance audioUnit);
 
 #endif
