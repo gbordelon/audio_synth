@@ -322,9 +322,9 @@ main()
   Channel chans = gmix->busses[0].channels;
   gsynth = voice_init_default(chans, NUM_CHANNELS);
   gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN);
-  //gmic->fx_chain = dsp_init_stereo_pan();
-//  gmic->fx_chain->control_ugen = ugen_init_tri(0.05);
-//  ugen_set_scale(gmic->fx_chain->control_ugen, 0.3, 0.7);
+  gmic->fx_chain = dsp_init_stereo_pan();
+  gmic->fx_chain->control_ugen = ugen_init_tri(0.05);
+  ugen_set_scale(gmic->fx_chain->control_ugen, 0.3, 0.7);
 
   // set slow sinusoidal stereo pan on gsynth
   ugen_cleanup(gsynth->fx_chain->control_ugen);
@@ -332,14 +332,14 @@ main()
   ugen_set_scale(gsynth->fx_chain->control_ugen, 0.3, 0.7);
 
 
-/*
+
   // precede stereo pan with LPF on each channel
   DSP_callback dsp_fx_l, dsp_fx_r;
   dsp_fx_l = dsp_init_audio_filter();
-  dsp_audio_filter_set_params(&dsp_fx_l->state, AF_LPF2, 400.0, 0.707, 0.0);
+  dsp_audio_filter_set_params(&dsp_fx_l->state, AF_NCQParaEQ, 1000.0, 0.707, 0.0);
   dsp_fx_r = dsp_init_audio_filter();
   dsp_fx_r->fn_type = DSP_MONO_R;
-  dsp_audio_filter_set_params(&dsp_fx_r->state, AF_LPF2, 400.0, 0.707, 0.0);
+  dsp_audio_filter_set_params(&dsp_fx_r->state, AF_NCQParaEQ, 10000.0, 0.707, -6.0);
 
   // no need to free this memory. dsp code will do it
   gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
@@ -347,14 +347,14 @@ main()
 
   // precede LPF with a bitcrusher on each channel
   dsp_fx_l = dsp_init_bitcrusher();
-  dsp_set_bitcrusher_param(&dsp_fx_l->state, 4.0);
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, 3.0);
   dsp_fx_r = dsp_init_bitcrusher();
   dsp_fx_r->fn_type = DSP_MONO_R;
-  dsp_set_bitcrusher_param(&dsp_fx_r->state, 5.0);
+  dsp_set_bitcrusher_param(&dsp_fx_r->state, 3.0);
 
   gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
   gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_r);
-*/
+
   printf("instrument initialized.\n");
 
   AudioComponentInstance audio_unit_io = audio_unit_io_init();

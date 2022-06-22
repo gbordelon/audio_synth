@@ -476,6 +476,8 @@ calculate_filter_coefficients(audio_filter_params *params)
   
     break;
   }
+
+  //printf("biquad %d:\n  a0 %f\n  a1 %f\n  a2 %f\n  b1 %f\n  b2 %f\n  c0 %f\n  d0 %f\n", params->alg, coeffs[BIQUAD_a0], coeffs[BIQUAD_a1], coeffs[BIQUAD_a2], coeffs[BIQUAD_b1], coeffs[BIQUAD_b2], coeffs[BIQUAD_c0], coeffs[BIQUAD_d0]);
 }
 #undef coeffs
 
