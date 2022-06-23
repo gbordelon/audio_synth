@@ -13,6 +13,9 @@
 
 #include "audio_unit.h"
 
+#define ENABLE_INPUT 1
+#define USE_MIC 1
+
 #define MMAP_SIZE (NUM_CHANNELS*CHUNK_SIZE)
 #define kOutputBus 0
 #define kInputBus 1
@@ -20,7 +23,6 @@
 extern Mixer gmix;
 extern Voice gsynth; // TODO collection of voices, not just one
 extern Voice gmic; // TODO collection of voices, not just one
-AudioComponentInstance audioUnitMicInput;
 AudioComponentInstance _audioUnit;
 
 static size_t _output_index = 0;
@@ -38,6 +40,7 @@ checkStatus(OSStatus status)
   //fflush(stdout);
 }
 
+#if ENABLE_INPUT
 static OSStatus
 inputCallback(void *inRefCon, 
                  AudioUnitRenderActionFlags *ioActionFlags, 
@@ -45,6 +48,7 @@ inputCallback(void *inRefCon,
                  UInt32 inBusNumber, 
                  UInt32 inNumberFrames, 
                  AudioBufferList *ioData);
+#endif
 
 static OSStatus
 playbackCallback(void *inRefCon, 
@@ -62,7 +66,15 @@ audio_unit_io_init()
   // Describe audio component
   AudioComponentDescription desc;
   desc.componentType = kAudioUnitType_Output;
-  desc.componentSubType = kAudioUnitSubType_HALOutput;//kAudioUnitSubType_VoiceProcessingIO;
+#if ENABLE_INPUT
+  #if USE_MIC
+  desc.componentSubType = kAudioUnitSubType_VoiceProcessingIO; // has special behavior to avoid feedback with lappy speakers.
+  #else
+  desc.componentSubType = kAudioUnitSubType_HALOutput;
+  #endif
+#else
+  desc.componentSubType = kAudioUnitSubType_DefaultOutput;
+#endif
   desc.componentFlags = 0;
   desc.componentFlagsMask = 0;
   desc.componentManufacturer = kAudioUnitManufacturer_Apple;
@@ -76,6 +88,7 @@ audio_unit_io_init()
   checkStatus(status);
 
   // Enable IO for recording
+#if ENABLE_INPUT
   UInt32 flag = 1;
   status = AudioUnitSetProperty(_audioUnit,
                                 kAudioOutputUnitProperty_EnableIO,
@@ -86,7 +99,9 @@ audio_unit_io_init()
   //printf("enable input ");
   checkStatus(status);
 
+  // this is set by default so i don't need to place it outside the if ENABLE_INPUT
   // Enable IO for playback
+  flag = 1;
   status = AudioUnitSetProperty(_audioUnit,
                                 kAudioOutputUnitProperty_EnableIO,
                                 kAudioUnitScope_Output,
@@ -95,6 +110,7 @@ audio_unit_io_init()
                                 sizeof(flag));
   //printf("enable output ");
   checkStatus(status);
+#endif
 
   // Apply format
   AudioStreamBasicDescription audioFormat;
@@ -102,10 +118,17 @@ audio_unit_io_init()
   audioFormat.mFormatID = kAudioFormatLinearPCM;
   audioFormat.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked;
   audioFormat.mFramesPerPacket = 1;
-  audioFormat.mChannelsPerFrame = NUM_CHANNELS;
+#if ENABLE_INPUT
   audioFormat.mBitsPerChannel = CHAR_BIT * sizeof(Float32);
+  #if USE_MIC
+  audioFormat.mChannelsPerFrame = 1;
+  audioFormat.mBytesPerPacket = sizeof(Float32);
+  audioFormat.mBytesPerFrame = sizeof(Float32);
+  #else
+  audioFormat.mChannelsPerFrame = NUM_CHANNELS;
   audioFormat.mBytesPerPacket = sizeof(Float32) * NUM_CHANNELS;
   audioFormat.mBytesPerFrame = sizeof(Float32) * NUM_CHANNELS;
+  #endif
   status = AudioUnitSetProperty(_audioUnit,
                                 kAudioUnitProperty_StreamFormat,
                                 kAudioUnitScope_Output,
@@ -114,7 +137,7 @@ audio_unit_io_init()
                                 sizeof(audioFormat));
   //printf("set input stream properties ");
   checkStatus(status);
-
+#endif
   audioFormat.mChannelsPerFrame = NUM_CHANNELS;
   audioFormat.mBitsPerChannel = CHAR_BIT * sizeof(FTYPE);
   audioFormat.mBytesPerPacket = sizeof(FTYPE) * NUM_CHANNELS;
@@ -129,9 +152,9 @@ audio_unit_io_init()
   //printf("set output stream properties ");
   checkStatus(status);
 
-
-  // Set input callback
   AURenderCallbackStruct callbackStruct;
+#if ENABLE_INPUT
+  // Set input callback
   callbackStruct.inputProc = inputCallback;
   callbackStruct.inputProcRefCon = NULL;
   status = AudioUnitSetProperty(_audioUnit,
@@ -142,7 +165,7 @@ audio_unit_io_init()
                                 sizeof(callbackStruct));
   //printf("set input callback ");
   checkStatus(status);
-
+#endif
   // Set output callback
   callbackStruct.inputProc = playbackCallback;
   callbackStruct.inputProcRefCon = NULL;
@@ -155,6 +178,7 @@ audio_unit_io_init()
   //printf("set output callback ");
   checkStatus(status);
 
+#if ENABLE_INPUT
   // Disable buffer allocation for the recorder (optional - do this if we want to pass in our own)
   flag = 0;
   status = AudioUnitSetProperty(_audioUnit,
@@ -166,12 +190,15 @@ audio_unit_io_init()
 
   //printf("disable input buffer allocation ");
   checkStatus(status);
+#endif
 
   // Initialise
   status = AudioUnitInitialize(_audioUnit);
+
   //printf("audioUnit initialization ");
   checkStatus(status);
 
+#if ENABLE_INPUT
   // allocate bufferlist for reading mic data
   UInt32 bufferSizeBytes = 512 * sizeof(Float32) * NUM_CHANNELS * 2; // 512 frames but double it
   UInt32 propertySize = offsetof(AudioBufferList, mBuffers[0]) + (sizeof(AudioBuffer) * NUM_CHANNELS);
@@ -182,16 +209,23 @@ audio_unit_io_init()
   UInt32 i;
   for(i = 0; i < _input_buffer->mNumberBuffers; ++i)
   {
+  #if USE_MIC
+    _input_buffer->mBuffers[i].mNumberChannels = 1;
+  #else
     _input_buffer->mBuffers[i].mNumberChannels = NUM_CHANNELS;
+  #endif
     _input_buffer->mBuffers[i].mDataByteSize = bufferSizeBytes;
     _input_buffer->mBuffers[i].mData = calloc(1, bufferSizeBytes);
   }
 
-  _output_buffer = calloc(MMAP_SIZE, sizeof(FTYPE));
   _mic_output_buffer = calloc(8 * MMAP_SIZE, sizeof(FTYPE));
+#endif
+  _output_buffer = calloc(MMAP_SIZE, sizeof(FTYPE));
 
   return _audioUnit;
 }
+
+#if ENABLE_INPUT
 static OSStatus
 inputCallback(void *inRefCon, 
                  AudioUnitRenderActionFlags *ioActionFlags, 
@@ -227,7 +261,27 @@ inputCallback(void *inRefCon,
 
     if (samplesLeft > 0) {
       Float32 *samp = (Float32 *)_input_buffer->mBuffers[i].mData; // data is stereo interleaved frames
+#if USE_MIC
+      //Float32 max = 0;
+      //if (*samp * *samp > max) max = *samp * *samp;
 
+      if(samplesLeft < numSamples) { // wrap around to the start of the buffer
+        for (samplesAfterWrap = samplesLeft; samplesAfterWrap > 0; samplesAfterWrap--, samp++, _mic_output_write_index++) {
+          _mic_output_buffer[_mic_output_write_index] = *samp;
+          //if (*samp * *samp > max) max = *samp * *samp;
+        }
+        for (samplesAfterWrap = numSamples - samplesLeft, _mic_output_write_index = 0; samplesAfterWrap > 0; samplesAfterWrap--, samp++, _mic_output_write_index++) {
+          _mic_output_buffer[_mic_output_write_index] = *samp;
+          //if (*samp * *samp > max) max = *samp * *samp;
+        }
+      } else {
+        for (samplesAfterWrap = numSamples; samplesAfterWrap > 0; samplesAfterWrap--, samp++, _mic_output_write_index++) {
+          _mic_output_buffer[_mic_output_write_index] = *samp;
+          //if (*samp * *samp > max) max = *samp * *samp;
+        }
+      }
+      //printf("max sample input for this chunk: %f\n", sqrt(max));
+#else
       if(samplesLeft < numSamples) { // wrap around to the start of the buffer
         for (samplesAfterWrap = samplesLeft; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index++) {
           _mic_output_buffer[_mic_output_write_index] = *samp + *(samp+1);
@@ -240,17 +294,19 @@ inputCallback(void *inRefCon,
           _mic_output_buffer[_mic_output_write_index] = *samp + *(samp+1);
         }
       }
+#endif
     } else {
     }
   }
 
-  return err;
+  return noErr;
 }
+#endif
 
 static void
 pull_samples()
 {
-//voice_play_chunk(gsynth);
+  voice_play_chunk(gsynth);
   voice_play_chunk(gmic);
   mixer_update(gmix);
   memcpy(_output_buffer, gmix->write_buf, MMAP_SIZE * sizeof(FTYPE));

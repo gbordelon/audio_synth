@@ -74,6 +74,10 @@ dsp_add_to_chain(DSP_callback head, DSP_callback new_head)
 void
 stereo_fx_chain(DSP_callback cb, FTYPE *L, FTYPE *R)
 {
+  if (!cb) {
+    return;
+  }
+
   FTYPE ctrl;
   for (; cb; cb = cb->next) {
     if (cb->control_ugen) {

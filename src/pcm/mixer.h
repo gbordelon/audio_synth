@@ -1,6 +1,7 @@
 #ifndef MIXER_H
 #define MIXER_H
 
+
 #include <stdbool.h>
 
 #include "../lib/macros.h"
@@ -15,7 +16,7 @@ typedef struct mixer_t {
   bool needs_write;
 } *Mixer;
 
-Mixer mixer_init(Bus busses, size_t num_busses, FTYPE gain);
+Mixer mixer_init(size_t num_busses, FTYPE gain);
 void mixer_cleanup(Mixer mix);
 void mixer_update(Mixer mix);
 

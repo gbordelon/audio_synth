@@ -8,12 +8,8 @@
 #include "mixer.h"
 #include "bus.h"
 
-/*
- * Currently the rendering of audio only supports 32-bit floating points.
- * There are some references to 'float' instead of 'FTYPE' in this file to reflect that.
- */
 Mixer
-mixer_alloc(FTYPE gain)
+mixer_alloc()
 {
   Mixer mix = calloc(1, sizeof(struct mixer_t));
   return mix;
@@ -26,16 +22,21 @@ mixer_free(Mixer mix)
 }
 
 Mixer
-mixer_init(Bus busses, size_t num_busses, FTYPE gain)
+mixer_init(size_t num_busses, FTYPE gain)
 {
-  Mixer mix = mixer_alloc(gain);
+  Mixer mix = mixer_alloc();
   if (!num_busses) {
-    busses = bus_default_init();
+    mix->busses = bus_default_init(1);
     num_busses = 1;
+  } else {
+    mix->busses = bus_default_init(num_busses);
   }
-  mix->busses = busses;
   mix->num_busses = num_busses;
-  mix->gain = 1.0;
+  mix->gain = gain < 0.0
+            ? 0.0
+            : gain > 1.0
+            ? 1.0
+            : gain;
 
   mix->write_buf = calloc(CHUNK_SIZE * NUM_CHANNELS, sizeof(FTYPE));
   mix->needs_write = false;
@@ -78,5 +79,6 @@ mixer_update(Mixer mix)
     } else {
     }
   }
+  
   // TODO scale or clip amplitudes for values outside the range [-1.0,1.0]
 }

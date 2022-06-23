@@ -53,24 +53,24 @@ bus_cleanup(Bus bus)
 }
 
 Bus
-_busses_init(size_t num_busses, size_t *num_channels_per_bus, FTYPE *gain_per_bus)
+_busses_init(size_t num_busses, size_t num_channels_per_bus, FTYPE gain_per_bus)
 {
   Bus busses = busses_alloc(num_busses);
 
   Bus b;
   for (b = busses; (b - busses) < num_busses; b++, num_channels_per_bus++, gain_per_bus++) {
-    _bus_init(b, *num_channels_per_bus, *gain_per_bus);
+    _bus_init(b, num_channels_per_bus, gain_per_bus);
   }
 
   return busses;
 }
 
 Bus
-bus_default_init()
+bus_default_init(size_t num_busses)
 {
   size_t num_channels = NUM_CHANNELS;
   FTYPE gain = 1.0;
-  return _busses_init(1, &num_channels, &gain);
+  return _busses_init(num_busses, num_channels, gain);
 }
 
 void

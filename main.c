@@ -302,6 +302,16 @@ receive_poll(PtTimestamp timestamp, void *userData)
     }
 }
 
+#define add_filter(fx, filter_type, fc, q, db)\
+  fx##_l = dsp_init_audio_filter();\
+  dsp_audio_filter_set_mono_left(fx##_l);\
+  dsp_audio_filter_set_params(&fx##_l->state, (filter_type), (fc), (q), (db));\
+  fx##_r = dsp_init_audio_filter();\
+  dsp_audio_filter_set_mono_left(fx##_r);\
+  dsp_audio_filter_set_params(&fx##_r->state, (filter_type), (fc), (q), (db));\
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, fx##_l);\
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, fx##_r)
+   
 int
 main()
 {
@@ -316,48 +326,42 @@ main()
   double tt = t / CLOCKS_PER_SEC;
   printf("took %f seconds.\n", tt);
 
-  gmix = mixer_init(NULL, 0, 1.0);
+  gmix = mixer_init(2, 1.0);
   printf("mixer initialized.\n");
 
   Channel chans = gmix->busses[0].channels;
   gsynth = voice_init_default(chans, NUM_CHANNELS);
-  gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN);
-  gmic->fx_chain = dsp_init_stereo_pan();
-  //gmic->fx_chain->control_ugen = ugen_init_tri(0.05);
-  //ugen_set_scale(gmic->fx_chain->control_ugen, 0.3, 0.7);
 
-  // set slow sinusoidal stereo pan on gsynth
+  chans = gmix->busses[1].channels;
+  gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN);
+
+  // set slow triangle stereo pan on gmic
+  gmic->fx_chain = dsp_init_stereo_pan();
+  gmic->fx_chain->control_ugen = ugen_init_tri(0.05);
+  ugen_set_scale(gmic->fx_chain->control_ugen, 0.3, 0.7);
+
+  // set slow triangle stereo pan on gsynth
   ugen_cleanup(gsynth->fx_chain->control_ugen);
   gsynth->fx_chain->control_ugen = ugen_init_tri(0.05);
   ugen_set_scale(gsynth->fx_chain->control_ugen, 0.3, 0.7);
 
-
-
-  // precede stereo pan with LPF on each channel
   DSP_callback dsp_fx_l, dsp_fx_r;
-  dsp_fx_l = dsp_init_audio_filter();
-  dsp_audio_filter_set_mono_left(dsp_fx_l);
-  dsp_audio_filter_set_params(&dsp_fx_l->state, AF_NCQParaEQ, 1000.0, 0.707, 6.0);
-
-  dsp_fx_r = dsp_init_audio_filter();
-  dsp_audio_filter_set_mono_right(dsp_fx_r);
-  dsp_audio_filter_set_params(&dsp_fx_r->state, AF_NCQParaEQ, 10000.0, 0.707, -6.0);
-
-  // no need to free this memory. dsp code will do it
-  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
-  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_r);
+  add_filter(dsp_fx, AF_NCQParaEQ, 8000.0, 0.707, -12.0);
+  add_filter(dsp_fx, AF_NCQParaEQ, 4000.0, 0.707, -12.0);
+  add_filter(dsp_fx, AF_NCQParaEQ, 1000.0, 0.707, -3.0);
+  add_filter(dsp_fx, AF_NCQParaEQ, 100.0, 0.707, 12.0);
 
   // precede LPF with a bitcrusher on each channel
-  dsp_fx_l = dsp_init_bitcrusher();
-  dsp_audio_filter_set_mono_left(dsp_fx_l);
-  dsp_set_bitcrusher_param(&dsp_fx_l->state, 3.5);
+  //dsp_fx_l = dsp_init_bitcrusher();
+  //dsp_audio_filter_set_mono_left(dsp_fx_l);
+  //dsp_set_bitcrusher_param(&dsp_fx_l->state, 3.5);
 
-  dsp_fx_r = dsp_init_bitcrusher();
-  dsp_audio_filter_set_mono_right(dsp_fx_r);
-  dsp_set_bitcrusher_param(&dsp_fx_r->state, 3.5);
+  //dsp_fx_r = dsp_init_bitcrusher();
+  //dsp_audio_filter_set_mono_right(dsp_fx_r);
+  //dsp_set_bitcrusher_param(&dsp_fx_r->state, 3.5);
 
-  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
-  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_r);
+  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_r);
 
   printf("instrument initialized.\n");
 
@@ -391,12 +395,13 @@ main()
   printf("Synth started.\n");
   fflush(stdout);
 
+  gmix->gain = 0.7;
+  voice_note_on(gmic, 30, 127);
+
   int32_t msg;
   int command;    /* the current command */
-  gmix->gain = 0.7;
 
   uint8_t note_ind;
-  note_ind = voice_note_on(gmic, 30, 127);
   
   int spin;
   int num_active_notes = 0;
@@ -405,10 +410,7 @@ main()
     spin = Pm_Dequeue(midi_to_main, &msg);
     if (spin) {
       command = Pm_MessageStatus(msg) & MIDI_CODE_MASK;
-      //Pm_MessageData1(msg); // note number
-      //Pm_MessageData2(msg); // velocity
       if (command == MIDI_ON_NOTE) {
-        //put_pitch(Pm_MessageData1(msg));
         if (active_voices[Pm_MessageData1(msg)] == 64) {
           note_ind = voice_note_on(gsynth, Pm_MessageData1(msg), Pm_MessageData2(msg));
           active_voices[Pm_MessageData1(msg)] = note_ind;
@@ -416,7 +418,6 @@ main()
         } else {
         }
       } else if (command == MIDI_OFF_NOTE) {
-        //put_pitch(Pm_MessageData1(msg));
         if (active_voices[Pm_MessageData1(msg)] < 64) {
           voice_note_off(gsynth, active_voices[Pm_MessageData1(msg)]);
           active_voices[Pm_MessageData1(msg)] = 64;
@@ -442,3 +443,14 @@ main()
   mixer_cleanup(gmix);
   return 0;
 }
+
+/*
+#include <math.h>
+#include <stdio.h>
+
+  FTYPE max = 0;
+        if (*write_buf_r * *write_buf_r > max) {
+          max = *write_buf_r * *write_buf_r;
+        }
+  printf("max sample mixed for this chunk: %f\n", sqrt(max));
+*/

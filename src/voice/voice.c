@@ -47,6 +47,7 @@ voice_init(Channel channels, size_t channel_num, instrument_e instrument)
   rv->voices = mono_voice_alloc();
   rv->voice_num = NUM_VOICES;
   rv->env_proto = env_init_default();
+  rv->fx_chain = NULL;
 
   switch(instrument) {
   case VOICE_MIC_IN:
@@ -96,6 +97,7 @@ voice_cleanup(Voice voice)
   for (mv = voice->voices; mv - voice->voices < voice->voice_num; mv++) {
     voice->fns.cleanup(mv);
   }
+  mono_voice_free(voice->voices);
   env_cleanup(voice->env_proto);
   dsp_cleanup(voice->fx_chain);
   voice_free(voice);
