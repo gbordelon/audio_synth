@@ -50,13 +50,19 @@ typedef struct dsp_callback_t {
 } *DSP_callback;
 
 DSP_callback dsp_init();
+DSP_callback dsp_init_default();
 
 DSP_callback dsp_init_audio_filter();
+DSP_callback dsp_init_audio_filter_default();
+
 DSP_callback dsp_init_bitcrusher();
-DSP_callback dsp_init_default();
+
 DSP_callback dsp_init_stereo_pan();
 
 void dsp_cleanup();
+
+void dsp_audio_filter_set_mono_left(DSP_callback cb);
+void dsp_audio_filter_set_mono_right(DSP_callback cb);
 
 // prepend a new cb chain structure to the current chain
 DSP_callback dsp_add_to_chain(DSP_callback head, DSP_callback new_head);

@@ -510,13 +510,33 @@ dsp_audio_filter_set_params(
   calculate_filter_coefficients(&state->audio_filter);
 }
 
+void
+dsp_audio_filter_set_mono_left(DSP_callback cb)
+{
+  cb->fn_type = DSP_MONO_L;
+  cb->fn_u.mono = mono_filter;
+}
+
+void
+dsp_audio_filter_set_mono_right(DSP_callback cb)
+{
+  cb->fn_type = DSP_MONO_R;
+  cb->fn_u.mono = mono_filter;
+}
+
 DSP_callback
 dsp_init_audio_filter()
 {
   DSP_callback cb = dsp_init();
-  cb->fn_type = DSP_MONO_L;
-  cb->fn_u.mono = mono_filter;
-  dsp_audio_filter_set_params(&cb->state, AF_LPF1, 100.0, 0.707, 0.0);
+  dsp_audio_filter_set_mono_left(cb);
 
+  return cb;
+}
+
+DSP_callback
+dsp_init_audio_filter_default()
+{
+  DSP_callback cb = dsp_init_audio_filter();
+  dsp_audio_filter_set_params(&cb->state, AF_LPF1, 100.0, 0.707, 0.0);
   return cb;
 }
