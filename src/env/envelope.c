@@ -27,10 +27,10 @@ env_free(Envelope env)
 void
 env_default_amp(Envelope env)
 {
-  env->amps[0] = 0.5;
-  env->amps[1] = 0.9;
-  env->amps[2] = 0.4;
-  env->amps[3] = 0.3;
+  env->amps[0] = 0.2;
+  env->amps[1] = 0.4;
+  env->amps[2] = 0.3;
+  env->amps[3] = 0.1;
 }
 
 void
@@ -50,14 +50,15 @@ env_default_durations(Envelope env)
 void
 env_default_ugens(Envelope env)
 {
-  env->ugens[0] = ugen_init_ramp_linear_up(1.0 / env->durs[0]);
-  env->ugens[1] = ugen_init_ramp_linear_down(1.0 / env->durs[1]);
-  env->ugens[2] = ugen_init_ramp_linear_down(1.0 / env->durs[2]);
-  env->ugens[3] = ugen_init_ramp_linear_down(1.0 / env->durs[3]);
-  ugen_set_cr(env->ugens[0]);
-  ugen_set_cr(env->ugens[1]);
-  ugen_set_cr(env->ugens[2]);
-  ugen_set_cr(env->ugens[3]);
+  env->ugens[0] = ugen_init_ramp_linear(1.0 / env->durs[0]);
+  env->ugens[1] = ugen_init_ramp_linear(1.0 / env->durs[1]);
+  env->ugens[2] = ugen_init_ramp_linear(1.0 / env->durs[2]);
+  env->ugens[3] = ugen_init_ramp_linear(1.0 / env->durs[3]);
+
+  ugen_set_scale(env->ugens[0], env->amps[0], env->amps[1]);
+  ugen_set_scale(env->ugens[1], env->amps[1], env->amps[2]);
+  ugen_set_scale(env->ugens[2], env->amps[2], env->amps[3]);
+  ugen_set_scale(env->ugens[3], env->amps[3], 0.0);
 }
 
 void
@@ -65,6 +66,10 @@ env_reset(Envelope env)
 {
   env->p_ind = 0;
   env->state = ENV_ATTACK;
+  ugen_reset_phase(env->ugens[0]);
+  ugen_reset_phase(env->ugens[1]);
+  ugen_reset_phase(env->ugens[2]);
+  ugen_reset_phase(env->ugens[3]);
 }
 
 void
@@ -93,6 +98,11 @@ env_init_default()
   env_default_durations(env);
   env_default_ugens(env);
 
+  // init the phase index as complete
+  env->p_ind = env->max_samples[0]
+             + env->max_samples[1]
+             + env->max_samples[2]
+             + env->max_samples[3];
   return env;
 }
 
@@ -109,15 +119,18 @@ env_cleanup(Envelope env)
 FTYPE
 env_sample(Envelope env, bool sustain)
 {
-  if (env->p_ind >= env->max_samples[0] + env->max_samples[1] + env->max_samples[2] + env->max_samples[3]) {
+  if (env_spent(env)) {
     return 0.0;
   }
+  env->p_ind++;
 
   FTYPE sample;
-
-  sample = ugen_sample(env->ugens[env->state]);
-  sample *= env->amps[env->state];
-  env->p_ind++;
+  if (sustain && env->p_ind == (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
+    sample = env->prev_sample;
+  } else {
+    sample = ugen_sample(env->ugens[env->state]);
+    env->prev_sample = sample;
+  }
 
   switch(env->state) {
   case ENV_ATTACK:
@@ -131,12 +144,12 @@ env_sample(Envelope env, bool sustain)
     }
     break;
   case ENV_SUSTAIN:
-    // TODO do something more interesting?
-    if (sustain) {
-      env->p_ind--;
-    }
-    if (env->p_ind == env->max_samples[0] + env->max_samples[1] + env->max_samples[2]) {
-      env->state = ENV_RELEASE;
+    if (env->p_ind == (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
+      if (sustain) {
+        env->p_ind--;
+      } else {
+        env->state = ENV_RELEASE;
+      }
     }
     break;
   case ENV_RELEASE:

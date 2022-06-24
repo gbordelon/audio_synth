@@ -8,6 +8,8 @@
 
 #include "../ugen/ugen.h"
 
+#define env_spent(env) ((env)->p_ind >= ((env)->max_samples[0] + (env)->max_samples[1] + (env)->max_samples[2] + (env)->max_samples[3]))
+
 typedef enum env_state_e {
   ENV_ATTACK,
   ENV_DECAY,
@@ -24,6 +26,7 @@ typedef struct envelope_t {
   FTYPE durs[4]; // duration of each stage in seconds
   uint32_t max_samples[4]; // number of samples to play for each stage
   uint32_t p_ind; // sample counter for state changes
+  FTYPE prev_sample;
 
   env_state state;
 } *Envelope;
@@ -32,6 +35,7 @@ Envelope env_init_default();
 // TODO more powerful constructor
 
 void env_cleanup(Envelope env);
+void env_reset(Envelope env);
 
 void env_set_duration(Envelope env, FTYPE duration/*in seconds*/, env_state stage);
 FTYPE env_sample(Envelope env, bool sustain); // sampling an envelope after it expires should return 0.

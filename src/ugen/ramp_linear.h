@@ -7,11 +7,10 @@
 
 #include "ugen.h"
 
-FTYPE ugen_sample_ramp_linear_down(Ugen ugen, size_t phase_ind);
-FTYPE ugen_sample_ramp_linear_up(Ugen ugen, size_t phase_ind);
+FTYPE ugen_sample_ramp_linear(Ugen ugen, size_t phase_ind);
 
-void ugen_generate_table_ramp_linear_up();
+void ugen_generate_table_ramp_linear();
 
-FTYPE ramp_linear_up[UGEN_TABLE_SIZE];
+FTYPE ramp_linear[UGEN_TABLE_SIZE];
 
 #endif

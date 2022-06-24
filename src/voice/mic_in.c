@@ -32,15 +32,11 @@ mic_in_cleanup(MonoVoice mv)
 void
 mic_in_note_on(MonoVoice mv, uint8_t midi_note)
 {
-  if (!voice_playing(mv)) {
-    mv->sustain = true;
-  }
 }
 
 void
 mic_in_note_off(MonoVoice mv)
 {
-  mv->sustain = false;
 }
 
 void

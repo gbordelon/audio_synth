@@ -22,6 +22,8 @@ def loop(output):
       note_idx = random.randrange(0,len(notes_on))
       note = notes_on[note_idx]
       output.note_off(note, 64)
+      print("OFF", note, 64)
+      print("")
       del notes_on[note_idx]
 
     if random.randint(0,1) > 0:
@@ -31,7 +33,9 @@ def loop(output):
       # random note on
       #note = random.randint(*note_range)
       note = random.choice(note_choice)
-      output.note_on(note, random.randint(*velocity_range))
+      velocity = random.randint(*velocity_range)
+      output.note_on(note, velocity)
+      print("ON", note, velocity)
       notes_on.append(note)
 
     time.sleep(delay)

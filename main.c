@@ -302,15 +302,15 @@ receive_poll(PtTimestamp timestamp, void *userData)
     }
 }
 
-#define add_filter(fx, filter_type, fc, q, db)\
+#define add_filter(vc, fx, filter_type, fc, q, db)\
   fx##_l = dsp_init_audio_filter();\
   dsp_audio_filter_set_mono_left(fx##_l);\
   dsp_audio_filter_set_params(&fx##_l->state, (filter_type), (fc), (q), (db));\
   fx##_r = dsp_init_audio_filter();\
   dsp_audio_filter_set_mono_left(fx##_r);\
   dsp_audio_filter_set_params(&fx##_r->state, (filter_type), (fc), (q), (db));\
-  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, fx##_l);\
-  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, fx##_r)
+  vc->fx_chain = dsp_add_to_chain(vc->fx_chain, fx##_l);\
+  vc->fx_chain = dsp_add_to_chain(vc->fx_chain, fx##_r)
    
 int
 main()
@@ -329,27 +329,29 @@ main()
   gmix = mixer_init(2, 1.0);
   printf("mixer initialized.\n");
 
+/* gsynth */
   Channel chans = gmix->busses[0].channels;
   gsynth = voice_init_default(chans, NUM_CHANNELS);
-
-  chans = gmix->busses[1].channels;
-  gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN);
-
-  // set slow triangle stereo pan on gmic
-  gmic->fx_chain = dsp_init_stereo_pan();
-  gmic->fx_chain->control_ugen = ugen_init_tri(0.05);
-  ugen_set_scale(gmic->fx_chain->control_ugen, 0.3, 0.7);
 
   // set slow triangle stereo pan on gsynth
   ugen_cleanup(gsynth->fx_chain->control_ugen);
   gsynth->fx_chain->control_ugen = ugen_init_tri(0.05);
   ugen_set_scale(gsynth->fx_chain->control_ugen, 0.3, 0.7);
+/* end gsynth */
+
+/* gmic */
+  chans = gmix->busses[1].channels;
+  gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN);
+
+  // set slow triangle stereo pan on gmic
+  gmic->fx_chain = dsp_init_stereo_pan();
+  gmic->fx_chain->control_ugen = ugen_init_tri(0.08);
+  ugen_set_scale(gmic->fx_chain->control_ugen, 0.3, 0.7);
 
   DSP_callback dsp_fx_l, dsp_fx_r;
-  add_filter(dsp_fx, AF_NCQParaEQ, 8000.0, 0.707, -12.0);
-  add_filter(dsp_fx, AF_NCQParaEQ, 4000.0, 0.707, -12.0);
-  add_filter(dsp_fx, AF_NCQParaEQ, 1000.0, 0.707, -3.0);
-  add_filter(dsp_fx, AF_NCQParaEQ, 100.0, 0.707, 12.0);
+  // telephon style filter uses a LPF at 4k and a HPF at 400
+  add_filter(gmic, dsp_fx, AF_HPF2, 400.0, 5.707, 0.0);
+  add_filter(gmic, dsp_fx, AF_LPF2, 4000.0, 5.707, 0.0);
 
   // precede LPF with a bitcrusher on each channel
   //dsp_fx_l = dsp_init_bitcrusher();
@@ -362,6 +364,7 @@ main()
 
   //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
   //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_r);
+/* end gmic */
 
   printf("instrument initialized.\n");
 
@@ -390,13 +393,12 @@ main()
   active = true;
   printf("MIDI in initialized.\n");
 
-  //audio_unit_go(audio_unit_out);
   audio_unit_go(audio_unit_io);
   printf("Synth started.\n");
   fflush(stdout);
 
   gmix->gain = 0.7;
-  voice_note_on(gmic, 30, 127);
+  //voice_note_on(gmic, 30, 127);
 
   int32_t msg;
   int command;    /* the current command */

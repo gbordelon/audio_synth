@@ -13,8 +13,6 @@
 
 #define NUM_VOICES 64
 
-#define voice_playing(i) ((i)->sustain)
-
 typedef struct mono_voice_t {
   Ugen *ugens;
   size_t ugen_num;
@@ -58,4 +56,5 @@ void voice_play_config(Voice voice, uint8_t midi_note, FTYPE dur);
 uint8_t voice_note_on(Voice voice, uint8_t midi_note, uint8_t midi_velocity);
 void voice_note_off(Voice voice, uint8_t mono_voice_index);
 
+bool mono_voice_playing(MonoVoice mv);
 #endif

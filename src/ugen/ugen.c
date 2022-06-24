@@ -10,7 +10,7 @@
 #include "sin.h"
 #include "tri.h"
 
-#include "ramp_circle.h"
+#include "ease_circle.h"
 #include "ramp_linear.h"
 
 void
@@ -19,8 +19,9 @@ ugen_generate_tables()
   ugen_generate_table_saw();
   ugen_generate_table_sin();
   ugen_generate_table_tri();
-  ugen_generate_table_ramp_circle_down();
-  ugen_generate_table_ramp_linear_up();
+  ugen_generate_table_ease_in_circle();
+  ugen_generate_table_ease_out_circle();
+  ugen_generate_table_ramp_linear();
 }
 
 Ugen
@@ -108,34 +109,32 @@ ugen_init_tri(FTYPE freq)
 }
 
 Ugen
-ugen_init_ramp_circle_down()
+ugen_init_ease_in_circle(FTYPE freq)
 {
   Ugen ugen = ugen_init();
-  ugen->sample = ugen_sample_ramp_circle_down;
+  ugen->sample = ugen_sample_ease_in_circle;
+  ugen_set_freq(ugen, freq);
+  ugen->cr = true;
   return ugen;
 }
 
 Ugen
-ugen_init_ramp_circle_up()
+ugen_init_ease_out_circle(FTYPE freq)
 {
   Ugen ugen = ugen_init();
-  ugen->sample = ugen_sample_ramp_circle_up;
+  ugen->sample = ugen_sample_ease_out_circle;
+  ugen_set_freq(ugen, freq);
+  ugen->cr = true;
   return ugen;
 }
 
 Ugen
-ugen_init_ramp_linear_down()
+ugen_init_ramp_linear(FTYPE freq)
 {
   Ugen ugen = ugen_init();
-  ugen->sample = ugen_sample_ramp_linear_down;
-  return ugen;
-}
-
-Ugen
-ugen_init_ramp_linear_up()
-{
-  Ugen ugen = ugen_init();
-  ugen->sample = ugen_sample_ramp_linear_up;
+  ugen->sample = ugen_sample_ramp_linear;
+  ugen_set_freq(ugen, freq);
+  ugen->cr = true;
   return ugen;
 }
 
@@ -219,8 +218,22 @@ ugen_set_duty_cycle_c(Ugen ugen, FTYPE duty_cycle)
 void
 ugen_set_scale(Ugen ugen, FTYPE low, FTYPE high)
 {
-  ugen->conv.scale = (high - low) * 0.5;
+  if (high > 1) {
+    high = 1;
+  }
   ugen->conv.bias = low;
+
+  if (ugen->cr) {
+    if (low < 0) {
+      low = 0;
+    }
+    ugen->conv.scale = high - low;
+  } else {
+    if (low < -1) {
+      low = -1;
+    }
+    ugen->conv.scale = (high - low) * 0.5;
+  }
 }
 
 FTYPE
@@ -254,7 +267,7 @@ ugen_sample_mod(Ugen ugen, size_t phase_mod)
   sample1 = (1.0 - ugen->p_inc_frac) * sample1 + ugen->p_inc_frac * sample2;
 
   if (ugen->cr) {
-    return sample1; // TODO come up with a control rate equation.
+    return ugen->conv.bias + ugen->conv.scale * sample1;
   }
   return ugen->conv.bias + ugen->conv.scale * (sample1 + 1.0);
 }

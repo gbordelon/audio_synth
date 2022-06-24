@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "../dsp/dsp.h"
+#include "../env/envelope.h"
 #include "../lib/macros.h"
 #include "../midi/midi.h"
 #include "../ugen/ugen.h"
@@ -123,7 +124,7 @@ voice_play_chunk(Voice voice)
   // iterate over 64 voices
   MonoVoice mv;
   for (mv = voice->voices; mv - voice->voices < voice->voice_num; mv++) {
-    if (voice_playing(mv)) {
+    if (mono_voice_playing(mv)) {
       voice->fns.play_chunk(mv, samples);
 
       for (L = accum_l, R = accum_r, t = samples[0], e = samples[1];
@@ -150,7 +151,7 @@ voice_note_on(Voice voice, uint8_t midi_note, uint8_t midi_velocity)
 {
   MonoVoice mv;
   for (mv = voice->voices; mv - voice->voices < voice->voice_num; mv++) {
-    if (!voice_playing(mv)) {
+    if (!mono_voice_playing(mv)) {
       mv->cur_dur = 0;
       mv->max_dur = DEFAULT_SAMPLE_RATE * 1.0;
       mv->velocity = ((FTYPE)midi_velocity) / 127.0;
@@ -166,9 +167,17 @@ void
 voice_note_off(Voice voice, uint8_t mono_voice_index)
 {
   MonoVoice mv = voice->voices + mono_voice_index;
-  if (voice_playing(mv)) {
-    voice->fns.note_off(mv);
-  } else {
-    // TODO what?
-  }
+
+  voice->fns.note_off(mv);
+}
+
+/*
+ * return true if envelope still has samples remaining.
+ * but only if the voice has been triggered.
+ */
+bool
+mono_voice_playing(MonoVoice mv)
+{
+  bool rv = (mv->sustain && mv->env == NULL) || (mv->env && !env_spent(mv->env));
+  return /*(mv->env && !env_spent(mv->env));*/rv;
 }

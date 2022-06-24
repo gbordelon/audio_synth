@@ -23,14 +23,14 @@ simple_synth_init(MonoVoice mv)
   mv->ugens[2] = ugen_init_sin(0.5); // LFO for modulator gain
   mv->ugens[3] = ugen_init_sin(0.1); // LFO for modulator duty_cycle
 
-  ugen_set_gain_c(*mv->ugens, 0.7);
+  ugen_set_gain_c(mv->ugens[0], 0.7);
 
-  ugen_set_mod(*mv->ugens, *(mv->ugens + 1));
-  ugen_set_gain(*(mv->ugens + 1), *(mv->ugens + 2));
-  ugen_set_duty_cycle(*(mv->ugens + 1), *(mv->ugens + 3));
+  ugen_set_mod(mv->ugens[0], mv->ugens[1]);
+  ugen_set_gain(mv->ugens[1], mv->ugens[2]);
+  ugen_set_duty_cycle(mv->ugens[1], mv->ugens[3]);
 
-  ugen_set_scale((*(mv->ugens + 2)), 0.3, 0.8);
-  ugen_set_scale((*(mv->ugens + 3)), 0.1, 0.2);
+  ugen_set_scale(mv->ugens[2], 0.3, 0.8);
+  ugen_set_scale(mv->ugens [3], 0.1, 0.2);
 
   mv->env = env_init_default();
 }
@@ -57,13 +57,14 @@ simple_synth_note_on(MonoVoice mv, uint8_t midi_note)
   //ugen_set_duty_cycle_c(*(mv->ugens + 2), 1.0 - mv->velocity);
 
   // only reset phase if the note is not currently playing otherwise might hear blips
-  if (!voice_playing(mv)) {
-    mv->sustain = true;
+  if (!mono_voice_playing(mv)) {
+    env_reset(mv->env);
     ugen_reset_phase(*mv->ugens);
     ugen_reset_phase(*(mv->ugens + 1));
     //ugen_reset_phase(*(mv->ugens + 2)); // do i want to reset the phase of the LFO?
     //ugen_reset_phase(*(mv->ugens + 3)); // do i want to reset the phase of the LFO?
   }
+  mv->sustain = true;
 }
 
 void
@@ -75,13 +76,11 @@ simple_synth_note_off(MonoVoice mv)
 void
 simple_synth_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE])
 {
-  FTYPE *t_sample = *bufs;
-  FTYPE *e_sample = *(bufs + 1);
+  FTYPE *t_sample = bufs[0];
+  FTYPE *e_sample = bufs[1];
 
   ugen_chunk_sample(*mv->ugens, t_sample);
   env_sample_chunk(mv->env, mv->sustain, e_sample);
 
   mv->cur_dur += CHUNK_SIZE;
 }
-
-

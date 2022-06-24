@@ -16,19 +16,21 @@
  * audio rate oscillators,
  * control rate oscillators
  * amplitude envelopes
- * filters
+ * filters ?
  * anything else?
  */
 typedef enum {
-  UGEN_CONSTANT,
-  UGEN_OSC_IMP,
-  UGEN_OSC_SAW,
-  UGEN_OSC_SIN,
-  UGEN_OSC_TRI,
-  UGEN_RAMP_CIRCLE_DOWN,
-  UGEN_RAMP_CIRCLE_UP,
-  UGEN_RAMP_LINEAR_DOWN,
-  UGEN_RAMP_LINEAR_UP
+  UGEN_CONSTANT, // ctrl
+  UGEN_OSC_IMP, // audio
+  UGEN_OSC_SAW, // audio
+  UGEN_OSC_SIN, // audio
+  UGEN_OSC_TRI, // audio
+  UGEN_EASE_IN_CIRCLE, // ctrl
+  UGEN_EASE_IN_CIRCLE_INV, // ctrl
+  UGEN_EASE_OUT_CIRCLE, // ctrl
+  UGEN_EASE_OUT_CIRCLE_INV, //ctrl
+  UGEN_RAMP_LINEAR_DOWN, // ctrl
+  UGEN_RAMP_LINEAR_UP // ctrl
 } ugen_type_e;
 
 typedef struct ar_cr_t {
@@ -76,10 +78,9 @@ Ugen ugen_init_saw(FTYPE freq);
 Ugen ugen_init_sin(FTYPE freq);
 Ugen ugen_init_tri(FTYPE freq);
 
-Ugen ugen_init_ramp_circle_down(FTYPE freq);
-Ugen ugen_init_ramp_circle_up(FTYPE freq);
-Ugen ugen_init_ramp_linear_down(FTYPE freq);
-Ugen ugen_init_ramp_linear_up(FTYPE freq);
+Ugen ugen_init_ease_in_circle(FTYPE freq);
+Ugen ugen_init_ease_out_circle(FTYPE freq);
+Ugen ugen_init_ramp_linear(FTYPE freq);
 
 void ugen_cleanup(Ugen ugen);
 
