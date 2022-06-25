@@ -13,21 +13,9 @@ ugen_sample_ease_in_circle(Ugen ugen, size_t phase_ind)
 }
 
 FTYPE
-ugen_sample_ease_in_circle_inv(Ugen ugen, size_t phase_ind)
-{
-  return 1.0 - ease_in_circle[phase_ind];
-}
-
-FTYPE
 ugen_sample_ease_out_circle(Ugen ugen, size_t phase_ind)
 {
   return ease_out_circle[phase_ind];
-}
-
-FTYPE
-ugen_sample_ease_out_circle_inv(Ugen ugen, size_t phase_ind)
-{
-  return 1.0 - ease_out_circle[phase_ind];
 }
 
 void

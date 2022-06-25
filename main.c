@@ -334,9 +334,14 @@ main()
   gsynth = voice_init_default(chans, NUM_CHANNELS);
 
   // set slow triangle stereo pan on gsynth
-  ugen_cleanup(gsynth->fx_chain->control_ugen);
-  gsynth->fx_chain->control_ugen = ugen_init_tri(0.05);
-  ugen_set_scale(gsynth->fx_chain->control_ugen, 0.3, 0.7);
+  DSP_callback cb = dsp_init_audio_detector_default();
+  dsp_set_control_dsp(gsynth->fx_chain, cb);
+  Ugen ug;
+/*
+  ug = ugen_init_tri(0.05);
+  ugen_set_scale(ug, 0.3, 0.7);
+  dsp_set_control_ugen(gsynth->fx_chain, ug);
+*/
 /* end gsynth */
 
 /* gmic */
@@ -345,8 +350,9 @@ main()
 
   // set slow triangle stereo pan on gmic
   gmic->fx_chain = dsp_init_stereo_pan();
-  gmic->fx_chain->control_ugen = ugen_init_tri(0.08);
-  ugen_set_scale(gmic->fx_chain->control_ugen, 0.3, 0.7);
+//  ug = ugen_init_tri(0.08);
+//  ugen_set_scale(ug, 0.3, 0.7);
+//  dsp_set_control_ugen(gmic->fx_chain, ug);
 
   DSP_callback dsp_fx_l, dsp_fx_r;
   // telephon style filter uses a LPF at 4k and a HPF at 400

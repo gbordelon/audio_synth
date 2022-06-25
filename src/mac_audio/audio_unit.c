@@ -14,7 +14,7 @@
 #include "audio_unit.h"
 
 #define ENABLE_INPUT 1
-#define USE_MIC 1
+#define USE_MIC 0
 
 #define MMAP_SIZE (NUM_CHANNELS*CHUNK_SIZE)
 #define kOutputBus 0

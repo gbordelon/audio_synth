@@ -10,11 +10,12 @@
  * Using code from Designing Audio Effect Plugins in C++ by Prikle, pgs. 550:551
  */
 
-void
+FTYPE
 mono_bitcrush(FTYPE *L, dsp_state *state, FTYPE control)
 {
   double QL = state->bitcrusher.quantized_bit_depth;
   *L = QL * ((int)(*L / QL));
+  return control;
 }
 
 void

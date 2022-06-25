@@ -482,11 +482,12 @@ calculate_filter_coefficients(audio_filter_params *params)
 #undef coeffs
 
 #define coeffs (state->audio_filter.biquad.coeffs)
-void
+FTYPE
 mono_filter(FTYPE *L, dsp_state *state, FTYPE control)
 {
   *L = coeffs[BIQUAD_d0] * *L +
        coeffs[BIQUAD_c0] * biquad_process_sample(&state->audio_filter.biquad, *L);
+  return control;
 }
 #undef coeffs
 
@@ -538,5 +539,6 @@ dsp_init_audio_filter_default()
 {
   DSP_callback cb = dsp_init_audio_filter();
   dsp_audio_filter_set_params(&cb->state, AF_LPF1, 100.0, 0.707, 0.0);
+
   return cb;
 }

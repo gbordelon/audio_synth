@@ -3,11 +3,12 @@
 #include "dsp.h"
 #include "pan.h"
 
-void
+FTYPE
 stereo_pan(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
 {
   *L *= (1.0 - control);
   *R *= control;
+  return control;
 }
 
 DSP_callback
