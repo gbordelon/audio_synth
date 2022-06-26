@@ -20,7 +20,7 @@ mono_follower(FTYPE *L, dsp_state *state, FTYPE control)
     state->envelope_follower.filter.fc = state->envelope_follower.fc;
   } else {
     double modulator_val = delta_val * state->envelope_follower.sensitivity;
-    state->envelope_follower.filter.fc = modulator_val * ((DEFAULT_SAMPLE_RATE>>1) - state->envelope_follower.fc) + state->envelope_follower.fc;
+    state->envelope_follower.filter.fc = modulator_val * (state->envelope_follower.fc_max - state->envelope_follower.fc) + state->envelope_follower.fc;
   }
 
   dsp_audio_filter_set_params(&state->envelope_follower.f->state, state->envelope_follower.filter); 
@@ -37,6 +37,8 @@ dsp_envelope_follower_set_params(
   envelope_follower_params params)
 {
   state->envelope_follower = params;
+  dsp_audio_detector_set_params(&state->envelope_follower.d->state, params.detector);
+  dsp_audio_filter_set_params(&state->envelope_follower.f->state, params.filter);
 }
 
 DSP_callback
@@ -46,7 +48,8 @@ dsp_init_envelope_follower(envelope_follower_params params)
   params.f = dsp_init_audio_filter(params.filter);
   params.d = dsp_init_audio_detector(params.detector);
 
-  dsp_envelope_follower_set_params(&cb->state, params);
+  cb->state.envelope_follower = params;
+  //dsp_envelope_follower_set_params(&cb->state, params);
   dsp_set_mono_left(cb, mono_follower);
 
   return cb;
@@ -63,9 +66,9 @@ dsp_init_envelope_follower_default()
     .clamp_to_unity_max = false
   };
 
+  // .fc is set in the sample processing function, per sample
   audio_filter_params filter = {
-    .fc = 0.0,
-    .q = 3.707,
+    .q = 4.707,
     .boost_cut_db = -6.0,
     .alg = AF_LPF2
   };
@@ -74,6 +77,7 @@ dsp_init_envelope_follower_default()
     .detector = detector,
     .filter = filter,
     .fc = 2000.0,
+    .fc_max = DEFAULT_SAMPLE_RATE>>1,
     .threshold = pow(10.0, -6.0 / 20.0), // -6 dB
     .sensitivity = 0.5
   };

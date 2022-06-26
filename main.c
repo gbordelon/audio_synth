@@ -285,13 +285,6 @@ receive_poll(PtTimestamp timestamp, void *userData)
     int count;
     if (!active) return;
 
-/*
-    Voice voice = (Voice)userData;
-    if (!gmix->needs_write) {
-      voice_play_chunk(voice);
-      gmix->needs_write = true;
-    }
-*/
     while ((count = Pm_Read(midi_in, &event, 1))) {
         if (count == 1) {
           handle_midi_in(event.message);

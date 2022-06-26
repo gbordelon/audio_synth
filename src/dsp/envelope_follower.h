@@ -17,6 +17,7 @@ typedef struct envelope_follower_t {
   audio_filter_params filter;
   DSP_callback f;
   double fc;
+  double fc_max;
   double threshold; // linear, not dB
   double sensitivity; // 0.25 to 10.0
 } envelope_follower_params;
