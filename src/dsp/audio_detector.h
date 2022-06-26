@@ -27,7 +27,6 @@ typedef struct {
 // forward declaration of type from dsp.h
 typedef union dsp_state_u dsp_state;
 
-void
-dsp_audio_detector_set_params(dsp_state *state, FTYPE attack_time_ms, FTYPE release_time_ms, detect_mode_e detect_mode, bool detect_db, bool clamp_to_unity_max);
+void dsp_audio_detector_set_params(dsp_state *state, audio_detector_params params);
 
 #endif

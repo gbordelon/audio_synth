@@ -302,15 +302,16 @@ receive_poll(PtTimestamp timestamp, void *userData)
     }
 }
 
-#define add_filter(vc, fx, filter_type, fc, q, db)\
-  fx##_l = dsp_init_audio_filter();\
-  dsp_audio_filter_set_mono_left(fx##_l);\
-  dsp_audio_filter_set_params(&fx##_l->state, (filter_type), (fc), (q), (db));\
-  fx##_r = dsp_init_audio_filter();\
-  dsp_audio_filter_set_mono_left(fx##_r);\
-  dsp_audio_filter_set_params(&fx##_r->state, (filter_type), (fc), (q), (db));\
-  vc->fx_chain = dsp_add_to_chain(vc->fx_chain, fx##_l);\
-  vc->fx_chain = dsp_add_to_chain(vc->fx_chain, fx##_r)
+#define add_filter(vc, fx, params, filter_type, Fc, Q, dB)\
+  (params).alg=(filter_type);\
+  (params).fc=(Fc);\
+  (params).q=(Q);\
+  (params).boost_cut_db=(dB);\
+  fx##_l = dsp_init_audio_filter(params);\
+  fx##_r = dsp_init_audio_filter(params);\
+  (fx##_r)->fn_type = DSP_MONO_R;\
+  (vc)->fx_chain = dsp_add_to_chain(vc->fx_chain, fx##_l);\
+  (vc)->fx_chain = dsp_add_to_chain(vc->fx_chain, fx##_r)
    
 int
 main()
@@ -333,9 +334,24 @@ main()
   Channel chans = gmix->busses[0].channels;
   gsynth = voice_init_default(chans, NUM_CHANNELS);
 
-  // set slow triangle stereo pan on gsynth
-  DSP_callback cb = dsp_init_audio_detector_default();
-  dsp_set_control_dsp(gsynth->fx_chain, cb);
+  DSP_callback cb = dsp_init_envelope_follower_default();
+  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
+  cb = dsp_init_envelope_follower_default();
+  cb->fn_type = DSP_MONO_R;
+  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
+
+  DSP_callback dsp_fx_l, dsp_fx_r;
+  // precede env follower with a bitcrusher on each channel
+  dsp_fx_l = dsp_init_bitcrusher();
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, 4.0);
+
+  dsp_fx_r = dsp_init_bitcrusher();
+  dsp_fx_r->fn_type = DSP_MONO_R;
+  dsp_set_bitcrusher_param(&dsp_fx_r->state, 4.0);
+
+//  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+//  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
+
   Ugen ug;
 /*
   ug = ugen_init_tri(0.05);
@@ -354,22 +370,11 @@ main()
 //  ugen_set_scale(ug, 0.3, 0.7);
 //  dsp_set_control_ugen(gmic->fx_chain, ug);
 
-  DSP_callback dsp_fx_l, dsp_fx_r;
-  // telephon style filter uses a LPF at 4k and a HPF at 400
-  add_filter(gmic, dsp_fx, AF_HPF2, 400.0, 5.707, 0.0);
-  add_filter(gmic, dsp_fx, AF_LPF2, 4000.0, 5.707, 0.0);
+  audio_filter_params params;
+  // telephone style filter uses a LPF at 4k and a HPF at 400
+  add_filter(gmic, dsp_fx, params, AF_HPF2, 400.0, 5.707, 0.0);
+  add_filter(gmic, dsp_fx, params, AF_LPF2, 4000.0, 5.707, 0.0);
 
-  // precede LPF with a bitcrusher on each channel
-  //dsp_fx_l = dsp_init_bitcrusher();
-  //dsp_audio_filter_set_mono_left(dsp_fx_l);
-  //dsp_set_bitcrusher_param(&dsp_fx_l->state, 3.5);
-
-  //dsp_fx_r = dsp_init_bitcrusher();
-  //dsp_audio_filter_set_mono_right(dsp_fx_r);
-  //dsp_set_bitcrusher_param(&dsp_fx_r->state, 3.5);
-
-  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
-  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_r);
 /* end gmic */
 
   printf("instrument initialized.\n");

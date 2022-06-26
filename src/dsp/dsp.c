@@ -38,14 +38,7 @@ dsp_init()
 DSP_callback
 dsp_init_default()
 {
-  DSP_callback cb = dsp_init();
-  cb->control = DSP_CONTROL_UGEN;
-  cb->ctrl_u.ugen = ugen_init_constant();
-  ugen_set_scale(cb->ctrl_u.ugen, 0.5, 0.5);
-  cb->fn_type = DSP_STEREO;
-  cb->fn_u.stereo = stereo_pan;
-
-  return cb;
+  return dsp_init_stereo_pan();
 }
 
 void
@@ -66,6 +59,27 @@ dsp_add_to_chain(DSP_callback head, DSP_callback new_head)
 {
   new_head->next = head;
   return new_head;
+}
+
+void
+dsp_set_mono_left(DSP_callback cb, dsp_mono_fn fn)
+{
+  cb->fn_type = DSP_MONO_L;
+  cb->fn_u.mono = fn;
+}
+
+void
+dsp_set_mono_right(DSP_callback cb, dsp_mono_fn fn)
+{
+  cb->fn_type = DSP_MONO_R;
+  cb->fn_u.mono = fn;
+}
+
+void
+dsp_set_stereo(DSP_callback cb, dsp_stereo_fn fn)
+{
+  cb->fn_type = DSP_STEREO;
+  cb->fn_u.stereo = fn;
 }
 
 void

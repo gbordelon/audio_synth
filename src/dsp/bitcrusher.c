@@ -28,8 +28,7 @@ DSP_callback
 dsp_init_bitcrusher()
 {
   DSP_callback cb = dsp_init();
-  cb->fn_type = DSP_MONO_L;
-  cb->fn_u.mono = mono_bitcrush;
+  dsp_set_mono_left(cb, mono_bitcrush);
   dsp_set_bitcrusher_param(&cb->state, 4.0);
 
   return cb;

@@ -8,6 +8,7 @@
 #include "audio_detector.h"
 #include "audio_filter.h"
 #include "biquad.h"
+#include "envelope_follower.h"
 
 typedef union dsp_state_u {
   struct {
@@ -15,6 +16,7 @@ typedef union dsp_state_u {
   } bitcrusher;
   audio_filter_params audio_filter;
   audio_detector_params audio_detector;
+  envelope_follower_params envelope_follower;
 } dsp_state;
 
 typedef enum {
@@ -62,23 +64,25 @@ typedef struct dsp_callback_t {
 DSP_callback dsp_init();
 DSP_callback dsp_init_default();
 
-DSP_callback dsp_init_audio_detector(FTYPE attack_time_ms, FTYPE release_time_ms, detect_mode_e detect_mode, bool detect_db, bool clamp_to_unity_max);
+DSP_callback dsp_init_audio_detector(audio_detector_params params);
 DSP_callback dsp_init_audio_detector_default();
 
-DSP_callback dsp_init_audio_filter();
+DSP_callback dsp_init_audio_filter(audio_filter_params params);
 DSP_callback dsp_init_audio_filter_default();
 
 DSP_callback dsp_init_bitcrusher();
+
+DSP_callback dsp_init_envelope_follower(envelope_follower_params params);
+DSP_callback dsp_init_envelope_follower_default();
 
 DSP_callback dsp_init_stereo_pan();
 
 void dsp_cleanup();
 
-void dsp_audio_detector_set_mono_left(DSP_callback cb);
-void dsp_audio_detector_set_mono_right(DSP_callback cb);
 
-void dsp_audio_filter_set_mono_left(DSP_callback cb);
-void dsp_audio_filter_set_mono_right(DSP_callback cb);
+void dsp_set_mono_left(DSP_callback cb, dsp_mono_fn fn);
+void dsp_set_mono_right(DSP_callback cb, dsp_mono_fn fn);
+void dsp_set_stereo(DSP_callback cb, dsp_stereo_fn fn);
 
 void dsp_set_control_ugen(DSP_callback cb, Ugen ugen);
 void dsp_set_control_dsp(DSP_callback cb, DSP_callback ctrl);

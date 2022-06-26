@@ -494,42 +494,22 @@ mono_filter(FTYPE *L, dsp_state *state, FTYPE control)
 void
 dsp_audio_filter_set_params(
     dsp_state *state,
-    audio_filter_algorithm alg,
-    double fc,
-    double q,
-    double boost_cut_db)
+    audio_filter_params params)
 {
-  state->audio_filter.alg = alg;
-  state->audio_filter.fc = fc;
-  state->audio_filter.q = q;
-  state->audio_filter.boost_cut_db = boost_cut_db;
-
-  if (q <= 0) {
-    state->audio_filter.q = 0.707;
-  }
+  state->audio_filter.alg = params.alg;
+  state->audio_filter.fc = params.fc;
+  state->audio_filter.q = params.q <= 0 ? 0.707 : params.q;
+  state->audio_filter.boost_cut_db = params.boost_cut_db;
 
   calculate_filter_coefficients(&state->audio_filter);
 }
 
-void
-dsp_audio_filter_set_mono_left(DSP_callback cb)
-{
-  cb->fn_type = DSP_MONO_L;
-  cb->fn_u.mono = mono_filter;
-}
-
-void
-dsp_audio_filter_set_mono_right(DSP_callback cb)
-{
-  cb->fn_type = DSP_MONO_R;
-  cb->fn_u.mono = mono_filter;
-}
-
 DSP_callback
-dsp_init_audio_filter()
+dsp_init_audio_filter(audio_filter_params params)
 {
   DSP_callback cb = dsp_init();
-  dsp_audio_filter_set_mono_left(cb);
+  dsp_audio_filter_set_params(&cb->state, params);
+  dsp_set_mono_left(cb, mono_filter);
 
   return cb;
 }
@@ -537,8 +517,14 @@ dsp_init_audio_filter()
 DSP_callback
 dsp_init_audio_filter_default()
 {
-  DSP_callback cb = dsp_init_audio_filter();
-  dsp_audio_filter_set_params(&cb->state, AF_LPF1, 100.0, 0.707, 0.0);
+  audio_filter_params params = {
+    .fc = 100.0,
+    .q = 0.707,
+    .boost_cut_db = 0,
+    .alg = AF_LPF1
+  };
+  DSP_callback cb = dsp_init_audio_filter(params);
+
 
   return cb;
 }

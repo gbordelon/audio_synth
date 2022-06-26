@@ -85,7 +85,7 @@ voice_init_default(Channel channels, size_t channel_num)
 {
   Voice rv = voice_init(channels, channel_num, VOICE_SIMPLE_SYNTH);
 
-  rv->fx_chain = dsp_init_stereo_pan();
+  rv->fx_chain = dsp_init_default();
 
   return rv;
 }

@@ -52,6 +52,6 @@ typedef struct audio_filter_params_t {
 // forward declaration of type from dsp.h
 typedef union dsp_state_u dsp_state;
 
-void dsp_audio_filter_set_params(dsp_state *state, audio_filter_algorithm alg, double fc, double q, double boost_cut_db);
+void dsp_audio_filter_set_params(dsp_state *state, audio_filter_params params);
 
 #endif

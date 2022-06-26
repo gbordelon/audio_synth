@@ -50,40 +50,23 @@ mono_detector(FTYPE *L, dsp_state *state, FTYPE control)
 void
 dsp_audio_detector_set_params(
     dsp_state *state,
-    FTYPE attack_time_ms,
-    FTYPE release_time_ms,
-    detect_mode_e detect_mode,
-    bool detect_db,
-    bool clamp_to_unity_max)
+    audio_detector_params params)
 {
-  state->audio_detector.attack_time = exp(AUDIO_DETECTOR_ENVELOPE_ANALOG_TC / (attack_time_ms * DEFAULT_SAMPLE_RATE * 0.001));
-  state->audio_detector.release_time = exp(AUDIO_DETECTOR_ENVELOPE_ANALOG_TC / (release_time_ms * DEFAULT_SAMPLE_RATE * 0.001));
-  state->audio_detector.detect_mode = detect_mode;
-  state->audio_detector.detect_db = detect_db;
-  state->audio_detector.clamp_to_unity_max = clamp_to_unity_max;
+  state->audio_detector.attack_time = exp(AUDIO_DETECTOR_ENVELOPE_ANALOG_TC / (params.attack_time * DEFAULT_SAMPLE_RATE * 0.001));
+  state->audio_detector.release_time = exp(AUDIO_DETECTOR_ENVELOPE_ANALOG_TC / (params.release_time * DEFAULT_SAMPLE_RATE * 0.001));
+  state->audio_detector.detect_mode = params.detect_mode;
+  state->audio_detector.detect_db = params.detect_db;
+  state->audio_detector.clamp_to_unity_max = params.clamp_to_unity_max;
   state->audio_detector.previous_envelope = 0.0;
 }
 
-void
-dsp_audio_detector_set_mono_left(DSP_callback cb)
-{
-  cb->fn_type = DSP_MONO_L;
-  cb->fn_u.mono = mono_detector;
-}
-
-void
-dsp_audio_detector_set_mono_right(DSP_callback cb)
-{
-  cb->fn_type = DSP_MONO_R;
-  cb->fn_u.mono = mono_detector;
-}
-
 DSP_callback
-dsp_init_audio_detector(FTYPE attack_time_ms, FTYPE release_time_ms, detect_mode_e detect_mode, bool detect_db, bool clamp_to_unity_max)
+dsp_init_audio_detector(audio_detector_params params)
 {
   DSP_callback cb = dsp_init();
-  dsp_audio_detector_set_params(&cb->state, attack_time_ms, release_time_ms, detect_mode, detect_db, clamp_to_unity_max);
-  dsp_audio_detector_set_mono_left(cb);
+
+  dsp_audio_detector_set_params(&cb->state, params);
+  dsp_set_mono_left(cb, mono_detector);
 
   return cb;
 }
@@ -91,5 +74,13 @@ dsp_init_audio_detector(FTYPE attack_time_ms, FTYPE release_time_ms, detect_mode
 DSP_callback
 dsp_init_audio_detector_default()
 {
-  return dsp_init_audio_detector(1.0, 1.0, AUDIO_DETECTOR_MODE_PEAK, false, true);
+  audio_detector_params params = {
+    .attack_time = 1.0,
+    .release_time = 1.0,
+    .detect_mode = AUDIO_DETECTOR_MODE_PEAK,
+    .detect_db = false,
+    .clamp_to_unity_max = true
+  };
+
+  return dsp_init_audio_detector(params);
 }
