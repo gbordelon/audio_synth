@@ -10,7 +10,8 @@
 
 #include "voice.h"
 
-// TODO create more instruments
+#include "dx7.h"
+#include "fm_10.h"
 #include "mic_in.h"
 #include "simple_synth.h"
 
@@ -51,6 +52,13 @@ voice_init(Channel channels, size_t channel_num, instrument_e instrument, mono_v
   rv->fx_chain = NULL;
 
   switch(instrument) {
+  case VOICE_DX7:
+    rv->fns.init = dx7_init;
+    rv->fns.cleanup = dx7_cleanup;
+    rv->fns.note_on = dx7_note_on;
+    rv->fns.note_off = dx7_note_off;
+    rv->fns.play_chunk = dx7_play_chunk;
+    break;
   case VOICE_FM_10:
     rv->fns.init = fm_10_init;
     rv->fns.cleanup = fm_10_cleanup;

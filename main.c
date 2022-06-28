@@ -27,6 +27,7 @@
 #include "src/ugen/sin.h"
 #include "src/ugen/ugen.h"
 #include "src/voice/voice.h"
+#include "src/voice/dx7.h"
 
 #define MIDI_CODE_MASK  0xf0
 #define MIDI_CHN_MASK   0x0f
@@ -327,13 +328,26 @@ main()
   Channel chans = gmix->busses[0].channels;
   //gsynth = voice_init_default(chans, NUM_CHANNELS);
   mono_voice_params mv_params;
-  mv_params.fm_10.p6 = 1.0;
-  mv_params.fm_10.p7 = 0.0;
-  mv_params.fm_10.p8 = 5.0;
-  // brass 1 0 4
-  // bassoon 1/3 0 2
-  // bassoon 2/3 4 2
-  gsynth = voice_init(chans, NUM_CHANNELS, VOICE_FM_10, mv_params);
+  mv_params.dx7.alg = DX7_1;
+  mv_params.dx7.patch.detune[0] = 0.0;
+  mv_params.dx7.patch.detune[1] = 0.0;
+  mv_params.dx7.patch.detune[2] = 10.0;
+  mv_params.dx7.patch.detune[3] = 0.0;
+  mv_params.dx7.patch.detune[4] = 0.0;
+  mv_params.dx7.patch.detune[5] = 0.0;
+  mv_params.dx7.patch.mult[0] = 1.0;
+  mv_params.dx7.patch.mult[1] = 2.0;
+  mv_params.dx7.patch.mult[2] = 4.0;
+  mv_params.dx7.patch.mult[3] = 8.0;
+  mv_params.dx7.patch.mult[4] = 3.0;
+  mv_params.dx7.patch.mult[5] = 2.0;
+  mv_params.dx7.patch.gain[0] = 1.0/10.0;
+  mv_params.dx7.patch.gain[1] = 1.0/6.0;
+  mv_params.dx7.patch.gain[2] = 1.0/6.0;
+  mv_params.dx7.patch.gain[3] = 1.0/6.0;
+  mv_params.dx7.patch.gain[4] = 1.0/6.0;
+  mv_params.dx7.patch.gain[5] = 1.0/3.0;
+  gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, mv_params);
 
   DSP_callback cb = dsp_init_envelope_follower_default();
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
@@ -344,11 +358,11 @@ main()
   DSP_callback dsp_fx_l, dsp_fx_r;
   // precede env follower with a bitcrusher on each channel
   dsp_fx_l = dsp_init_bitcrusher();
-  dsp_set_bitcrusher_param(&dsp_fx_l->state, 6.5);
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, 4.5);
 
   dsp_fx_r = dsp_init_bitcrusher();
   dsp_fx_r->fn_type = DSP_MONO_R;
-  dsp_set_bitcrusher_param(&dsp_fx_r->state, 6.5);
+  dsp_set_bitcrusher_param(&dsp_fx_r->state, 4.5);
 
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);

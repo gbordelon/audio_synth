@@ -149,11 +149,12 @@ ugen_cleanup(Ugen ugen)
   ugen_free(ugen);
 }
 
+static const FTYPE DSR_INV = 1.0 / (FTYPE)DEFAULT_SAMPLE_RATE;
 void
 ugen_set_freq(Ugen ugen, FTYPE freq)
 {
-  ugen->p_inc_whole = floor((FTYPE)UGEN_TABLE_SIZE * freq / (FTYPE)DEFAULT_SAMPLE_RATE);
-  ugen->p_inc_frac = fmod((FTYPE)UGEN_TABLE_SIZE * freq / (FTYPE)DEFAULT_SAMPLE_RATE, 1);
+  ugen->p_inc_whole = floor((FTYPE)UGEN_TABLE_SIZE * freq * DSR_INV);
+  ugen->p_inc_frac = fmod((FTYPE)UGEN_TABLE_SIZE * freq * DSR_INV, 1);
 }
 
 /*

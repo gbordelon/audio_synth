@@ -8,15 +8,18 @@
 
 #include "../dsp/dsp.h"
 #include "../env/envelope.h"
+#include "../ugen/operator.h"
 #include "../ugen/ugen.h"
 #include "../pcm/channel.h"
 
+#include "dx7.h"
 #include "fm_10.h"
 
 #define NUM_VOICES 64
 
 typedef union mono_voice_params_u {
   fm_10_params fm_10;
+  dx7_params dx7;
 } mono_voice_params;
 
 typedef struct mono_voice_t {
@@ -50,6 +53,7 @@ typedef struct voice_t {
 
 typedef enum {
   VOICE_SIMPLE_SYNTH,
+  VOICE_DX7,
   VOICE_FM_10,
   VOICE_MIC_IN
 } instrument_e;

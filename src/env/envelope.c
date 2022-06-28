@@ -27,10 +27,10 @@ env_free(Envelope env)
 void
 env_default_amp(Envelope env)
 {
-  env->amps[0] = 0.2;
-  env->amps[1] = 0.6;
-  env->amps[2] = 0.3;
-  env->amps[3] = 0.2;
+  env->amps[0] = 0.0;
+  env->amps[1] = 1.0;
+  env->amps[2] = 0.7;
+  env->amps[3] = 0.6;
 }
 
 void
@@ -38,8 +38,8 @@ env_default_durations(Envelope env)
 {
   env->durs[0] = 0.05;
   env->durs[1] = 0.05;
-  env->durs[2] = 0.85;
-  env->durs[3] = 0.05;
+  env->durs[2] = 0.80;
+  env->durs[3] = 0.10;
 
   env->max_samples[0] = floor(DEFAULT_SAMPLE_RATE * env->durs[0]) - 1;
   env->max_samples[1] = floor(DEFAULT_SAMPLE_RATE * env->durs[1]) - 1;
