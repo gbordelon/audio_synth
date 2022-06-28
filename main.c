@@ -328,25 +328,25 @@ main()
   Channel chans = gmix->busses[0].channels;
   //gsynth = voice_init_default(chans, NUM_CHANNELS);
   mono_voice_params mv_params;
-  mv_params.dx7.alg = DX7_1;
+  mv_params.dx7.alg = DX7_4;
   mv_params.dx7.patch.detune[0] = 0.0;
   mv_params.dx7.patch.detune[1] = 0.0;
-  mv_params.dx7.patch.detune[2] = 10.0;
+  mv_params.dx7.patch.detune[2] = 0.0;
   mv_params.dx7.patch.detune[3] = 0.0;
   mv_params.dx7.patch.detune[4] = 0.0;
   mv_params.dx7.patch.detune[5] = 0.0;
   mv_params.dx7.patch.mult[0] = 1.0;
-  mv_params.dx7.patch.mult[1] = 2.0;
-  mv_params.dx7.patch.mult[2] = 4.0;
-  mv_params.dx7.patch.mult[3] = 8.0;
-  mv_params.dx7.patch.mult[4] = 3.0;
-  mv_params.dx7.patch.mult[5] = 2.0;
+  mv_params.dx7.patch.mult[1] = 5.0; // 5:1 add 2nd,4th,6th octaves about 1
+  mv_params.dx7.patch.mult[2] = 2.0;
+  mv_params.dx7.patch.mult[3] = 1.0;
+  mv_params.dx7.patch.mult[4] = 0.5;
+  mv_params.dx7.patch.mult[5] = 3.0;
   mv_params.dx7.patch.gain[0] = 1.0/10.0;
-  mv_params.dx7.patch.gain[1] = 1.0/6.0;
-  mv_params.dx7.patch.gain[2] = 1.0/6.0;
-  mv_params.dx7.patch.gain[3] = 1.0/6.0;
-  mv_params.dx7.patch.gain[4] = 1.0/6.0;
-  mv_params.dx7.patch.gain[5] = 1.0/3.0;
+  mv_params.dx7.patch.gain[1] = 1.0;
+  mv_params.dx7.patch.gain[2] = 1.0;
+  mv_params.dx7.patch.gain[3] = 1.0;
+  mv_params.dx7.patch.gain[4] = 3.0/30.0;
+  mv_params.dx7.patch.gain[5] = 1.0;
   gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, mv_params);
 
   DSP_callback cb = dsp_init_envelope_follower_default();

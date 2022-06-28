@@ -15,7 +15,7 @@
 void
 dx7_init(MonoVoice mv, mono_voice_params params)
 {
-  //mv->env = env_init_default();
+  mv->env = env_init_default();
   mv->params.dx7.alg = params.dx7.alg;
 
   mv->params.dx7.ops[0] = operator_init_default();
@@ -54,6 +54,7 @@ dx7_cleanup(MonoVoice mv)
   operator_cleanup(mv->params.dx7.ops[3]);
   operator_cleanup(mv->params.dx7.ops[4]);
   operator_cleanup(mv->params.dx7.ops[5]);
+  env_cleanup(mv->env);
 }
 
 
@@ -82,6 +83,7 @@ dx7_note_on(MonoVoice mv, uint8_t midi_note)
     operator_reset(mv->params.dx7.ops[3]);
     operator_reset(mv->params.dx7.ops[4]);
     operator_reset(mv->params.dx7.ops[5]);
+    env_reset(mv->env);
   }
   mv->sustain = true;
   mv->cur_dur = 0;
@@ -102,6 +104,102 @@ dx7_play_sample(MonoVoice mv)
 {
   FTYPE rv;
   switch (mv->params.dx7.alg) {
+  case DX7_1:
+    // sample 6
+    rv = operator_sample(mv->params.dx7.ops[5], mv->sustain);
+    // feedback for 6
+    operator_set_fm(mv->params.dx7.ops[5], rv * mv->params.dx7.ops[5]->fc);
+    // prepare 5
+    operator_set_fm(mv->params.dx7.ops[4], rv * mv->params.dx7.ops[4]->fc);
+    // sample 5
+    rv = operator_sample(mv->params.dx7.ops[4], mv->sustain);
+    // prepare 4
+    operator_set_fm(mv->params.dx7.ops[3], rv * mv->params.dx7.ops[3]->fc);
+    // sample 4
+    rv = operator_sample(mv->params.dx7.ops[3], mv->sustain);
+    // prepare 3
+    operator_set_fm(mv->params.dx7.ops[2], rv * mv->params.dx7.ops[2]->fc);
+    // sample 2
+    rv = operator_sample(mv->params.dx7.ops[1], mv->sustain);
+    // prepare 1
+    operator_set_fm(mv->params.dx7.ops[0], rv * mv->params.dx7.ops[0]->fc);
+    // sample 1
+    rv = operator_sample(mv->params.dx7.ops[0], mv->sustain);
+    // sample 3
+    rv += operator_sample(mv->params.dx7.ops[2], mv->sustain);
+    break;
+  case DX7_2:
+    // sample 6
+    rv = operator_sample(mv->params.dx7.ops[5], mv->sustain);
+    // prepare 5
+    operator_set_fm(mv->params.dx7.ops[4], rv * mv->params.dx7.ops[4]->fc);
+    // sample 5
+    rv = operator_sample(mv->params.dx7.ops[4], mv->sustain);
+    // prepare 4
+    operator_set_fm(mv->params.dx7.ops[3], rv * mv->params.dx7.ops[3]->fc);
+    // sample 4
+    rv = operator_sample(mv->params.dx7.ops[3], mv->sustain);
+    // prepare 3
+    operator_set_fm(mv->params.dx7.ops[2], rv * mv->params.dx7.ops[2]->fc);
+    // sample 2
+    rv = operator_sample(mv->params.dx7.ops[1], mv->sustain);
+    // feedback for 2
+    operator_set_fm(mv->params.dx7.ops[1], rv * mv->params.dx7.ops[1]->fc);
+    // prepare 1
+    operator_set_fm(mv->params.dx7.ops[0], rv * mv->params.dx7.ops[0]->fc);
+    // sample 1
+    rv = operator_sample(mv->params.dx7.ops[0], mv->sustain);
+    // sample 3
+    rv += operator_sample(mv->params.dx7.ops[2], mv->sustain);
+    break;
+  case DX7_3:
+    // sample 6
+    rv = operator_sample(mv->params.dx7.ops[5], mv->sustain);
+    // feedback for 6
+    operator_set_fm(mv->params.dx7.ops[5], rv * mv->params.dx7.ops[5]->fc);
+    // prepare 5
+    operator_set_fm(mv->params.dx7.ops[4], rv * mv->params.dx7.ops[4]->fc);
+    // sample 5
+    rv = operator_sample(mv->params.dx7.ops[4], mv->sustain);
+    // prepare 4
+    operator_set_fm(mv->params.dx7.ops[3], rv * mv->params.dx7.ops[3]->fc);
+    // sample 3
+    rv = operator_sample(mv->params.dx7.ops[2], mv->sustain);
+    // prepare 2
+    operator_set_fm(mv->params.dx7.ops[1], rv * mv->params.dx7.ops[1]->fc);
+    // sample 2
+    rv = operator_sample(mv->params.dx7.ops[1], mv->sustain);
+    // prepare 1
+    operator_set_fm(mv->params.dx7.ops[0], rv * mv->params.dx7.ops[0]->fc);
+    // sample 1
+    rv = operator_sample(mv->params.dx7.ops[0], mv->sustain);
+    // sample 4
+    rv += operator_sample(mv->params.dx7.ops[3], mv->sustain);
+    break;
+  case DX7_4:
+    // sample 6
+    rv = operator_sample(mv->params.dx7.ops[5], mv->sustain);
+    // prepare 5
+    operator_set_fm(mv->params.dx7.ops[4], rv * mv->params.dx7.ops[4]->fc);
+    // sample 5
+    rv = operator_sample(mv->params.dx7.ops[4], mv->sustain);
+    // prepare 4
+    operator_set_fm(mv->params.dx7.ops[3], rv * mv->params.dx7.ops[3]->fc);
+    // sample 3
+    rv = operator_sample(mv->params.dx7.ops[2], mv->sustain);
+    // prepare 2
+    operator_set_fm(mv->params.dx7.ops[1], rv * mv->params.dx7.ops[1]->fc);
+    // sample 2
+    rv = operator_sample(mv->params.dx7.ops[1], mv->sustain);
+    // prepare 1
+    operator_set_fm(mv->params.dx7.ops[0], rv * mv->params.dx7.ops[0]->fc);
+    // sample 4
+    rv = operator_sample(mv->params.dx7.ops[3], mv->sustain);
+    // feedback for 6
+    operator_set_fm(mv->params.dx7.ops[5], rv * mv->params.dx7.ops[5]->fc);
+    // sample 1
+    rv += operator_sample(mv->params.dx7.ops[0], mv->sustain);
+    break;
   default:
   // fall through
   case DX7_32:
@@ -124,10 +222,16 @@ dx7_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE])
   FTYPE *e_sample = bufs[1];
 
   int i;
-  for (i = 0; i < CHUNK_SIZE; i++, t_sample++, e_sample++) {
+  for (i = 0; i < CHUNK_SIZE; i++, t_sample++) {
     *t_sample = dx7_play_sample(mv);
+  }
+  env_sample_chunk(mv->env, mv->sustain, e_sample);
+
+/*
+  // for now overwrite the amplitude envelope
+  for (i = 0; i < CHUNK_SIZE; i++, e_sample++) {
     *e_sample = 1.0;
   }
-
+*/
   mv->cur_dur += CHUNK_SIZE;
 }
