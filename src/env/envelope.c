@@ -41,10 +41,10 @@ env_default_durations(Envelope env)
   env->durs[2] = 0.85;
   env->durs[3] = 0.05;
 
-  env->max_samples[0] = floor(DEFAULT_SAMPLE_RATE * env->durs[0]);
-  env->max_samples[1] = floor(DEFAULT_SAMPLE_RATE * env->durs[1]);
-  env->max_samples[2] = floor(DEFAULT_SAMPLE_RATE * env->durs[2]);
-  env->max_samples[3] = floor(DEFAULT_SAMPLE_RATE * env->durs[3]);
+  env->max_samples[0] = floor(DEFAULT_SAMPLE_RATE * env->durs[0]) - 1;
+  env->max_samples[1] = floor(DEFAULT_SAMPLE_RATE * env->durs[1]) - 1;
+  env->max_samples[2] = floor(DEFAULT_SAMPLE_RATE * env->durs[2]) - 1;
+  env->max_samples[3] = floor(DEFAULT_SAMPLE_RATE * env->durs[3]) - 1;
 }
 
 void
@@ -77,8 +77,21 @@ env_set_duration(Envelope env, FTYPE duration/*in seconds*/, env_state stage)
 {
   env_reset(env);
   env->durs[stage] = duration;
-  env->max_samples[stage] = floor(DEFAULT_SAMPLE_RATE * env->durs[stage]);
+  env->max_samples[stage] = floor(DEFAULT_SAMPLE_RATE * env->durs[stage]) - 1;
   ugen_set_freq(env->ugens[stage], 1.0 / duration);
+}
+
+void
+env_set_amplitudes(Envelope env, FTYPE amps[4])
+{
+  env->amps[0] = amps[0];
+  env->amps[1] = amps[1];
+  env->amps[2] = amps[2];
+  env->amps[3] = amps[3];
+  ugen_set_scale(env->ugens[0], env->amps[0], env->amps[1]);
+  ugen_set_scale(env->ugens[1], env->amps[1], env->amps[2]);
+  ugen_set_scale(env->ugens[2], env->amps[2], env->amps[3]);
+  ugen_set_scale(env->ugens[3], env->amps[3], 0.0);
 }
 
 Envelope

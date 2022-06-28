@@ -11,7 +11,13 @@
 #include "../ugen/ugen.h"
 #include "../pcm/channel.h"
 
+#include "fm_10.h"
+
 #define NUM_VOICES 64
+
+typedef union mono_voice_params_u {
+  fm_10_params fm_10;
+} mono_voice_params;
 
 typedef struct mono_voice_t {
   Ugen *ugens;
@@ -21,10 +27,11 @@ typedef struct mono_voice_t {
   size_t cur_dur;
   bool sustain;
   FTYPE velocity;
+  mono_voice_params params;
 } *MonoVoice;
 
 typedef struct mv_fns_t {
-  void (*init)(MonoVoice mv);
+  void (*init)(MonoVoice mv, mono_voice_params params);
   void (*cleanup)(MonoVoice mv);
   void (*note_on)(MonoVoice mv, uint8_t velocity);
   void (*note_off)(MonoVoice mv);
@@ -43,10 +50,11 @@ typedef struct voice_t {
 
 typedef enum {
   VOICE_SIMPLE_SYNTH,
+  VOICE_FM_10,
   VOICE_MIC_IN
 } instrument_e;
 
-Voice voice_init(Channel channels, size_t channel_num, instrument_e instrument);
+Voice voice_init(Channel channels, size_t channel_num, instrument_e instrument, mono_voice_params params);
 Voice voice_init_default(Channel channels, size_t channel_num);
 
 void voice_cleanup();
@@ -57,4 +65,5 @@ uint8_t voice_note_on(Voice voice, uint8_t midi_note, uint8_t midi_velocity);
 void voice_note_off(Voice voice, uint8_t mono_voice_index);
 
 bool mono_voice_playing(MonoVoice mv);
+
 #endif

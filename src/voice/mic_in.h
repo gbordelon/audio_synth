@@ -5,7 +5,7 @@
 
 #include "voice.h"
 
-void mic_in_init(MonoVoice mv);
+void mic_in_init(MonoVoice mv, mono_voice_params params);
 void mic_in_cleanup(MonoVoice mv);
 void mic_in_note_on(MonoVoice mv, uint8_t midi_note);
 void mic_in_note_off(MonoVoice mv);

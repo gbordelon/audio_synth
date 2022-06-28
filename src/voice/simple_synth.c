@@ -14,7 +14,7 @@
 #include "simple_synth.h"
 
 void
-simple_synth_init(MonoVoice mv)
+simple_synth_init(MonoVoice mv, mono_voice_params params)
 {
   mv->ugen_num = 4;
   mv->ugens = calloc(mv->ugen_num, sizeof(Ugen*));

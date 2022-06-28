@@ -37,6 +37,7 @@ Envelope env_init_default();
 void env_cleanup(Envelope env);
 void env_reset(Envelope env);
 
+void env_set_amplitudes(Envelope env, FTYPE amps[4]);
 void env_set_duration(Envelope env, FTYPE duration/*in seconds*/, env_state stage);
 FTYPE env_sample(Envelope env, bool sustain); // sampling an envelope after it expires should return 0.
 void env_sample_chunk(Envelope env, bool sustain, FTYPE *buf);

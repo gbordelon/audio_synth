@@ -39,7 +39,7 @@ voice_free(Voice voice)
 }
 
 Voice
-voice_init(Channel channels, size_t channel_num, instrument_e instrument)
+voice_init(Channel channels, size_t channel_num, instrument_e instrument, mono_voice_params params)
 {
   Voice rv = voice_alloc();
   rv->channels = channels;
@@ -51,6 +51,13 @@ voice_init(Channel channels, size_t channel_num, instrument_e instrument)
   rv->fx_chain = NULL;
 
   switch(instrument) {
+  case VOICE_FM_10:
+    rv->fns.init = fm_10_init;
+    rv->fns.cleanup = fm_10_cleanup;
+    rv->fns.note_on = fm_10_note_on;
+    rv->fns.note_off = fm_10_note_off;
+    rv->fns.play_chunk = fm_10_play_chunk;
+    break;
   case VOICE_MIC_IN:
     rv->voice_num = 1;
     rv->fns.init = mic_in_init;
@@ -72,7 +79,7 @@ voice_init(Channel channels, size_t channel_num, instrument_e instrument)
 
   MonoVoice mv;
   for (mv = rv->voices; mv - rv->voices < rv->voice_num; mv++) {
-    rv->fns.init(mv);
+    rv->fns.init(mv, params);
     mv->max_dur = 0;
     mv->cur_dur = 0;
   }
@@ -83,7 +90,9 @@ voice_init(Channel channels, size_t channel_num, instrument_e instrument)
 Voice
 voice_init_default(Channel channels, size_t channel_num)
 {
-  Voice rv = voice_init(channels, channel_num, VOICE_SIMPLE_SYNTH);
+  mono_voice_params params = {0};
+
+  Voice rv = voice_init(channels, channel_num, VOICE_SIMPLE_SYNTH, params);
 
   rv->fx_chain = dsp_init_default();
 
@@ -104,6 +113,7 @@ voice_cleanup(Voice voice)
   voice_free(voice);
 }
 
+#include <stdio.h>
 /*
  * TODO don't force two channels
  */
@@ -121,6 +131,7 @@ voice_play_chunk(Voice voice)
   memset(accum_l, 0, CHUNK_SIZE * sizeof(FTYPE));
   memset(accum_r, 0, CHUNK_SIZE * sizeof(FTYPE));
 
+  bool peak = false;
   // iterate over 64 voices
   MonoVoice mv;
   for (mv = voice->voices; mv - voice->voices < voice->voice_num; mv++) {
@@ -132,8 +143,12 @@ voice_play_chunk(Voice voice)
            t++, e++, L++, R++) {
         *L += *t * *e;
         *R += *t * *e;
+        peak = *L > 1.0 || *L < -1.0 || *R > 1.0 || *R < -1.0;
       }
     }
+  }
+  if (peak) {
+    printf("peaked\n");
   }
 
   // after all monovoices have been summed apply fx

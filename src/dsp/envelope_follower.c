@@ -78,7 +78,7 @@ dsp_init_envelope_follower_default()
     .filter = filter,
     .fc = 2000.0,
     .fc_max = DEFAULT_SAMPLE_RATE>>1,
-    .threshold = pow(10.0, -6.0 / 20.0), // -6 dB
+    .threshold = pow(10.0, -12.0 / 20.0), // -12 dB
     .sensitivity = 0.5
   };
 

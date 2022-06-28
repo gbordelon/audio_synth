@@ -19,7 +19,7 @@ extern FTYPE *_mic_output_buffer;
 extern size_t _mic_output_read_index;
 
 void
-mic_in_init(MonoVoice mv)
+mic_in_init(MonoVoice mv, mono_voice_params params)
 {
 }
 

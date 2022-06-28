@@ -62,7 +62,7 @@ typedef struct ugen_t {
   bool cr;
 
   // phase management for table indexing
-  uint32_t p_inc_whole;
+  int32_t p_inc_whole;
   FTYPE p_inc_frac;
   uint32_t p_ind;
 } *Ugen;

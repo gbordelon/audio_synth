@@ -243,7 +243,7 @@ inputCallback(void *inRefCon,
                   inNumberFrames, //# of frames requested
                   _input_buffer);
 
-  //checkStatus(err);
+  checkStatus(err);
 
   if (inNumberFrames > 1024) {
     //printf("inputCallback wants to render more than 1024 frames: %d\n", inNumberFrames);

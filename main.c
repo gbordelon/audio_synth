@@ -317,7 +317,7 @@ main()
   clock_t t = clock();
   ugen_generate_tables();
   t = clock() - t;
-  double tt = t / CLOCKS_PER_SEC;
+  double tt = t / (double)CLOCKS_PER_SEC;
   printf("took %f seconds.\n", tt);
 
   gmix = mixer_init(2, 1.0);
@@ -325,25 +325,33 @@ main()
 
 /* gsynth */
   Channel chans = gmix->busses[0].channels;
-  gsynth = voice_init_default(chans, NUM_CHANNELS);
+  //gsynth = voice_init_default(chans, NUM_CHANNELS);
+  mono_voice_params mv_params;
+  mv_params.fm_10.p6 = 1.0;
+  mv_params.fm_10.p7 = 0.0;
+  mv_params.fm_10.p8 = 5.0;
+  // brass 1 0 4
+  // bassoon 1/3 0 2
+  // bassoon 2/3 4 2
+  gsynth = voice_init(chans, NUM_CHANNELS, VOICE_FM_10, mv_params);
 
   DSP_callback cb = dsp_init_envelope_follower_default();
-  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
   cb = dsp_init_envelope_follower_default();
   cb->fn_type = DSP_MONO_R;
-  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
 
   DSP_callback dsp_fx_l, dsp_fx_r;
   // precede env follower with a bitcrusher on each channel
   dsp_fx_l = dsp_init_bitcrusher();
-  dsp_set_bitcrusher_param(&dsp_fx_l->state, 4.0);
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, 6.5);
 
   dsp_fx_r = dsp_init_bitcrusher();
   dsp_fx_r->fn_type = DSP_MONO_R;
-  dsp_set_bitcrusher_param(&dsp_fx_r->state, 4.0);
+  dsp_set_bitcrusher_param(&dsp_fx_r->state, 6.5);
 
-//  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
-//  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
 
   Ugen ug;
 /*
@@ -355,7 +363,7 @@ main()
 
 /* gmic */
   chans = gmix->busses[1].channels;
-  gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN);
+  gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN, mv_params);
 
   // set slow triangle stereo pan on gmic
   gmic->fx_chain = dsp_init_stereo_pan();

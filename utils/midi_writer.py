@@ -8,6 +8,7 @@ delay = 0.8
 velocity_range = (40,120)
 #note_range = (30,100)
 note_choice = [30, 34, 37, 41, 42, 44, 46, 49, 53, 54, 56, 58, 61, 65, 68]
+#note_choice = [68]
 notes_on = []
 
 def init():

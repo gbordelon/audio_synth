@@ -52,8 +52,7 @@ ugen_init()
   rv->sample = ugen_sample_null;
   rv->u.impulse.duty_cycle_c = 0.5;
   rv->gain_c = 1.0;
-  rv->conv.bias = 0.0;
-  rv->conv.scale = 1.0;
+  ugen_set_scale(rv, -1.0, 1.0);
   rv->cr = false;
 
   return rv;
@@ -153,11 +152,8 @@ ugen_cleanup(Ugen ugen)
 void
 ugen_set_freq(Ugen ugen, FTYPE freq)
 {
-  ugen->p_inc_whole = floor(UGEN_TABLE_SIZE * freq / (FTYPE)DEFAULT_SAMPLE_RATE);
-  if (ugen->p_inc_whole < 1) {
-    ugen->p_inc_whole = 1;
-  }
-  ugen->p_inc_frac = fmod(UGEN_TABLE_SIZE * freq / (FTYPE)DEFAULT_SAMPLE_RATE, 1);
+  ugen->p_inc_whole = floor((FTYPE)UGEN_TABLE_SIZE * freq / (FTYPE)DEFAULT_SAMPLE_RATE);
+  ugen->p_inc_frac = fmod((FTYPE)UGEN_TABLE_SIZE * freq / (FTYPE)DEFAULT_SAMPLE_RATE, 1);
 }
 
 /*
@@ -240,11 +236,15 @@ FTYPE
 ugen_sample_mod(Ugen ugen, size_t phase_mod)
 {
   FTYPE sample1, sample2;
-  size_t phase_ind;
+  int32_t phase_ind;
 
   ugen->p_ind += ugen->p_inc_whole;
   if (ugen->p_ind >= UGEN_TABLE_SIZE) {
     ugen->p_ind %= UGEN_TABLE_SIZE;
+  } else {
+    while (ugen->p_ind < 0) {
+      ugen->p_ind += UGEN_TABLE_SIZE;
+    }
   }
 
   phase_ind = ugen->p_ind + phase_mod;
@@ -253,18 +253,26 @@ ugen_sample_mod(Ugen ugen, size_t phase_mod)
   }
 
   sample1 = ugen->sample(ugen, phase_ind);
-/*
-  if (ugen->type == UGEN_OSC_IMP) {
-    sample2 = sample1;
-  } else
-*/
-  if ((phase_ind + 1) == UGEN_TABLE_SIZE) {
-      sample2 = ugen->sample(ugen, 0);
+
+  if (ugen->p_inc_whole >= 0) {
+    if ((phase_ind + 1) == UGEN_TABLE_SIZE) {
+        sample2 = ugen->sample(ugen, 0);
+    } else {
+        sample2 = ugen->sample(ugen, phase_ind + 1);
+    }
   } else {
-      sample2 = ugen->sample(ugen, phase_ind + 1);
+    if ((phase_ind - 1) < 0) {
+        sample2 = ugen->sample(ugen, UGEN_TABLE_SIZE - 1);
+    } else {
+        sample2 = ugen->sample(ugen, phase_ind - 1);
+    }
   }
 
-  sample1 = (1.0 - ugen->p_inc_frac) * sample1 + ugen->p_inc_frac * sample2;
+  if (ugen->p_inc_frac >= 0) {
+    sample1 = (1.0 - ugen->p_inc_frac) * sample1 + ugen->p_inc_frac * sample2;
+  } else {
+    sample1 = (1.0 + ugen->p_inc_frac) * sample1 - ugen->p_inc_frac * sample2;
+  }
 
   if (ugen->cr) {
     return ugen->conv.bias + ugen->conv.scale * sample1;
