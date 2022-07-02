@@ -76,15 +76,16 @@ fm_10_note_off(MonoVoice mv)
 }
 
 void
-fm_10_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE])
+fm_10_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE])
 {
-  FTYPE *t_sample = bufs[0];
-  FTYPE *e_sample = bufs[1];
+  FTYPE *l_sample = bufs[0];
+  FTYPE *r_sample = bufs[1];
+  FTYPE *e_sample = bufs[2];
 
   FTYPE mod_sample = 0, mod_env = 0, p6;
   p6 = mv->params.fm_10.p6 * mv->params.fm_10.carrier;
   int i;
-  for (i = 0; i < CHUNK_SIZE; i++, t_sample++) {
+  for (i = 0; i < CHUNK_SIZE; i++, l_sample++, r_sample++) {
     // sample ug1
     mod_sample = ugen_sample(mv->ugens[1]);
     // sample ug5
@@ -99,7 +100,7 @@ fm_10_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE])
     FTYPE freq = mod_env * mod_sample + mv->params.fm_10.carrier;
     ugen_set_freq(mv->ugens[0], freq);
     // sample ug3
-    *t_sample = ugen_sample(mv->ugens[0]);
+    *l_sample = *r_sample = ugen_sample(mv->ugens[0]);
   }
   env_sample_chunk(mv->env, mv->sustain, e_sample);
 

@@ -131,10 +131,10 @@ voice_play_chunk(Voice voice)
   Channel left = voice->channels;
   Channel right = voice->channels + 1;
 
-  static FTYPE samples[2][CHUNK_SIZE];
+  static FTYPE samples[3][CHUNK_SIZE];
   static FTYPE accum_l[CHUNK_SIZE];
   static FTYPE accum_r[CHUNK_SIZE];
-  FTYPE *t, *e, *L, *R;
+  FTYPE *sL, *sR, *e, *L, *R;
 
   memset(accum_l, 0, CHUNK_SIZE * sizeof(FTYPE));
   memset(accum_r, 0, CHUNK_SIZE * sizeof(FTYPE));
@@ -146,11 +146,11 @@ voice_play_chunk(Voice voice)
     if (mono_voice_playing(mv)) {
       voice->fns.play_chunk(mv, samples);
 
-      for (L = accum_l, R = accum_r, t = samples[0], e = samples[1];
+      for (L = accum_l, R = accum_r, sL = samples[0], sR = samples[1], e = samples[2];
            L - accum_l < CHUNK_SIZE;
-           t++, e++, L++, R++) {
-        *L += *t * *e;
-        *R += *t * *e;
+           sL++, sR++, e++, L++, R++) {
+        *L += *sL * *e;
+        *R += *sR * *e;
         peak = *L > 1.0 || *L < -1.0 || *R > 1.0 || *R < -1.0;
       }
     }

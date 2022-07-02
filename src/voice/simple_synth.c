@@ -1,6 +1,6 @@
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../lib/macros.h"
 
@@ -74,12 +74,14 @@ simple_synth_note_off(MonoVoice mv)
 }
 
 void
-simple_synth_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE])
+simple_synth_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE])
 {
-  FTYPE *t_sample = bufs[0];
-  FTYPE *e_sample = bufs[1];
+  FTYPE *l_sample = bufs[0];
+  FTYPE *r_sample = bufs[1];
+  FTYPE *e_sample = bufs[2];
 
-  ugen_chunk_sample(*mv->ugens, t_sample);
+  ugen_chunk_sample(*mv->ugens, l_sample);
+  memmove(r_sample, l_sample, CHUNK_SIZE * sizeof(FTYPE));
   env_sample_chunk(mv->env, mv->sustain, e_sample);
 
   mv->cur_dur += CHUNK_SIZE;

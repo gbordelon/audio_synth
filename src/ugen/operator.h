@@ -38,6 +38,7 @@ typedef struct operator_t {
 
   // scale the output to be a frequency for another operator [-24khz, 24khz], or an audio sample [-1,1]
   FTYPE gain_c; // overall post-envelope gain
+  FTYPE pan; // 0 pure left, 1 pure right
 } *Operator;
 
 Operator operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain);
@@ -50,6 +51,7 @@ void operator_reset(Operator op);
 void operator_set_fc(Operator op, FTYPE fc);
 void operator_set_mod(Operator op, FTYPE mod); // in radians
 void operator_set_gain(Operator op, FTYPE gain);
+void operator_set_pan(Operator op, FTYPE pan);
 void operator_set_velocity(Operator op, FTYPE vel);
 
 FTYPE operator_sample(Operator op, bool sustain);

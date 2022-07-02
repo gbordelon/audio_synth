@@ -45,6 +45,8 @@ typedef struct dx7_patch_t {
   FTYPE detune[6];
   // gain for each operator
   FTYPE gain[6];
+  // pan for each operator
+  FTYPE pan[6];
   // carrier freq multiplier for each operator
   FTYPE mult[6];
   // velocity scaling for each operator
@@ -73,7 +75,7 @@ void dx7_init_default(MonoVoice mv);
 void dx7_cleanup(MonoVoice mv);
 void dx7_note_on(MonoVoice mv, uint8_t midi_note);
 void dx7_note_off(MonoVoice mv);
-void dx7_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE]);
+void dx7_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE]);
 
 // preset instruments
 void dx7_e_piano_1(mono_voice_params *params);

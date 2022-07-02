@@ -45,6 +45,7 @@ operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain)
   op->fc = 0.0;
   op->mod = 0.0;
   op->gain_c = gain;
+  op->pan = 0.5;
   op->mult = 1.0;
   op->vel_s = 1.0;
 
@@ -130,6 +131,12 @@ operator_set_gain(Operator op, FTYPE gain)
 }
 
 void
+operator_set_pan(Operator op, FTYPE pan)
+{
+  op->pan = pan;
+}
+
+void
 operator_set_velocity(Operator op, FTYPE vel)
 {
   op->velocity = vel;
@@ -144,6 +151,18 @@ operator_set_mult(Operator op, FTYPE mult)
 FTYPE
 operator_sample_apply_gain(Operator op, FTYPE sample)
 {
+  // as vel_s -> 0, more gain
+  // as vel_s -> 1, more scaling by velocity
+  //
+  // vel_s = 0 and vel = 0 => gain
+  // vel_s = 0 and vel = 1 => gain
+  // vel_s = 1 and vel = 0 => 0
+  // vel_s = 1 and vel = 1 => gain
+  // vel_s = 0.8,
+  //   vel = [0,1] => 0.2gain + 0.8gain*vel
+  // vel_s = 0.1,
+  //   vel = [0,1] => 0.9gain + 0.1gain*vel
+
   return op->gain_c * ((1.0 - op->vel_s) + op->vel_s * op->velocity) * sample;
 }
 
@@ -166,18 +185,6 @@ operator_sample(Operator op, bool sustain)
     s2 = 1.0;
     break;
   }
-
-  // as vel_s -> 0, more gain
-  // as vel_s -> 1, more scaling by velocity
-  //
-  // vel_s = 0 and vel = 0 => gain
-  // vel_s = 0 and vel = 1 => gain
-  // vel_s = 1 and vel = 0 => 0
-  // vel_s = 1 and vel = 1 => gain
-  // vel_s = 0.8,
-  //   vel = [0,1] => 0.2gain + 0.8gain*vel
-  // vel_s = 0.1,
-  //   vel = [0,1] => 0.9gain + 0.1gain*vel
 
   return operator_sample_apply_gain(op, s1 * s2);
 }

@@ -39,11 +39,12 @@ mic_in_note_off(MonoVoice mv)
 {
 }
 
+// TODO stereo mic/line in
 void
-mic_in_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE])
+mic_in_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE])
 {
-  FTYPE *t_sample = *bufs;
-  FTYPE *e_sample = *(bufs + 1);
+  FTYPE *t_sample = bufs[0];
+  FTYPE *e_sample = bufs[2];
 
   memcpy(t_sample, _mic_output_buffer + _mic_output_read_index, CHUNK_SIZE * sizeof(FTYPE));
   memset(_mic_output_buffer + _mic_output_read_index, 0, CHUNK_SIZE * sizeof(FTYPE));
@@ -51,7 +52,7 @@ mic_in_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE])
   if (_mic_output_read_index >= CHUNK_SIZE * NUM_CHANNELS * 8) {
     _mic_output_read_index = 0;
   }
-  for (; e_sample - *(bufs + 1) < CHUNK_SIZE; e_sample++) {
+  for (; e_sample - bufs[1] < CHUNK_SIZE; e_sample++) {
     *e_sample = 1.0;
   }
 

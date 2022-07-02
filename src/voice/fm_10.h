@@ -22,6 +22,6 @@ void fm_10_init_default(MonoVoice mv);
 void fm_10_cleanup(MonoVoice mv);
 void fm_10_note_on(MonoVoice mv, uint8_t midi_note);
 void fm_10_note_off(MonoVoice mv);
-void fm_10_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE]);
+void fm_10_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE]);
 
 #endif
