@@ -94,5 +94,6 @@ void ugen_set_scale(Ugen ugen, FTYPE low, FTYPE high);
 
 void ugen_chunk_sample(Ugen ugen, FTYPE buf[CHUNK_SIZE]);
 FTYPE ugen_sample(Ugen ugen);
+FTYPE ugen_sample_mod(Ugen ugen, size_t phase_mod);
 
 #endif

@@ -41,10 +41,12 @@ operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain)
 {
   Operator op = operator_alloc();
   op->e_type = e_type;
-  op->gain_c = gain;
+  op->detune = 0.0;
   op->fc = 0.0;
-  op->fm = 0.0;
+  op->mod = 0.0;
+  op->gain_c = gain;
   op->mult = 1.0;
+  op->vel_s = 1.0;
 
   switch (u_type) {
   case UGEN_OSC_IMP:
@@ -89,7 +91,7 @@ void
 operator_reset(Operator op)
 {
   ugen_reset_phase(op->ugen);
-  op->fm = 0.0; // ?
+  op->mod = 0.0; // ?
 
   switch (op->e_type) {
   case OPERATOR_UGEN:
@@ -110,15 +112,15 @@ log2(f2) = cent / 1200 + log2(f1)
 f2 = pow(2.0, cent/1200 + log2(f1))
  */
 void
-operator_set_fc(Operator op, FTYPE fc, FTYPE detune_in_cents)
+operator_set_fc(Operator op, FTYPE fc)
 {
-  op->fc = pow(2.0, detune_in_cents / 1200.0 + log2(fc));
+  op->fc = pow(2.0, op->detune / 1200.0 + log2(fc));
 }
 
 void
-operator_set_fm(Operator op, FTYPE fm)
+operator_set_mod(Operator op, FTYPE mod)
 {
-  op->fm = fm;
+  op->mod = mod;
 }
 
 void
@@ -128,9 +130,21 @@ operator_set_gain(Operator op, FTYPE gain)
 }
 
 void
+operator_set_velocity(Operator op, FTYPE vel)
+{
+  op->velocity = vel;
+}
+
+void
 operator_set_mult(Operator op, FTYPE mult)
 {
   op->mult = mult;
+}
+
+FTYPE
+operator_sample_apply_gain(Operator op, FTYPE sample)
+{
+  return op->gain_c * ((1.0 - op->vel_s) + op->vel_s * op->velocity) * sample;
 }
 
 FTYPE
@@ -138,8 +152,9 @@ operator_sample(Operator op, bool sustain)
 {
   FTYPE s1, s2;
 
-  ugen_set_freq(op->ugen, op->fc * op->mult + op->fm);
-  s1 = ugen_sample(op->ugen);
+  ugen_set_freq(op->ugen, op->mult * op->fc);
+  s1 = ugen_sample_mod(op->ugen, floor(((FTYPE)UGEN_TABLE_SIZE) * op->mod * 0.5 * M_1_PI));
+
   switch (op->e_type) {
   case OPERATOR_UGEN:
     s2 = ugen_sample(op->env_u.lfo);
@@ -152,5 +167,17 @@ operator_sample(Operator op, bool sustain)
     break;
   }
 
-  return op->gain_c * s1 * s2;
+  // as vel_s -> 0, more gain
+  // as vel_s -> 1, more scaling by velocity
+  //
+  // vel_s = 0 and vel = 0 => gain
+  // vel_s = 0 and vel = 1 => gain
+  // vel_s = 1 and vel = 0 => 0
+  // vel_s = 1 and vel = 1 => gain
+  // vel_s = 0.8,
+  //   vel = [0,1] => 0.2gain + 0.8gain*vel
+  // vel_s = 0.1,
+  //   vel = [0,1] => 0.9gain + 0.1gain*vel
+
+  return operator_sample_apply_gain(op, s1 * s2);
 }

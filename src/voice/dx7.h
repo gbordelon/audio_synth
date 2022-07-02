@@ -43,17 +43,25 @@ typedef enum {
 typedef struct dx7_patch_t {
   // carrier detune in cents
   FTYPE detune[6];
-  // freq mult for each operator
-  FTYPE mult[6];
   // gain for each operator
   FTYPE gain[6];
-  // TODO env/lfo settings for each operator
+  // carrier freq multiplier for each operator
+  FTYPE mult[6];
+  // velocity scaling for each operator
+  FTYPE vel_s[6];
+
+  // ADSR envelope targets [0,1]
+  FTYPE env_amps[6][4];
+
+  // ADSR envelope durations > 0
+  FTYPE env_durs[6][4];
 } dx7_patch;
 
 typedef struct dx7_params_t {
   Operator ops[6];
   dx7_alg alg;
   dx7_patch patch;
+  FTYPE fback_s; // feedback scaling for an operator whose fm comes from its own output
 } dx7_params;
 
 // forward decl
@@ -66,5 +74,9 @@ void dx7_cleanup(MonoVoice mv);
 void dx7_note_on(MonoVoice mv, uint8_t midi_note);
 void dx7_note_off(MonoVoice mv);
 void dx7_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE]);
+
+// preset instruments
+void dx7_e_piano_1(mono_voice_params *params);
+
 
 #endif
