@@ -64,6 +64,7 @@ typedef struct dx7_params_t {
   dx7_alg alg;
   dx7_patch patch;
   FTYPE fback_s; // feedback scaling for an operator whose fm comes from its own output
+  FTYPE decay_rate;
 } dx7_params;
 
 // forward decl

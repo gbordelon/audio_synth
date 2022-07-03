@@ -16,7 +16,8 @@ void
 dx7_e_piano_1(mono_voice_params *params)
 {
   params->dx7.alg = DX7_5;
-  params->dx7.fback_s = 6.0/7.0; // between 0 and 1
+  params->dx7.fback_s = 4.0/7.0; // between 0 and 1
+  params->dx7.decay_rate = -0.1/(FTYPE)DEFAULT_SAMPLE_RATE; // between -1 and 0
 
   params->dx7.patch.env_amps[0][0] = 0.0;
   params->dx7.patch.env_amps[0][1] = 1.0;
@@ -110,18 +111,17 @@ dx7_e_piano_1(mono_voice_params *params)
 
   // set modulators > 1
   // set carriers [0,1]
-  params->dx7.patch.gain[0] = 2.0/10.0;
+  params->dx7.patch.gain[0] = 3.0/10.0;
   params->dx7.patch.gain[1] = 0.60; 
-  params->dx7.patch.gain[2] = 2.0/10.0;
+  params->dx7.patch.gain[2] = 3.0/10.0;
   params->dx7.patch.gain[3] = 0.90;
-  params->dx7.patch.gain[4] = 2.0/10.0;
+  params->dx7.patch.gain[4] = 3.0/10.0;
   params->dx7.patch.gain[5] = 0.80;
 }
 
 void
 dx7_init(MonoVoice mv, mono_voice_params params)
 {
-  mv->env = env_init_default();
   mv->params.dx7.alg = params.dx7.alg;
   mv->params.dx7.fback_s = pow(2.0, 7.0 * params.dx7.fback_s - 7.0);
 
@@ -132,6 +132,9 @@ dx7_init(MonoVoice mv, mono_voice_params params)
   mv->params.dx7.ops[0]->vel_s = params.dx7.patch.vel_s[0];
   mv->params.dx7.ops[0]->pan = params.dx7.patch.pan[0];
 
+  mv->env = mv->params.dx7.ops[0]->env_u.env;
+
+  mv->params.dx7.ops[0]->env_u.env->decay_rate = params.dx7.decay_rate;
   env_set_amplitudes(mv->params.dx7.ops[0]->env_u.env, params.dx7.patch.env_amps[0]);
   env_set_duration(mv->params.dx7.ops[0]->env_u.env,
                    params.dx7.patch.env_durs[0][ENV_ATTACK], ENV_ATTACK);
@@ -149,12 +152,34 @@ dx7_init(MonoVoice mv, mono_voice_params params)
   mv->params.dx7.ops[1]->vel_s = params.dx7.patch.vel_s[1];
   mv->params.dx7.ops[1]->pan = params.dx7.patch.pan[1];
 
+  mv->params.dx7.ops[1]->env_u.env->decay_rate = params.dx7.decay_rate;
+  env_set_amplitudes(mv->params.dx7.ops[1]->env_u.env, params.dx7.patch.env_amps[1]);
+  env_set_duration(mv->params.dx7.ops[1]->env_u.env,
+                   params.dx7.patch.env_durs[1][ENV_ATTACK], ENV_ATTACK);
+  env_set_duration(mv->params.dx7.ops[1]->env_u.env,
+                   params.dx7.patch.env_durs[1][ENV_DECAY], ENV_DECAY);
+  env_set_duration(mv->params.dx7.ops[1]->env_u.env,
+                   params.dx7.patch.env_durs[1][ENV_SUSTAIN], ENV_SUSTAIN);
+  env_set_duration(mv->params.dx7.ops[1]->env_u.env,
+                   params.dx7.patch.env_durs[1][ENV_RELEASE], ENV_RELEASE);
+
   mv->params.dx7.ops[2] = operator_init_default();
   mv->params.dx7.ops[2]->detune = params.dx7.patch.detune[2];
   mv->params.dx7.ops[2]->gain_c = params.dx7.patch.gain[2];
   mv->params.dx7.ops[2]->mult = params.dx7.patch.mult[2];
   mv->params.dx7.ops[2]->vel_s = params.dx7.patch.vel_s[2];
   mv->params.dx7.ops[2]->pan = params.dx7.patch.pan[2];
+
+  mv->params.dx7.ops[2]->env_u.env->decay_rate = params.dx7.decay_rate;
+  env_set_amplitudes(mv->params.dx7.ops[2]->env_u.env, params.dx7.patch.env_amps[2]);
+  env_set_duration(mv->params.dx7.ops[2]->env_u.env,
+                   params.dx7.patch.env_durs[2][ENV_ATTACK], ENV_ATTACK);
+  env_set_duration(mv->params.dx7.ops[2]->env_u.env,
+                   params.dx7.patch.env_durs[2][ENV_DECAY], ENV_DECAY);
+  env_set_duration(mv->params.dx7.ops[2]->env_u.env,
+                   params.dx7.patch.env_durs[2][ENV_SUSTAIN], ENV_SUSTAIN);
+  env_set_duration(mv->params.dx7.ops[2]->env_u.env,
+                   params.dx7.patch.env_durs[2][ENV_RELEASE], ENV_RELEASE);
 
   mv->params.dx7.ops[3] = operator_init_default();
   mv->params.dx7.ops[3]->detune = params.dx7.patch.detune[3];
@@ -163,6 +188,17 @@ dx7_init(MonoVoice mv, mono_voice_params params)
   mv->params.dx7.ops[3]->vel_s = params.dx7.patch.vel_s[3];
   mv->params.dx7.ops[3]->pan = params.dx7.patch.pan[3];
 
+  mv->params.dx7.ops[3]->env_u.env->decay_rate = params.dx7.decay_rate;
+  env_set_amplitudes(mv->params.dx7.ops[3]->env_u.env, params.dx7.patch.env_amps[3]);
+  env_set_duration(mv->params.dx7.ops[3]->env_u.env,
+                   params.dx7.patch.env_durs[3][ENV_ATTACK], ENV_ATTACK);
+  env_set_duration(mv->params.dx7.ops[3]->env_u.env,
+                   params.dx7.patch.env_durs[3][ENV_DECAY], ENV_DECAY);
+  env_set_duration(mv->params.dx7.ops[3]->env_u.env,
+                   params.dx7.patch.env_durs[3][ENV_SUSTAIN], ENV_SUSTAIN);
+  env_set_duration(mv->params.dx7.ops[3]->env_u.env,
+                   params.dx7.patch.env_durs[3][ENV_RELEASE], ENV_RELEASE);
+
   mv->params.dx7.ops[4] = operator_init_default();
   mv->params.dx7.ops[4]->detune = params.dx7.patch.detune[4];
   mv->params.dx7.ops[4]->gain_c = params.dx7.patch.gain[4];
@@ -170,12 +206,34 @@ dx7_init(MonoVoice mv, mono_voice_params params)
   mv->params.dx7.ops[4]->vel_s = params.dx7.patch.vel_s[4];
   mv->params.dx7.ops[4]->pan = params.dx7.patch.pan[4];
 
+  mv->params.dx7.ops[4]->env_u.env->decay_rate = params.dx7.decay_rate;
+  env_set_amplitudes(mv->params.dx7.ops[4]->env_u.env, params.dx7.patch.env_amps[4]);
+  env_set_duration(mv->params.dx7.ops[4]->env_u.env,
+                   params.dx7.patch.env_durs[4][ENV_ATTACK], ENV_ATTACK);
+  env_set_duration(mv->params.dx7.ops[4]->env_u.env,
+                   params.dx7.patch.env_durs[4][ENV_DECAY], ENV_DECAY);
+  env_set_duration(mv->params.dx7.ops[4]->env_u.env,
+                   params.dx7.patch.env_durs[4][ENV_SUSTAIN], ENV_SUSTAIN);
+  env_set_duration(mv->params.dx7.ops[4]->env_u.env,
+                   params.dx7.patch.env_durs[4][ENV_RELEASE], ENV_RELEASE);
+
   mv->params.dx7.ops[5] = operator_init_default();
   mv->params.dx7.ops[5]->detune = params.dx7.patch.detune[5];
   mv->params.dx7.ops[5]->gain_c = params.dx7.patch.gain[5];
   mv->params.dx7.ops[5]->mult = params.dx7.patch.mult[5];
   mv->params.dx7.ops[5]->vel_s = params.dx7.patch.vel_s[5];
   mv->params.dx7.ops[5]->pan = params.dx7.patch.pan[5];
+
+  mv->params.dx7.ops[5]->env_u.env->decay_rate = params.dx7.decay_rate;
+  env_set_amplitudes(mv->params.dx7.ops[5]->env_u.env, params.dx7.patch.env_amps[5]);
+  env_set_duration(mv->params.dx7.ops[5]->env_u.env,
+                   params.dx7.patch.env_durs[5][ENV_ATTACK], ENV_ATTACK);
+  env_set_duration(mv->params.dx7.ops[5]->env_u.env,
+                   params.dx7.patch.env_durs[5][ENV_DECAY], ENV_DECAY);
+  env_set_duration(mv->params.dx7.ops[5]->env_u.env,
+                   params.dx7.patch.env_durs[5][ENV_SUSTAIN], ENV_SUSTAIN);
+  env_set_duration(mv->params.dx7.ops[5]->env_u.env,
+                   params.dx7.patch.env_durs[5][ENV_RELEASE], ENV_RELEASE);
 }
 
 void
@@ -187,7 +245,6 @@ dx7_cleanup(MonoVoice mv)
   operator_cleanup(mv->params.dx7.ops[3]);
   operator_cleanup(mv->params.dx7.ops[4]);
   operator_cleanup(mv->params.dx7.ops[5]);
-  env_cleanup(mv->env);
 }
 
 
@@ -215,7 +272,12 @@ dx7_note_on(MonoVoice mv, uint8_t midi_note)
     operator_reset(mv->params.dx7.ops[3]);
     operator_reset(mv->params.dx7.ops[4]);
     operator_reset(mv->params.dx7.ops[5]);
-    env_reset(mv->env);
+    env_reset(mv->params.dx7.ops[0]->env_u.env);
+    env_reset(mv->params.dx7.ops[1]->env_u.env);
+    env_reset(mv->params.dx7.ops[2]->env_u.env);
+    env_reset(mv->params.dx7.ops[3]->env_u.env);
+    env_reset(mv->params.dx7.ops[4]->env_u.env);
+    env_reset(mv->params.dx7.ops[5]->env_u.env);
   }
   mv->sustain = true;
   mv->cur_dur = 0;
@@ -225,6 +287,12 @@ void
 dx7_note_off(MonoVoice mv)
 {
   mv->sustain = false;
+  env_set_release(mv->params.dx7.ops[0]->env_u.env);
+  env_set_release(mv->params.dx7.ops[1]->env_u.env);
+  env_set_release(mv->params.dx7.ops[2]->env_u.env);
+  env_set_release(mv->params.dx7.ops[3]->env_u.env);
+  env_set_release(mv->params.dx7.ops[4]->env_u.env);
+  env_set_release(mv->params.dx7.ops[5]->env_u.env);
 }
 
 void
@@ -437,7 +505,9 @@ dx7_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE])
   for (i = 0; i < CHUNK_SIZE; i++, l_sample++, r_sample++) {
     dx7_play_sample(mv, l_sample, r_sample);
   }
-  env_sample_chunk(mv->env, mv->sustain, e_sample);
+  for (i = 0; i < CHUNK_SIZE; i++, e_sample++) {
+    *e_sample = 1.0;
+  }
 
   mv->cur_dur += CHUNK_SIZE;
 }

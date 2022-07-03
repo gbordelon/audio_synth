@@ -70,6 +70,17 @@ env_reset(Envelope env)
   ugen_reset_phase(env->ugens[1]);
   ugen_reset_phase(env->ugens[2]);
   ugen_reset_phase(env->ugens[3]);
+  ugen_set_scale(env->ugens[3], env->amps[3], 0.0);
+}
+
+void
+env_set_release(Envelope env)
+{
+  if (env->state != ENV_RELEASE) {
+    env->p_ind = env->max_samples[0] + env->max_samples[1] + env->max_samples[2];
+    env->state = ENV_RELEASE;
+    ugen_set_scale(env->ugens[3], env->prev_sample, 0.0);
+  }
 }
 
 void
@@ -110,6 +121,7 @@ env_init_default()
   env_default_amp(env);
   env_default_durations(env);
   env_default_ugens(env);
+  env->decay_rate = 0;
 
   // init the phase index as complete
   env->p_ind = env->max_samples[0]
@@ -160,12 +172,19 @@ env_sample(Envelope env, bool sustain)
     if (env->p_ind == (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
       if (sustain) {
         env->p_ind--;
+        if (env->prev_sample > 0.0) {
+          env->prev_sample += env->decay_rate;
+        } else if (env->prev_sample < 0.0) {
+          env->prev_sample = 0.0;
+        }
       } else {
-        env->state = ENV_RELEASE;
+        env_set_release(env);
       }
     }
     break;
   case ENV_RELEASE:
+  // fall through
+  default:
     break;
   }
 
