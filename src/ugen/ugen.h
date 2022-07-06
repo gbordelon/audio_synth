@@ -8,8 +8,8 @@
 #include "../lib/macros.h"
 
 #define ugen_reset_phase(u) ((u)->p_ind = 0)
-#define ugen_set_cr(u) ((u)->cr = true)
-#define ugen_unset_cr(u) ((u)->cr = false)
+#define ugen_set_cr(u) ((u)->conv.cr = true)
+#define ugen_unset_cr(u) ((u)->conv.cr = false)
 
 /*
  * Can be
@@ -36,30 +36,24 @@ typedef enum {
 typedef struct ar_cr_t {
   FTYPE bias;
   FTYPE scale;
+  //true if caller wants [0,1], false if [-1,1]
+  bool cr;
 } rate_converter;
 
 typedef struct ugen_t {
-  // ugen to be used as a phase modulator
-  struct ugen_t *mod;
   // ugen to be used as a gain/velocity modulator
   struct ugen_t *gain;
-  // constant gain to be used when no gain modulator is assoc'd
-  FTYPE gain_c;
 
   // struct for ugen-specific vars
   union {
     struct {
-    // use constant if ugen is null
-      FTYPE duty_cycle_c;
       struct ugen_t *duty_cycle; // imagine LFO duty cycle shifting :)
     } impulse;
   } u;
 
   // sample fn determines the wave table to use
   FTYPE (*sample)(struct ugen_t *, size_t);
-  //true if caller wants [0,1], false if [-1,1]
   rate_converter conv;
-  bool cr;
 
   // phase management for table indexing
   int32_t p_inc_whole;
@@ -84,16 +78,11 @@ Ugen ugen_init_ramp_linear(FTYPE freq);
 
 void ugen_cleanup(Ugen ugen);
 
-void ugen_set_mod(Ugen car, Ugen mod);
 void ugen_set_gain(Ugen car, Ugen gain);
 void ugen_set_duty_cycle(Ugen ugen, Ugen duty_cycle);
-void ugen_set_gain_c(Ugen ugen, FTYPE gain);
-void ugen_set_duty_cycle_c(Ugen ugen, FTYPE duty_cycle);
 void ugen_set_freq(Ugen ugen, FTYPE freq);
 void ugen_set_scale(Ugen ugen, FTYPE low, FTYPE high);
 
-void ugen_chunk_sample(Ugen ugen, FTYPE buf[CHUNK_SIZE]);
-FTYPE ugen_sample(Ugen ugen);
-FTYPE ugen_sample_mod(Ugen ugen, size_t phase_mod);
+FTYPE ugen_sample_mod(Ugen ugen, FTYPE phase_mod);
 
 #endif

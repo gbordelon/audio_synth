@@ -120,7 +120,7 @@ stereo_fx_chain(DSP_callback cb, FTYPE *L, FTYPE *R)
       FTYPE Lc = *L, Rc = *R;
       ctrl = stereo_fx_chain(cb->ctrl_u.dsp, &Lc, &Rc);
     } else if (cb->control == DSP_CONTROL_UGEN) {
-      ctrl = ugen_sample(cb->ctrl_u.ugen);
+      ctrl = ugen_sample_mod(cb->ctrl_u.ugen, 0.0);
     }
     switch (cb->fn_type) {
     case DSP_MONO_L:

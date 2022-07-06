@@ -3,6 +3,8 @@
 
 #include "../lib/macros.h"
 
+#include "../ugen/operator.h"
+
 #include "voice.h"
 
 typedef enum {

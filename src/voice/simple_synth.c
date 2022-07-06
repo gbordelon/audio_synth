@@ -16,61 +16,69 @@
 void
 simple_synth_init(MonoVoice mv, mono_voice_params params)
 {
-  mv->ugen_num = 4;
-  mv->ugens = calloc(mv->ugen_num, sizeof(Ugen*));
-  mv->ugens[0] = ugen_init_sin(midi_note_to_freq_table[45]); // sin carrier
-  mv->ugens[1] = ugen_init_imp(midi_note_to_freq_table[45] * 7.0, 0.1); // impulse 10% duty cycle modulator
-  mv->ugens[2] = ugen_init_sin(0.5); // LFO for modulator gain
-  mv->ugens[3] = ugen_init_sin(0.1); // LFO for modulator duty_cycle
+  mv->params.ss.ops[0] = operator_init(UGEN_OSC_SIN, OPERATOR_ENV, 0.7);
+  mv->params.ss.ops[1] = operator_init(UGEN_OSC_IMP, OPERATOR_ENV, 0.25);
+  operator_set_mult(mv->params.ss.ops[1], 11.0);
+  operator_set_vel_s(mv->params.ss.ops[1], 0);
 
-  ugen_set_gain_c(mv->ugens[0], 0.7);
+  // variable gain for modulator
+  ugen_set_gain(mv->params.ss.ops[1]->ugen, ugen_init_sin(0.5));
+  ugen_set_scale(mv->params.ss.ops[1]->ugen->gain, 0.3, 0.8);
 
-  ugen_set_mod(mv->ugens[0], mv->ugens[1]);
-  ugen_set_gain(mv->ugens[1], mv->ugens[2]);
-  ugen_set_duty_cycle(mv->ugens[1], mv->ugens[3]);
+  // variable duty cycle for modulator
+  ugen_set_duty_cycle(mv->params.ss.ops[1]->ugen, ugen_init_sin(0.1));
+  ugen_set_scale(mv->params.ss.ops[1]->ugen->u.impulse.duty_cycle, 0.1, 0.2);
 
-  ugen_set_scale(mv->ugens[2], 0.3, 0.8);
-  ugen_set_scale(mv->ugens [3], 0.1, 0.2);
-
-  mv->env = env_init_default();
+  mv->env = mv->params.ss.ops[0]->env_u.env;
+  mv->params.ss.fback_s = 0.0;
 }
 
 void
 simple_synth_cleanup(MonoVoice mv)
 {
-  ugen_cleanup(*mv->ugens);
-  ugen_cleanup(*(mv->ugens + 1));
-  ugen_cleanup(*(mv->ugens + 2));
-  ugen_cleanup(*(mv->ugens + 3));
-  env_cleanup(mv->env);
+  operator_cleanup(mv->params.ss.ops[0]);
+  operator_cleanup(mv->params.ss.ops[1]);
 }
 
 
 void
 simple_synth_note_on(MonoVoice mv, uint8_t midi_note)
 {
-  FTYPE mod = round(mv->velocity * 11.0);
-  ugen_set_freq(*mv->ugens, midi_note_to_freq_table[midi_note]);
-  ugen_set_gain_c(*mv->ugens, mv->velocity);
-  ugen_set_freq(*(mv->ugens + 1), midi_note_to_freq_table[midi_note] * mod);
-  //ugen_set_gain_c(*(mv->ugens + 1), 1.0);//mv->velocity);
-  //ugen_set_duty_cycle_c(*(mv->ugens + 2), 1.0 - mv->velocity);
+  operator_set_velocity(mv->params.ss.ops[0], mv->velocity);
+  operator_set_fc(mv->params.ss.ops[0], midi_note_to_freq_table[midi_note]);
 
-  // only reset phase if the note is not currently playing otherwise might hear blips
+  operator_set_fc(mv->params.ss.ops[1], midi_note_to_freq_table[midi_note]);
+
   if (!mono_voice_playing(mv)) {
-    env_reset(mv->env);
-    ugen_reset_phase(*mv->ugens);
-    ugen_reset_phase(*(mv->ugens + 1));
-    //ugen_reset_phase(*(mv->ugens + 2)); // do i want to reset the phase of the LFO?
-    //ugen_reset_phase(*(mv->ugens + 3)); // do i want to reset the phase of the LFO?
+    operator_reset(mv->params.ss.ops[0]);
+    operator_reset(mv->params.ss.ops[1]);
   }
   mv->sustain = true;
+  mv->cur_dur = 0;
 }
 
 void
 simple_synth_note_off(MonoVoice mv)
 {
+  env_set_release(mv->params.ss.ops[0]->env_u.env);
+  env_set_release(mv->params.ss.ops[1]->env_u.env);
+
   mv->sustain = false;
+}
+
+void
+simple_synth_play_sample(MonoVoice mv, FTYPE *L, FTYPE *R)
+{
+  // sample 2
+  FTYPE rv = operator_sample(mv->params.ss.ops[1], mv->sustain);
+  // feedback for 2
+  operator_set_mod(mv->params.dx7.ops[1], rv * mv->params.ss.fback_s / mv->params.ss.ops[1]->gain_c);
+  // prepare 1
+  operator_set_mod(mv->params.dx7.ops[0], rv);
+  // sample 1
+  rv = operator_sample(mv->params.ss.ops[0], mv->sustain);
+  *L = rv * (1.0 - mv->params.ss.ops[0]->pan);
+  *R = rv * (mv->params.ss.ops[0]->pan);
 }
 
 void
@@ -80,9 +88,13 @@ simple_synth_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE])
   FTYPE *r_sample = bufs[1];
   FTYPE *e_sample = bufs[2];
 
-  ugen_chunk_sample(*mv->ugens, l_sample);
-  memmove(r_sample, l_sample, CHUNK_SIZE * sizeof(FTYPE));
-  env_sample_chunk(mv->env, mv->sustain, e_sample);
+  int i;
+  for (i = 0; i < CHUNK_SIZE; i++, l_sample++, r_sample++) {
+    simple_synth_play_sample(mv, l_sample, r_sample);
+  }
+  for (i = 0; i < CHUNK_SIZE; i++, e_sample++) {
+    *e_sample = 1.0;
+  }
 
   mv->cur_dur += CHUNK_SIZE;
 }

@@ -3,7 +3,15 @@
 
 #include "../lib/macros.h"
 
+#include "../ugen/operator.h"
+
 #include "voice.h"
+
+typedef struct simple_synth_params_t {
+  Operator ops[2];
+  FTYPE decay_rate;
+  FTYPE fback_s;
+} simple_synth_params;
 
 void simple_synth_init(MonoVoice mv, mono_voice_params params);
 void simple_synth_cleanup(MonoVoice mv);

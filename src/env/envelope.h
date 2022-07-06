@@ -14,6 +14,12 @@
  (env)->max_samples[ENV_SUSTAIN] + \
  (env)->max_samples[ENV_RELEASE]))
 
+#define env_max_duration(env) \
+((env)->max_samples[ENV_ATTACK] + \
+ (env)->max_samples[ENV_DECAY] + \
+ (env)->max_samples[ENV_SUSTAIN] + \
+ (env)->max_samples[ENV_RELEASE])
+
 typedef enum env_state_e {
   ENV_ATTACK,
   ENV_DECAY,

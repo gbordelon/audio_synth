@@ -86,7 +86,6 @@ env_set_release(Envelope env)
 void
 env_set_duration(Envelope env, FTYPE duration/*in seconds*/, env_state stage)
 {
-  env_reset(env);
   env->durs[stage] = duration;
   env->max_samples[stage] = floor(DEFAULT_SAMPLE_RATE * env->durs[stage]) - 1;
   ugen_set_freq(env->ugens[stage], 1.0 / duration);
@@ -124,10 +123,8 @@ env_init_default()
   env->decay_rate = 0;
 
   // init the phase index as complete
-  env->p_ind = env->max_samples[0]
-             + env->max_samples[1]
-             + env->max_samples[2]
-             + env->max_samples[3];
+  env->p_ind = env_max_duration(env);
+  env->state = ENV_RELEASE;
   return env;
 }
 
@@ -153,7 +150,7 @@ env_sample(Envelope env, bool sustain)
   if (sustain && env->p_ind == (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
     sample = env->prev_sample;
   } else {
-    sample = ugen_sample(env->ugens[env->state]);
+    sample = ugen_sample_mod(env->ugens[env->state], 0.0);
     env->prev_sample = sample;
   }
 

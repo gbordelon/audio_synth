@@ -19,7 +19,7 @@ fm_10_init(MonoVoice mv, mono_voice_params params)
   mv->ugens[0] = ugen_init_sin(midi_note_to_freq_table[45]); // sine carrier
   mv->ugens[1] = ugen_init_sin(midi_note_to_freq_table[45]); // sine modulator
 
-  ugen_set_gain_c(mv->ugens[0], 1.0); // set by velocity in note_on
+  //ugen_set_gain_c(mv->ugens[0], 1.0); // set by velocity in note_on
 
   mv->env = env_init_default();
   FTYPE amps[4] = {0.0, 1.0, 0.75, 0.65}; // brass
@@ -54,7 +54,7 @@ fm_10_cleanup(MonoVoice mv)
 void
 fm_10_note_on(MonoVoice mv, uint8_t midi_note)
 {
-  ugen_set_gain_c(mv->ugens[0], mv->velocity * 0.5);
+  //ugen_set_gain_c(mv->ugens[0], mv->velocity * 0.5);
   ugen_set_freq(mv->ugens[1], midi_note_to_freq_table[midi_note] * mv->params.fm_10.p6);
   mv->params.fm_10.carrier = midi_note_to_freq_table[midi_note];
 
@@ -87,7 +87,7 @@ fm_10_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE])
   int i;
   for (i = 0; i < CHUNK_SIZE; i++, l_sample++, r_sample++) {
     // sample ug1
-    mod_sample = ugen_sample(mv->ugens[1]);
+    mod_sample = ugen_sample_mod(mv->ugens[1], 0.0);
     // sample ug5
     mod_env = env_sample(mv->params.fm_10.e, mv->sustain);
     // scale ug5 by DEV2
@@ -100,7 +100,7 @@ fm_10_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE])
     FTYPE freq = mod_env * mod_sample + mv->params.fm_10.carrier;
     ugen_set_freq(mv->ugens[0], freq);
     // sample ug3
-    *l_sample = *r_sample = ugen_sample(mv->ugens[0]);
+    *l_sample = *r_sample = ugen_sample_mod(mv->ugens[0], 0.0);
   }
   env_sample_chunk(mv->env, mv->sustain, e_sample);
 

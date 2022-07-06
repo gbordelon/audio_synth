@@ -48,7 +48,6 @@ voice_init(Channel channels, size_t channel_num, instrument_e instrument, mono_v
   // TODO for channel in channels: increment refcount
   rv->voices = mono_voice_alloc();
   rv->voice_num = NUM_VOICES;
-  rv->env_proto = env_init_default();
   rv->fx_chain = NULL;
 
   switch(instrument) {
@@ -116,7 +115,6 @@ voice_cleanup(Voice voice)
     voice->fns.cleanup(mv);
   }
   mono_voice_free(voice->voices);
-  env_cleanup(voice->env_proto);
   dsp_cleanup(voice->fx_chain);
   voice_free(voice);
 }
@@ -145,7 +143,6 @@ voice_play_chunk(Voice voice)
   for (mv = voice->voices; mv - voice->voices < voice->voice_num; mv++) {
     if (mono_voice_playing(mv)) {
       voice->fns.play_chunk(mv, samples);
-
       for (L = accum_l, R = accum_r, sL = samples[0], sR = samples[1], e = samples[2];
            L - accum_l < CHUNK_SIZE;
            sL++, sR++, e++, L++, R++) {

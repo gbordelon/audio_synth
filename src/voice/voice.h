@@ -14,12 +14,14 @@
 
 #include "dx7.h"
 #include "fm_10.h"
+#include "simple_synth.h"
 
 #define NUM_VOICES 64
 
 typedef union mono_voice_params_u {
   fm_10_params fm_10;
   dx7_params dx7;
+  simple_synth_params ss;
 } mono_voice_params;
 
 typedef struct mono_voice_t {
@@ -44,7 +46,6 @@ typedef struct mv_fns_t {
 typedef struct voice_t {
   Channel channels;
   size_t channel_num;
-  Envelope env_proto;
   MonoVoice voices;
   size_t voice_num;
   mv_fns fns;

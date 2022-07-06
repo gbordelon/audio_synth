@@ -92,7 +92,7 @@ void
 operator_reset(Operator op)
 {
   ugen_reset_phase(op->ugen);
-  op->mod = 0.0; // ?
+  op->mod = 0.0;
 
   switch (op->e_type) {
   case OPERATOR_UGEN:
@@ -116,8 +116,10 @@ void
 operator_set_fc(Operator op, FTYPE fc)
 {
   op->fc = pow(2.0, op->detune / 1200.0 + log2(fc));
+  ugen_set_freq(op->ugen, op->mult * op->fc);
 }
 
+// convert from radians to wave table phase units inside the ugen sample function
 void
 operator_set_mod(Operator op, FTYPE mod)
 {
@@ -140,6 +142,12 @@ void
 operator_set_velocity(Operator op, FTYPE vel)
 {
   op->velocity = vel;
+}
+
+void
+operator_set_vel_s(Operator op, FTYPE vel_s)
+{
+  op->vel_s = vel_s;
 }
 
 void
@@ -171,12 +179,11 @@ operator_sample(Operator op, bool sustain)
 {
   FTYPE s1, s2;
 
-  ugen_set_freq(op->ugen, op->mult * op->fc);
-  s1 = ugen_sample_mod(op->ugen, floor(((FTYPE)UGEN_TABLE_SIZE) * op->mod * 0.5 * M_1_PI));
+  s1 = ugen_sample_mod(op->ugen, op->mod);
 
   switch (op->e_type) {
   case OPERATOR_UGEN:
-    s2 = ugen_sample(op->env_u.lfo);
+    s2 = ugen_sample_mod(op->env_u.lfo, 0.0);
     break;
   case OPERATOR_ENV:
     s2 = env_sample(op->env_u.env, sustain);

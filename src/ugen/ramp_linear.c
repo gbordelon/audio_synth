@@ -16,7 +16,7 @@ void
 ugen_generate_table_ramp_linear()
 {
   int i;
-  FTYPE incr = 1.0 / UGEN_TABLE_SIZE;
+  FTYPE incr = 1.0 / (FTYPE)UGEN_TABLE_SIZE;
 
   for (i = 0; i < UGEN_TABLE_SIZE; i++) {
     ramp_linear[i] = ((FTYPE)i) * incr;
