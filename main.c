@@ -13,6 +13,7 @@
 #include "porttime.h"
 
 #include "src/lib/macros.h"
+#include "src/lib/signals.h"
 
 #include "src/mac_audio/audio_unit.h"
 
@@ -306,10 +307,15 @@ receive_poll(PtTimestamp timestamp, void *userData)
   (fx##_r)->fn_type = DSP_MONO_R;\
   (vc)->fx_chain = dsp_add_to_chain(vc->fx_chain, fx##_l);\
   (vc)->fx_chain = dsp_add_to_chain(vc->fx_chain, fx##_r)
-   
+
+extern char const * icky_global_program_name;
+
 int
-main()
+main(int argc, char * argv[])
 {
+  icky_global_program_name = argv[0];
+  //set_signal_handler();
+
   PmError err;
   uint8_t active_voices[128];
   printf("generating wave tables... ");
@@ -327,9 +333,10 @@ main()
 /* gsynth */
   Channel chans = gmix->busses[0].channels;
   //gsynth = voice_init_default(chans, NUM_CHANNELS);
-  mono_voice_params mv_params;
-  dx7_e_piano_1(&mv_params);
-  gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, mv_params);
+  mono_voice_params mv_params = {0};
+  //dx7_e_piano_1(&mv_params);
+  //gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, mv_params);
+  gsynth = voice_init(chans, NUM_CHANNELS, VOICE_SIMPLE_SYNTH, mv_params);
 
   DSP_callback cb = dsp_init_envelope_follower_default();
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
