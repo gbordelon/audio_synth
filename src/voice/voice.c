@@ -11,7 +11,6 @@
 #include "voice.h"
 
 #include "dx7.h"
-#include "fm_10.h"
 #include "mic_in.h"
 #include "simple_synth.h"
 
@@ -58,13 +57,6 @@ voice_init(Channel channels, size_t channel_num, instrument_e instrument, mono_v
     rv->fns.note_off = dx7_note_off;
     rv->fns.play_chunk = dx7_play_chunk;
     break;
-  case VOICE_FM_10:
-    rv->fns.init = fm_10_init;
-    rv->fns.cleanup = fm_10_cleanup;
-    rv->fns.note_on = fm_10_note_on;
-    rv->fns.note_off = fm_10_note_off;
-    rv->fns.play_chunk = fm_10_play_chunk;
-    break;
   case VOICE_MIC_IN:
     rv->voice_num = 1;
     rv->fns.init = mic_in_init;
@@ -87,7 +79,6 @@ voice_init(Channel channels, size_t channel_num, instrument_e instrument, mono_v
   MonoVoice mv;
   for (mv = rv->voices; mv - rv->voices < rv->voice_num; mv++) {
     rv->fns.init(mv, params);
-    mv->max_dur = 0;
     mv->cur_dur = 0;
   }
 
@@ -166,6 +157,7 @@ voice_play_chunk(Voice voice)
   channel_write(right, accum_r);
 }
 
+static const FTYPE INV_127 = 1.0 / 127.0;
 uint8_t
 voice_note_on(Voice voice, uint8_t midi_note, uint8_t midi_velocity)
 {
@@ -173,9 +165,7 @@ voice_note_on(Voice voice, uint8_t midi_note, uint8_t midi_velocity)
   for (mv = voice->voices; mv - voice->voices < voice->voice_num; mv++) {
     if (!mono_voice_playing(mv)) {
       mv->cur_dur = 0;
-      mv->max_dur = DEFAULT_SAMPLE_RATE * 1.0;
-      mv->velocity = ((FTYPE)midi_velocity) / 127.0;
-      voice->fns.note_on(mv, midi_note);
+      voice->fns.note_on(mv, midi_note, ((FTYPE)midi_velocity) * INV_127);
       return mv - voice->voices;
     }
   }
@@ -198,6 +188,12 @@ voice_note_off(Voice voice, uint8_t mono_voice_index)
 bool
 mono_voice_playing(MonoVoice mv)
 {
-  bool rv = (mv->sustain && mv->env == NULL) || (mv->env && !env_spent(mv->env));
-  return /*(mv->env && !env_spent(mv->env));*/rv;
+  Operator *op;
+  bool rv = false;
+  for (op = mv->ops; op - mv->ops < mv->op_num; op++) {
+    rv = rv
+       || ((*op)->e_type == OPERATOR_UGEN && mv->sustain)
+       || ((*op)->e_type == OPERATOR_ENV && !env_spent((*op)->env_u.env));
+  }
+  return rv;
 }

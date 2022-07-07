@@ -25,10 +25,6 @@
 #include "src/voice/voice.h"
 #include "src/voice/dx7.h"
 
-Mixer gmix;
-Voice gsynth;
-Voice gmic;
-
 #define add_filter(vc, fx, params, filter_type, Fc, Q, dB)\
   (params).alg=(filter_type);\
   (params).fc=(Fc);\
@@ -42,13 +38,16 @@ Voice gmic;
 
 extern char const * icky_global_program_name;
 
+Mixer gmix;
+Voice gsynth;
+Voice gmic;
+
 int
 main(int argc, char * argv[])
 {
   icky_global_program_name = argv[0];
   //set_signal_handler();
 
-  uint8_t active_voices[128];
   printf("generating wave tables... ");
   fflush(stdout);
   clock_t t = clock();
@@ -65,9 +64,9 @@ main(int argc, char * argv[])
   Channel chans = gmix->busses[0].channels;
   //gsynth = voice_init_default(chans, NUM_CHANNELS);
   mono_voice_params mv_params = {0};
-  //dx7_e_piano_1(&mv_params);
-  //gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, mv_params);
-  gsynth = voice_init(chans, NUM_CHANNELS, VOICE_SIMPLE_SYNTH, mv_params);
+  dx7_e_piano_1(&mv_params);
+  gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, mv_params);
+  //gsynth = voice_init(chans, NUM_CHANNELS, VOICE_SIMPLE_SYNTH, mv_params);
 
   DSP_callback cb = dsp_init_envelope_follower_default();
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
@@ -117,6 +116,7 @@ main(int argc, char * argv[])
   AudioComponentInstance audio_unit_io = audio_unit_io_init();
   printf("AudioUnit io initialized.\n");
 
+  uint8_t active_voices[128];
   memset(active_voices, 64, 128);
 
   PmQueue *midi_to_main = midi_listener_init();

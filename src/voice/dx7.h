@@ -62,7 +62,6 @@ typedef struct dx7_patch_t {
 } dx7_patch;
 
 typedef struct dx7_params_t {
-  Operator ops[6];
   dx7_alg alg;
   dx7_patch patch;
   FTYPE fback_s; // feedback scaling for an operator whose fm comes from its own output
@@ -76,7 +75,7 @@ typedef union mono_voice_params_u mono_voice_params;
 void dx7_init(MonoVoice mv, mono_voice_params params);
 void dx7_init_default(MonoVoice mv);
 void dx7_cleanup(MonoVoice mv);
-void dx7_note_on(MonoVoice mv, uint8_t midi_note);
+void dx7_note_on(MonoVoice mv, uint8_t midi_note, FTYPE velocity);
 void dx7_note_off(MonoVoice mv);
 void dx7_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE]);
 

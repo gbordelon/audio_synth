@@ -9,36 +9,30 @@
 #include "../dsp/dsp.h"
 #include "../env/envelope.h"
 #include "../ugen/operator.h"
-#include "../ugen/ugen.h"
 #include "../pcm/channel.h"
 
 #include "dx7.h"
-#include "fm_10.h"
 #include "simple_synth.h"
 
 #define NUM_VOICES 64
 
 typedef union mono_voice_params_u {
-  fm_10_params fm_10;
   dx7_params dx7;
   simple_synth_params ss;
 } mono_voice_params;
 
 typedef struct mono_voice_t {
-  Ugen *ugens;
-  size_t ugen_num;
-  Envelope env;
-  size_t max_dur;
+  Operator *ops;
+  size_t op_num;
   size_t cur_dur;
   bool sustain;
-  FTYPE velocity;
   mono_voice_params params;
 } *MonoVoice;
 
 typedef struct mv_fns_t {
   void (*init)(MonoVoice mv, mono_voice_params params);
   void (*cleanup)(MonoVoice mv);
-  void (*note_on)(MonoVoice mv, uint8_t velocity);
+  void (*note_on)(MonoVoice mv, uint8_t midi_note, FTYPE velocity);
   void (*note_off)(MonoVoice mv);
   void (*play_chunk)(MonoVoice mv, FTYPE samples[3][CHUNK_SIZE]);
 } mv_fns;
@@ -55,7 +49,6 @@ typedef struct voice_t {
 typedef enum {
   VOICE_SIMPLE_SYNTH,
   VOICE_DX7,
-  VOICE_FM_10,
   VOICE_MIC_IN
 } instrument_e;
 
