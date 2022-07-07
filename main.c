@@ -63,7 +63,10 @@ main(int argc, char * argv[])
 /* gsynth */
   Channel chans = gmix->busses[0].channels;
   //gsynth = voice_init_default(chans, NUM_CHANNELS);
+  audio_filter_params params;
   mono_voice_params mv_params = {0};
+  Ugen ug;
+
   dx7_e_piano_1(&mv_params);
   gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, mv_params);
   //gsynth = voice_init(chans, NUM_CHANNELS, VOICE_SIMPLE_SYNTH, mv_params);
@@ -86,8 +89,11 @@ main(int argc, char * argv[])
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
 
-  Ugen ug;
+  //add_filter(gsynth, dsp_fx, params, AF_HPF2, 400.0, 5.707, 0.0);
+  //add_filter(gsynth, dsp_fx, params, AF_LPF2, 4000.0, 5.707, 0.0);
+
 /*
+  // panning
   ug = ugen_init_tri(0.05);
   ugen_set_scale(ug, 0.3, 0.7);
   dsp_set_control_ugen(gsynth->fx_chain, ug);
@@ -104,7 +110,6 @@ main(int argc, char * argv[])
 //  ugen_set_scale(ug, 0.3, 0.7);
 //  dsp_set_control_ugen(gmic->fx_chain, ug);
 
-  audio_filter_params params;
   // telephone style filter uses a LPF at 4k and a HPF at 400
   add_filter(gmic, dsp_fx, params, AF_HPF2, 400.0, 5.707, 0.0);
   add_filter(gmic, dsp_fx, params, AF_LPF2, 4000.0, 5.707, 0.0);

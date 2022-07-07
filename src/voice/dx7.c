@@ -21,7 +21,7 @@ dx7_e_piano_1(mono_voice_params *params)
 
   params->dx7.patch.env_amps[0][0] = 0.0;
   params->dx7.patch.env_amps[0][1] = 1.0;
-  params->dx7.patch.env_amps[0][2] = 0.75;
+  params->dx7.patch.env_amps[0][2] = 0.55;
   params->dx7.patch.env_amps[0][3] = 0.1;
 
   params->dx7.patch.env_amps[1][0] = 0.0;
@@ -31,7 +31,7 @@ dx7_e_piano_1(mono_voice_params *params)
 
   params->dx7.patch.env_amps[2][0] = 0.0;
   params->dx7.patch.env_amps[2][1] = 1.0;
-  params->dx7.patch.env_amps[2][2] = 0.95;
+  params->dx7.patch.env_amps[2][2] = 0.75;
   params->dx7.patch.env_amps[2][3] = 0.1;
 
   params->dx7.patch.env_amps[3][0] = 0.0;
@@ -41,7 +41,7 @@ dx7_e_piano_1(mono_voice_params *params)
 
   params->dx7.patch.env_amps[4][0] = 0.0;
   params->dx7.patch.env_amps[4][1] = 1.0;
-  params->dx7.patch.env_amps[4][2] = 0.95;
+  params->dx7.patch.env_amps[4][2] = 0.75;
   params->dx7.patch.env_amps[4][3] = 0.1;
 
   params->dx7.patch.env_amps[5][0] = 0.0;
