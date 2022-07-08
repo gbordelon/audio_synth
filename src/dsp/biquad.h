@@ -39,5 +39,7 @@ void biquad_set_param(biquad_params *params, biquad_algorithm alg);
 
 // called by filters
 FTYPE biquad_process_sample(biquad_params *params, FTYPE sample);
+FTYPE biquad_get_G(biquad_params *params);
+FTYPE biquad_get_S(biquad_params *params);
 
 #endif

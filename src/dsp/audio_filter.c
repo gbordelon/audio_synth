@@ -525,6 +525,5 @@ dsp_init_audio_filter_default()
   };
   DSP_callback cb = dsp_init_audio_filter(params);
 
-
   return cb;
 }

@@ -71,23 +71,31 @@ main(int argc, char * argv[])
   gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, mv_params);
   //gsynth = voice_init(chans, NUM_CHANNELS, VOICE_SIMPLE_SYNTH, mv_params);
 
-  DSP_callback cb = dsp_init_envelope_follower_default();
-  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
-  cb = dsp_init_envelope_follower_default();
-  cb->fn_type = DSP_MONO_R;
-  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, cb);
-
   DSP_callback dsp_fx_l, dsp_fx_r;
-  // precede env follower with a bitcrusher on each channel
-  dsp_fx_l = dsp_init_bitcrusher();
-  dsp_set_bitcrusher_param(&dsp_fx_l->state, 4.5);
-
-  dsp_fx_r = dsp_init_bitcrusher();
+  dsp_fx_l = dsp_init_envelope_follower_default();
+  dsp_fx_r = dsp_init_envelope_follower_default();
   dsp_fx_r->fn_type = DSP_MONO_R;
-  dsp_set_bitcrusher_param(&dsp_fx_r->state, 4.5);
 
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
+
+  dsp_fx_l = dsp_init_phase_shifter_default();
+  dsp_fx_r = dsp_init_phase_shifter_default();
+  dsp_fx_r->fn_type = DSP_MONO_R;
+
+  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
+
+  // precede env follower with a bitcrusher on each channel
+  dsp_fx_l = dsp_init_bitcrusher();
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, 5.5);
+
+  dsp_fx_r = dsp_init_bitcrusher();
+  dsp_fx_r->fn_type = DSP_MONO_R;
+  dsp_set_bitcrusher_param(&dsp_fx_r->state, 5.5);
+
+  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
 
   //add_filter(gsynth, dsp_fx, params, AF_HPF2, 400.0, 5.707, 0.0);
   //add_filter(gsynth, dsp_fx, params, AF_LPF2, 4000.0, 5.707, 0.0);

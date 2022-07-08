@@ -68,6 +68,42 @@ biquad_process_sample(biquad_params *params, FTYPE sample)
 
   return yn;
 }
+
+FTYPE
+biquad_get_G(biquad_params *params)
+{
+  return a0;
+}
+
+FTYPE
+biquad_get_S(biquad_params *params)
+{
+  FTYPE S = 0;
+  switch (params->alg) {
+  case BIQUAD_CANONICAL:
+    // undef
+    break;
+  case BIQUAD_TRANSPOSE_DIRECT:
+    // undef
+    break;
+  case BIQUAD_TRANSPOSE_CANONICAL:
+    S = a1 * xz1 +
+        a2 * xz2 -
+        b1 * yz1 -
+        b2 * yz2;
+    break;
+  default:
+    // fall through
+  case BIQUAD_DIRECT:
+    S = a1 * xz1 +
+        a2 * xz2 -
+        b1 * yz1 -
+        b2 * yz2;
+    break;
+  }
+  return S;
+}
+
 #undef a0
 #undef a1
 #undef a2

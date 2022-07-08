@@ -9,6 +9,7 @@
 #include "audio_filter.h"
 #include "biquad.h"
 #include "envelope_follower.h"
+#include "phase_shifter.h"
 
 typedef union dsp_state_u {
   struct {
@@ -17,6 +18,7 @@ typedef union dsp_state_u {
   audio_filter_params audio_filter;
   audio_detector_params audio_detector;
   envelope_follower_params envelope_follower;
+  phase_shifter_params phase_shifter;
 } dsp_state;
 
 typedef enum {
@@ -74,6 +76,9 @@ DSP_callback dsp_init_bitcrusher();
 
 DSP_callback dsp_init_envelope_follower(envelope_follower_params params);
 DSP_callback dsp_init_envelope_follower_default();
+
+DSP_callback dsp_init_phase_shifter(phase_shifter_params params);
+DSP_callback dsp_init_phase_shifter_default();
 
 DSP_callback dsp_init_stereo_pan();
 
