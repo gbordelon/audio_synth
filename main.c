@@ -63,15 +63,23 @@ main(int argc, char * argv[])
 /* gsynth */
   Channel chans = gmix->busses[0].channels;
   //gsynth = voice_init_default(chans, NUM_CHANNELS);
-  audio_filter_params params;
-  mono_voice_params mv_params = {0};
+  audio_delay_params params_ad;
+  audio_filter_params params_af;
+  mono_voice_params params_mv = {0};
   Ugen ug;
 
-  dx7_e_piano_1(&mv_params);
-  gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, mv_params);
-  //gsynth = voice_init(chans, NUM_CHANNELS, VOICE_SIMPLE_SYNTH, mv_params);
+  dx7_e_piano_1(&params_mv);
+  gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, params_mv);
+  //gsynth = voice_init(chans, NUM_CHANNELS, VOICE_SIMPLE_SYNTH, params_mv);
 
+  // add gsynth fx backward
   DSP_callback dsp_fx_l, dsp_fx_r;
+
+  // last is delay
+  dsp_fx_l = dsp_init_audio_delay_default();
+  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+
+  // then env follower or phaser
   dsp_fx_l = dsp_init_envelope_follower_default();
   dsp_fx_r = dsp_init_envelope_follower_default();
   dsp_fx_r->fn_type = DSP_MONO_R;
@@ -86,19 +94,18 @@ main(int argc, char * argv[])
   gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
   gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
 
-  // precede env follower with a bitcrusher on each channel
-  dsp_fx_l = dsp_init_bitcrusher();
-  dsp_set_bitcrusher_param(&dsp_fx_l->state, 5.5);
+  //add_filter(gsynth, dsp_fx, params_af, AF_HPF2, 400.0, 5.707, 0.0);
+  //add_filter(gsynth, dsp_fx, params_af, AF_LPF2, 4000.0, 5.707, 0.0);
 
+  // first is distortion
+  dsp_fx_l = dsp_init_bitcrusher();
   dsp_fx_r = dsp_init_bitcrusher();
   dsp_fx_r->fn_type = DSP_MONO_R;
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, 5.5);
   dsp_set_bitcrusher_param(&dsp_fx_r->state, 5.5);
 
   gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
   gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
-
-  //add_filter(gsynth, dsp_fx, params, AF_HPF2, 400.0, 5.707, 0.0);
-  //add_filter(gsynth, dsp_fx, params, AF_LPF2, 4000.0, 5.707, 0.0);
 
 /*
   // panning
@@ -110,7 +117,7 @@ main(int argc, char * argv[])
 
 /* gmic */
   chans = gmix->busses[1].channels;
-  gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN, mv_params);
+  gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN, params_mv);
 
   // set slow triangle stereo pan on gmic
   gmic->fx_chain = dsp_init_stereo_pan();
@@ -119,8 +126,8 @@ main(int argc, char * argv[])
 //  dsp_set_control_ugen(gmic->fx_chain, ug);
 
   // telephone style filter uses a LPF at 4k and a HPF at 400
-  add_filter(gmic, dsp_fx, params, AF_HPF2, 400.0, 5.707, 0.0);
-  add_filter(gmic, dsp_fx, params, AF_LPF2, 4000.0, 5.707, 0.0);
+  add_filter(gmic, dsp_fx, params_af, AF_HPF2, 400.0, 5.707, 0.0);
+  add_filter(gmic, dsp_fx, params_af, AF_LPF2, 4000.0, 5.707, 0.0);
 
 /* end gmic */
 

@@ -58,7 +58,7 @@ typedef struct ugen_t {
   // phase management for table indexing
   int32_t p_inc_whole;
   FTYPE p_inc_frac;
-  uint32_t p_ind;
+  int32_t p_ind;
 } *Ugen;
 
 // sample fn determines the wave table to use

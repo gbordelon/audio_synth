@@ -5,6 +5,7 @@
 
 #include "../ugen/ugen.h"
 
+#include "audio_delay.h"
 #include "audio_detector.h"
 #include "audio_filter.h"
 #include "biquad.h"
@@ -16,6 +17,7 @@ typedef union dsp_state_u {
     FTYPE quantized_bit_depth;
   } bitcrusher;
   audio_filter_params audio_filter;
+  audio_delay_params audio_delay;
   audio_detector_params audio_detector;
   envelope_follower_params envelope_follower;
   phase_shifter_params phase_shifter;
@@ -65,6 +67,9 @@ typedef struct dsp_callback_t {
 
 DSP_callback dsp_init();
 DSP_callback dsp_init_default();
+
+DSP_callback dsp_init_audio_delay(audio_delay_params params);
+DSP_callback dsp_init_audio_delay_default();
 
 DSP_callback dsp_init_audio_detector(audio_detector_params params);
 DSP_callback dsp_init_audio_detector_default();

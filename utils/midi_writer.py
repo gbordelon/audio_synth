@@ -7,9 +7,13 @@ import random
 delay = 0.8
 velocity_range = (95,127)
 #note_range = (30,100)
-note_choice = [30, 34, 37, 41, 42, 44, 46, 49, 53, 54, 56, 58, 61, 65, 68]
+note_choice_maj9 = [30, 34, 37, 41, 42, 44, 46, 49, 53, 54, 56, 58, 61, 65, 68]
+note_choice_9 =    [37, 41, 44, 47, 49, 51, 53, 56, 59, 61, 63, 65, 68, 71, 75]
 #note_choice = [68]
 notes_on = []
+keys = [1, 4, 5]
+num_notes_played = 0
+note_choice = note_choice_maj9
 
 arpeggio1 = [54, 58, 61, 65] # 54 maj 7
 arpeggio2 = [54, 58, 61, 63] # 63 min 7
@@ -26,7 +30,7 @@ def init():
 def arpeggiator(output):
   while True:
     for arp, root in zip([arpeggio1, arpeggio2, arpeggio3, arpeggio4], arpeggio_roots):
-      output.note_on(root, 120)
+      output.note_on(root, 127)
       notes_on.append(root)
       for note, velocity in zip(arp, velocity_arp):
         output.note_on(note, velocity)
@@ -39,6 +43,9 @@ def arpeggiator(output):
       del notes_on[0]
 
 def random_loop(output):
+  global note_choice
+  key = 1
+  num_notes_played = 0
   while True:
     # after two or three are on
     if len(notes_on) > random.randint(2,3):
@@ -56,10 +63,25 @@ def random_loop(output):
       # random note on
       #note = random.randint(*note_range)
       note = random.choice(note_choice)
+      if key == 4:
+        note += 5
       velocity = random.randint(*velocity_range)
       output.note_on(note, velocity)
       print("ON", note, velocity)
       notes_on.append(note)
+      num_notes_played += 1
+    if num_notes_played == 10:
+      num_notes_played = 0
+      key = random.choice(keys)
+      if key == 1:
+        note_choice = note_choice_maj9
+        print("Key 1")
+      elif key == 4:
+        note_choice = note_choice_maj9
+        print("Key 4")
+      elif key == 5:
+        note_choice = note_choice_9
+        print("Key 5")
 
     time.sleep(delay)
 
@@ -71,6 +93,7 @@ if __name__ == '__main__':
   output = midi.Output(output_id)
 
   try:
+    #random_loop(output)
     arpeggiator(output)
   except KeyboardInterrupt:
     # turn off all notes

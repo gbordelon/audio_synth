@@ -232,37 +232,19 @@ ugen_sample_mod(Ugen ugen, FTYPE phase_mod)
   }
 
   ugen->p_ind += ugen->p_inc_whole;
-  if (ugen->p_ind >= UGEN_TABLE_SIZE) {
-    ugen->p_ind %= UGEN_TABLE_SIZE;
-  } else {
-    while (ugen->p_ind < 0) {
-      ugen->p_ind += UGEN_TABLE_SIZE;
-    }
-  }
+  ugen->p_ind &= (UGEN_TABLE_SIZE - 1);
 
   phase_ind = ugen->p_ind + phase_mod_whole;
-  if (phase_ind >= UGEN_TABLE_SIZE) {
-    phase_ind %= UGEN_TABLE_SIZE;
-  }
-  while (phase_ind < 0) {
-    phase_ind += UGEN_TABLE_SIZE;
-  }
+  phase_ind &= (UGEN_TABLE_SIZE - 1);
 
   sample1 = ugen->sample(ugen, phase_ind);
 
   if ((ugen->p_inc_whole + phase_mod_whole) >= 0) {
-    if ((phase_ind + 1) == UGEN_TABLE_SIZE) {
-        sample2 = ugen->sample(ugen, 0);
-    } else {
-        sample2 = ugen->sample(ugen, phase_ind + 1);
-    }
+    phase_ind++;
   } else {
-    if ((phase_ind - 1) < 0) {
-        sample2 = ugen->sample(ugen, UGEN_TABLE_SIZE - 1);
-    } else {
-        sample2 = ugen->sample(ugen, phase_ind - 1);
-    }
+    phase_ind--;
   }
+  sample2 = ugen->sample(ugen, phase_ind & (UGEN_TABLE_SIZE - 1));
 
   if (phase_mod_frac >= 0) {
     sample1 = (1.0 - phase_mod_frac) * sample1 + phase_mod_frac * sample2;
