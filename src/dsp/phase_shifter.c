@@ -122,7 +122,7 @@ dsp_init_phase_shifter_default()
 }
 
 void
-dsp_cleanup_phase_shifter(DSP_callback ps)
+dsp_phase_shifter_cleanup(DSP_callback ps)
 {
   ugen_cleanup(ps->state.phase_shifter.lfo);
   dsp_cleanup(ps->state.phase_shifter.apfs[0]); // chaining should cleanup the rest

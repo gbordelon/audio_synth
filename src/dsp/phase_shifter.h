@@ -8,7 +8,6 @@
 #include "../ugen/ugen.h"
 
 #include "audio_filter.h"
-#include "dsp.h"
 
 #define PHASER_STAGES 6
 
@@ -27,5 +26,6 @@ typedef struct phase_shifter_t {
 } phase_shifter_params;
 
 void dsp_phase_shifter_set_params(dsp_state *state, phase_shifter_params params);
+void dsp_phase_shifter_cleanup(DSP_callback ps);
 
 #endif
