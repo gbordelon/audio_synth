@@ -77,7 +77,7 @@ main(int argc, char * argv[])
 
   // last is delay
   dsp_fx_l = dsp_init_audio_delay_default();
-  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
   // then env follower or phaser
   dsp_fx_l = dsp_init_envelope_follower_default();
@@ -88,11 +88,7 @@ main(int argc, char * argv[])
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
 
   dsp_fx_l = dsp_init_phase_shifter_default();
-  dsp_fx_r = dsp_init_phase_shifter_default();
-  dsp_fx_r->fn_type = DSP_MONO_R;
-
   gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
-  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
 
   //add_filter(gsynth, dsp_fx, params_af, AF_HPF2, 400.0, 5.707, 0.0);
   //add_filter(gsynth, dsp_fx, params_af, AF_LPF2, 4000.0, 5.707, 0.0);

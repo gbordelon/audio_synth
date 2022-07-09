@@ -33,6 +33,16 @@ typedef enum {
   UGEN_RAMP_LINEAR_UP // ctrl
 } ugen_type_e;
 
+typedef enum {
+  UGEN_PHASE_NORM,     // in phase
+  UGEN_PHASE_QUAD,     // +90
+  UGEN_PHASE_QUAD_NEG, // -90 (or inverted quad)
+  UGEN_PHASE_INV,      // inverted in phase
+  UGEN_PHASE_NUM
+} ugen_phase_e;
+
+typedef FTYPE triphase[UGEN_PHASE_NUM];
+
 typedef struct ar_cr_t {
   FTYPE bias;
   FTYPE scale;
@@ -48,6 +58,7 @@ typedef struct ugen_t {
   union {
     struct {
       struct ugen_t *duty_cycle; // imagine LFO duty cycle shifting :)
+      FTYPE dc;
     } impulse;
   } u;
 
@@ -84,5 +95,6 @@ void ugen_set_freq(Ugen ugen, FTYPE freq);
 void ugen_set_scale(Ugen ugen, FTYPE low, FTYPE high);
 
 FTYPE ugen_sample_mod(Ugen ugen, FTYPE phase_mod);
+void ugen_sample_mod_triphase(Ugen ugen, FTYPE phase_mod, triphase rv);
 
 #endif

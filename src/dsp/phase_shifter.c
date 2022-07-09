@@ -26,12 +26,9 @@ const double apf_maxF[PHASER_STAGES] = {
   20480.0
 };
 
-FTYPE
-mono_phase_shifter(FTYPE *L, dsp_state *state, FTYPE control)
+void
+helper(FTYPE *xn, FTYPE lfo_out, dsp_state *state)
 {
-  double lfo_out = ugen_sample_mod(state->phase_shifter.lfo, 0.0);
-  lfo_out *= state->phase_shifter.lfo_scale;
-
   // set fc for all 6 apfs
   int i;
   for (i = 0; i < PHASER_STAGES; i++) {
@@ -41,12 +38,12 @@ mono_phase_shifter(FTYPE *L, dsp_state *state, FTYPE control)
   }
   
   // get G values from all apfs
-  double gamma1 = biquad_get_G(&state->phase_shifter.apfs[5]->state.audio_filter.biquad);
-  double gamma2 = biquad_get_G(&state->phase_shifter.apfs[4]->state.audio_filter.biquad) * gamma1;
-  double gamma3 = biquad_get_G(&state->phase_shifter.apfs[3]->state.audio_filter.biquad) * gamma2;
-  double gamma4 = biquad_get_G(&state->phase_shifter.apfs[2]->state.audio_filter.biquad) * gamma3;
-  double gamma5 = biquad_get_G(&state->phase_shifter.apfs[1]->state.audio_filter.biquad) * gamma4;
-  double gamma6 = biquad_get_G(&state->phase_shifter.apfs[0]->state.audio_filter.biquad) * gamma5;
+  double gamma1 =          biquad_get_G(&state->phase_shifter.apfs[5]->state.audio_filter.biquad);
+  double gamma2 = gamma1 * biquad_get_G(&state->phase_shifter.apfs[4]->state.audio_filter.biquad);
+  double gamma3 = gamma2 * biquad_get_G(&state->phase_shifter.apfs[3]->state.audio_filter.biquad);
+  double gamma4 = gamma3 * biquad_get_G(&state->phase_shifter.apfs[2]->state.audio_filter.biquad);
+  double gamma5 = gamma4 * biquad_get_G(&state->phase_shifter.apfs[1]->state.audio_filter.biquad);
+  double gamma6 = gamma5 * biquad_get_G(&state->phase_shifter.apfs[0]->state.audio_filter.biquad);
 
   double K = state->phase_shifter.intensity;
   double alpha0 = 1.0 / (1.0 + K * gamma6);
@@ -58,12 +55,26 @@ mono_phase_shifter(FTYPE *L, dsp_state *state, FTYPE control)
             + gamma1 * biquad_get_S(&state->phase_shifter.apfs[4]->state.audio_filter.biquad)
             +          biquad_get_S(&state->phase_shifter.apfs[5]->state.audio_filter.biquad); 
 
-  double Lc = alpha0 * (*L - K * Sn);
+  double Lc = alpha0 * (*xn - K * Sn);
   double Rc = Lc;
   stereo_fx_chain(state->phase_shifter.apfs[0], &Lc, &Rc);
 
-  *L = 0.707 * *L + 0.707 * Lc;
-  return control; // or detect_val?
+  *xn = 0.707 * *xn + 0.707 * Lc;
+}
+
+FTYPE
+stereo_phase_shifter(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
+{
+  triphase lfo_out_tri;
+  ugen_sample_mod_triphase(state->phase_shifter.lfo, 0.0, lfo_out_tri);
+
+  double lfo_out = state->phase_shifter.lfo_scale * lfo_out_tri[UGEN_PHASE_NORM];
+  helper(L, lfo_out, state);
+
+  lfo_out = state->phase_shifter.lfo_scale * lfo_out_tri[UGEN_PHASE_QUAD];
+  helper(R, lfo_out, state);
+
+  return control;
 }
 
 void
@@ -97,7 +108,7 @@ dsp_init_phase_shifter(phase_shifter_params params)
   cb->state.phase_shifter = params;
   cb->state.phase_shifter.lfo = ugen_init_sin(params.lfo_rate);
 
-  dsp_set_mono_left(cb, mono_phase_shifter);
+  dsp_set_stereo(cb, stereo_phase_shifter);
 
   return cb;
 }
