@@ -313,6 +313,7 @@ pull_samples()
   memset(gmix->write_buf, 0, MMAP_SIZE * sizeof(FTYPE));
 }
 
+// called about every 10 millis
 static OSStatus
 playbackCallback(void *inRefCon, 
                  AudioUnitRenderActionFlags *ioActionFlags, 
