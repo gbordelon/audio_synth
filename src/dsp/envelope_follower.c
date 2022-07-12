@@ -9,9 +9,10 @@
 #include "envelope_follower.h"
 
 FTYPE
-mono_follower(FTYPE *L, dsp_state *state, FTYPE control)
+stereo_follower(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
 {
-  double Lc = *L, Rc = *L;
+  double Lc = *L * 0.707 + *R * 0.707;
+  double Rc = Lc;
   double thresh_val = state->envelope_follower.threshold;
   double detect_val = stereo_fx_chain(state->envelope_follower.d, &Lc, &Rc);
   double delta_val = detect_val - thresh_val;
@@ -22,12 +23,16 @@ mono_follower(FTYPE *L, dsp_state *state, FTYPE control)
     double modulator_val = delta_val * state->envelope_follower.sensitivity;
     state->envelope_follower.filter.fc = modulator_val * (state->envelope_follower.fc_max - state->envelope_follower.fc) + state->envelope_follower.fc;
   }
-
   dsp_audio_filter_set_params(&state->envelope_follower.f->state, state->envelope_follower.filter); 
-  Lc = *L, Rc = *L;
-  stereo_fx_chain(state->envelope_follower.f, &Lc, &Rc);
 
+  Lc = *L, Rc = *R;
+  stereo_fx_chain(state->envelope_follower.f, &Lc, &Rc);
   *L = Lc;
+
+  Lc = *L, Rc = *R;
+  stereo_fx_chain(state->envelope_follower.f, &Rc, &Lc);
+  *R = Rc;
+
   return control; // or detect_val?
 }
 
@@ -50,7 +55,7 @@ dsp_init_envelope_follower(envelope_follower_params params)
 
   cb->state.envelope_follower = params;
   //dsp_envelope_follower_set_params(&cb->state, params);
-  dsp_set_mono_left(cb, mono_follower);
+  dsp_set_stereo(cb, stereo_follower);
 
   return cb;
 }

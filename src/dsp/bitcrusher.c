@@ -11,10 +11,11 @@
  */
 
 FTYPE
-mono_bitcrush(FTYPE *L, dsp_state *state, FTYPE control)
+stereo_bitcrush(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
 {
   double QL = state->bitcrusher.quantized_bit_depth;
   *L = QL * ((int)(*L / QL));
+  *R = QL * ((int)(*R / QL));
   return control;
 }
 
@@ -28,7 +29,7 @@ DSP_callback
 dsp_init_bitcrusher()
 {
   DSP_callback cb = dsp_init();
-  dsp_set_mono_left(cb, mono_bitcrush);
+  dsp_set_stereo(cb, stereo_bitcrush);
   dsp_set_bitcrusher_param(&cb->state, 4.0);
 
   return cb;

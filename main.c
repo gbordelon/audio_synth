@@ -76,16 +76,12 @@ main(int argc, char * argv[])
   DSP_callback dsp_fx_l, dsp_fx_r;
 
   // last is delay
-  dsp_fx_l = dsp_init_audio_delay_default();
+  dsp_fx_l = dsp_init_audio_delay_default(); // stereo
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
   // then env follower or phaser
   dsp_fx_l = dsp_init_envelope_follower_default();
-  dsp_fx_r = dsp_init_envelope_follower_default();
-  dsp_fx_r->fn_type = DSP_MONO_R;
-
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
-  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
 
   dsp_fx_l = dsp_init_phase_shifter_default();
   gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
@@ -95,13 +91,8 @@ main(int argc, char * argv[])
 
   // first is distortion
   dsp_fx_l = dsp_init_bitcrusher();
-  dsp_fx_r = dsp_init_bitcrusher();
-  dsp_fx_r->fn_type = DSP_MONO_R;
   dsp_set_bitcrusher_param(&dsp_fx_l->state, 5.5);
-  dsp_set_bitcrusher_param(&dsp_fx_r->state, 5.5);
-
   gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
-  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_r);
 
 /*
   // panning
