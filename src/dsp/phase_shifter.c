@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "../lib/macros.h"
@@ -29,6 +30,7 @@ const double apf_maxF[PHASER_STAGES] = {
 void
 helper(FTYPE *xn, FTYPE lfo_out, dsp_state *state)
 {
+  // TODO this calls calculate_filter_coeffs which is hugely expensive
   // set fc for all 6 apfs
   int i;
   for (i = 0; i < PHASER_STAGES; i++) {
@@ -36,7 +38,7 @@ helper(FTYPE *xn, FTYPE lfo_out, dsp_state *state)
     params.fc = apf_minF[i] + (apf_maxF[i] - apf_minF[i]) * 0.5 * (lfo_out + 1.0);
     dsp_audio_filter_set_params(&state->phase_shifter.apfs[i]->state, params);
   }
-  
+
   // get G values from all apfs
   double gamma1 =          biquad_get_G(&state->phase_shifter.apfs[5]->state.audio_filter.biquad);
   double gamma2 = gamma1 * biquad_get_G(&state->phase_shifter.apfs[4]->state.audio_filter.biquad);
@@ -66,8 +68,7 @@ FTYPE
 stereo_phase_shifter(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
 {
   triphase lfo_out_tri;
-  ugen_sample_mod_triphase(state->phase_shifter.lfo, 0.0, lfo_out_tri);
-
+  ugen_sample_fast_triphase(state->phase_shifter.lfo, 0.0, lfo_out_tri);
   double lfo_out = state->phase_shifter.lfo_scale * lfo_out_tri[UGEN_PHASE_NORM];
   helper(L, lfo_out, state);
 

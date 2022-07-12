@@ -7,6 +7,6 @@
 
 #include "ugen.h"
 
-FTYPE ugen_sample_imp(Ugen ugen, size_t phase_ind);
+FTYPE ugen_sample_imp(Ugen ugen, FTYPE phase_ind);
 
 #endif

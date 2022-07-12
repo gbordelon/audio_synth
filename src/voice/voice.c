@@ -193,7 +193,8 @@ mono_voice_playing(MonoVoice mv)
   for (op = mv->ops; op - mv->ops < mv->op_num; op++) {
     rv = rv
        || ((*op)->e_type == OPERATOR_UGEN && mv->sustain)
-       || ((*op)->e_type == OPERATOR_ENV && !env_spent((*op)->env_u.env));
+       || ((*op)->e_type == OPERATOR_ENV && !env_spent((*op)->env_u.env))
+       || ((*op)->e_type == OPERATOR_NONE && mv->sustain);
   }
   return rv;
 }

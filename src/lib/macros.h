@@ -8,7 +8,7 @@
 // use a power of 2 for table size to avoid modulus operator
 // 20 * DEFAULT_SAMPLE_RATE -> 960000
 // 2^20 is the smallest power of 2 above that
-#define UGEN_TABLE_SIZE 1048576
+#define UGEN_TABLE_SIZE 1024
 #define CHUNK_SIZE 1024
 #define NUM_CHANNELS 2
 #define FTYPE double

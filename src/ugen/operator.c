@@ -31,7 +31,8 @@ operator_cleanup(Operator op)
   case OPERATOR_UGEN:
     ugen_cleanup(op->env_u.lfo);
     break;
-  // no default
+  default:
+    break;
   }
   operator_free(op);
 }
@@ -72,10 +73,11 @@ operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain)
     op->env_u.lfo = ugen_init_sin(1.0);
     ugen_set_scale(op->env_u.lfo, 0.0, 1.0);
     break;
-  default:
-  // fall through
   case OPERATOR_ENV:
     op->env_u.env = env_init_default();
+    break;
+  default:
+    // none
     break;
   }
 
@@ -101,7 +103,8 @@ operator_reset(Operator op)
   case OPERATOR_ENV:
     env_reset(op->env_u.env);
     break;
-  // no default
+  default:
+    break;
   }
 }
 
@@ -154,6 +157,20 @@ void
 operator_set_mult(Operator op, FTYPE mult)
 {
   op->mult = mult;
+}
+
+void
+operator_release(Operator op)
+{
+  switch (op->e_type) {
+  case OPERATOR_UGEN:
+    break;
+  case OPERATOR_ENV:
+    env_set_release(op->env_u.env);
+    break;
+  default:
+    break;
+  }
 }
 
 FTYPE

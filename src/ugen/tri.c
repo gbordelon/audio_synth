@@ -4,9 +4,9 @@
 #include "ugen.h"
 
 FTYPE
-ugen_sample_tri(Ugen ugen, size_t phase_ind)
+ugen_sample_tri(Ugen ugen, FTYPE phase_ind)
 {
-  return osc_tri[phase_ind];
+  return osc_tri[(size_t)(phase_ind * UGEN_TABLE_SIZE)];
 }
 
 void

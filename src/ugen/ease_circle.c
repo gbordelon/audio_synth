@@ -7,15 +7,15 @@
 #include "ease_circle.h"
 
 FTYPE
-ugen_sample_ease_in_circle(Ugen ugen, size_t phase_ind)
+ugen_sample_ease_in_circle(Ugen ugen, FTYPE phase_ind)
 {
-  return ease_in_circle[phase_ind];
+  return ease_in_circle[(size_t)(phase_ind * UGEN_TABLE_SIZE)];
 }
 
 FTYPE
-ugen_sample_ease_out_circle(Ugen ugen, size_t phase_ind)
+ugen_sample_ease_out_circle(Ugen ugen, FTYPE phase_ind)
 {
-  return ease_out_circle[phase_ind];
+  return ease_out_circle[(size_t)(phase_ind * UGEN_TABLE_SIZE)];
 }
 
 void

@@ -7,7 +7,7 @@
 
 #include "ugen.h"
 
-FTYPE ugen_sample_tri(Ugen ugen, size_t phase_ind);
+FTYPE ugen_sample_tri(Ugen ugen, FTYPE phase_ind);
 void ugen_generate_table_tri();
 
 FTYPE osc_tri[UGEN_TABLE_SIZE];

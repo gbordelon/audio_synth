@@ -7,9 +7,9 @@
 #include "ramp_linear.h"
 
 FTYPE
-ugen_sample_ramp_linear(Ugen ugen, size_t phase_ind)
+ugen_sample_ramp_linear(Ugen ugen, FTYPE phase_ind)
 {
-  return ramp_linear[phase_ind];
+  return ramp_linear[(size_t)(phase_ind * UGEN_TABLE_SIZE)];
 }
 
 void

@@ -14,7 +14,8 @@
  * */
 typedef enum {
   OPERATOR_ENV,
-  OPERATOR_UGEN
+  OPERATOR_UGEN,
+  OPERATOR_NONE
 } operator_env_e;
 
 typedef struct operator_t {
@@ -53,6 +54,8 @@ void operator_set_mult(Operator op, FTYPE mult);
 void operator_set_pan(Operator op, FTYPE pan);
 void operator_set_velocity(Operator op, FTYPE vel);
 void operator_set_vel_s(Operator op, FTYPE vel_s);
+
+void operator_release(Operator op);
 
 FTYPE operator_sample(Operator op, bool sustain);
 

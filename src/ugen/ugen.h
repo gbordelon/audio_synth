@@ -57,27 +57,29 @@ typedef struct ugen_t {
   // struct for ugen-specific vars
   union {
     struct {
-      struct ugen_t *duty_cycle; // imagine LFO duty cycle shifting :)
       FTYPE dc;
     } impulse;
   } u;
 
   // sample fn determines the wave table to use
-  FTYPE (*sample)(struct ugen_t *, size_t);
+  FTYPE (*sample)(struct ugen_t *, FTYPE);
   rate_converter conv;
 
   // phase management for table indexing
   int32_t p_inc_whole;
   FTYPE p_inc_frac;
   int32_t p_ind;
+
+  // phase management for computation
+  FTYPE p_inc;
+  FTYPE p;
 } *Ugen;
 
 // sample fn determines the wave table to use
-typedef FTYPE (*sample_fn)(Ugen, size_t);
+typedef FTYPE (*sample_fn)(Ugen, FTYPE);
 
 void ugen_generate_tables();
 
-Ugen ugen_init_constant();
 Ugen ugen_init_imp(FTYPE freq, FTYPE duty_cycle);
 Ugen ugen_init_saw(FTYPE freq);
 Ugen ugen_init_sin(FTYPE freq);
@@ -89,12 +91,14 @@ Ugen ugen_init_ramp_linear(FTYPE freq);
 
 void ugen_cleanup(Ugen ugen);
 
-void ugen_set_gain(Ugen car, Ugen gain);
-void ugen_set_duty_cycle(Ugen ugen, Ugen duty_cycle);
+void ugen_set_duty_cycle(Ugen ugen, FTYPE duty_cycle);
 void ugen_set_freq(Ugen ugen, FTYPE freq);
 void ugen_set_scale(Ugen ugen, FTYPE low, FTYPE high);
 
 FTYPE ugen_sample_mod(Ugen ugen, FTYPE phase_mod);
 void ugen_sample_mod_triphase(Ugen ugen, FTYPE phase_mod, triphase rv);
+
+FTYPE ugen_sample_fast(Ugen ugen, FTYPE phase_mod);
+void ugen_sample_fast_triphase(Ugen ugen, FTYPE phase_mod, triphase rv);
 
 #endif

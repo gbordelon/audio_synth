@@ -179,7 +179,7 @@ dx7_note_off(MonoVoice mv)
 {
   int i;
   for (i = 0; i < mv->op_num; i++) {
-    env_set_release(mv->ops[i]->env_u.env);
+    operator_release(mv->ops[i]);
   }
   mv->sustain = false;
 }

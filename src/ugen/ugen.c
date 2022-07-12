@@ -31,42 +31,16 @@ ugen_alloc()
   return rv;
 }
 
-FTYPE
-ugen_sample_constant(Ugen ugen, size_t phase_ind)
-{
-  return 1.0;
-}
-
-FTYPE
-ugen_sample_null(Ugen ugen, size_t phase_ind)
-{
-  return 0.0;
-}
-
 Ugen
 ugen_init()
 {
   Ugen rv = ugen_alloc();
   // null checks
 
-  rv->sample = ugen_sample_null;
   ugen_set_scale(rv, -1.0, 1.0);
   rv->conv.cr = false;
 
-  rv->u.impulse.duty_cycle = ugen_alloc();
-  rv->u.impulse.duty_cycle->sample = ugen_sample_constant;
-  rv->u.impulse.duty_cycle->conv.cr = true;
-  ugen_set_scale(rv->u.impulse.duty_cycle, 0.5, 0.5);
-
   return rv;
-}
-
-Ugen
-ugen_init_constant()
-{
-  Ugen ugen = ugen_init();
-  ugen->sample = ugen_sample_constant;
-  return ugen;
 }
 
 Ugen
@@ -75,7 +49,7 @@ ugen_init_imp(FTYPE freq, FTYPE duty_cycle)
   Ugen ugen = ugen_init();
   ugen->sample = ugen_sample_imp;
   ugen_set_freq(ugen, freq);
-  ugen_set_scale(ugen->u.impulse.duty_cycle, duty_cycle, duty_cycle);
+  ugen->u.impulse.dc = duty_cycle;
 
   return ugen;
 }
@@ -94,7 +68,7 @@ Ugen
 ugen_init_sin(FTYPE freq)
 {
   Ugen ugen = ugen_init();
-  ugen->sample = ugen_sample_sin;
+  ugen->sample = ugen_sample_sin_p;
   ugen_set_freq(ugen, freq);
 
   return ugen;
@@ -151,7 +125,6 @@ ugen_cleanup(Ugen ugen)
 {
   if (ugen) {
     ugen_cleanup(ugen->gain);
-    ugen_cleanup(ugen->u.impulse.duty_cycle);
     ugen_free(ugen);
   }
 }
@@ -163,27 +136,14 @@ ugen_set_freq(Ugen ugen, FTYPE freq)
 {
   ugen->p_inc_whole = floor(freq * DSR_INV);
   ugen->p_inc_frac = fmod(freq * DSR_INV, 1);
-}
 
-/*
- * Caller is responsible for freeing the optional attached ugens
- */
-void
-ugen_set_gain(Ugen car, Ugen gain)
-{
-  if (car->gain) {
-    ugen_cleanup(car->gain);
-  }
-  car->gain = gain;
+  ugen->p_inc = freq / (FTYPE)DEFAULT_SAMPLE_RATE;
 }
 
 void
-ugen_set_duty_cycle(Ugen ugen, Ugen duty_cycle)
+ugen_set_duty_cycle(Ugen ugen, FTYPE duty_cycle)
 {
-  if (ugen->u.impulse.duty_cycle) {
-    ugen_cleanup(ugen->u.impulse.duty_cycle);
-  }
-  ugen->u.impulse.duty_cycle = duty_cycle;
+  ugen->u.impulse.dc = duty_cycle;
 }
 
 void
@@ -208,42 +168,42 @@ ugen_set_scale(Ugen ugen, FTYPE low, FTYPE high)
 }
 
 #include <stdio.h>
+static const FTYPE UGEN_TABLE_SIZE_INV = 1.0 / (FTYPE)UGEN_TABLE_SIZE;
+/*
+ * Expect phase_mod as radians so convert to wave table phase units.
+ */
 void
 ugen_sample_mod_triphase(Ugen ugen, FTYPE phase_mod, triphase rv)
 {
-  FTYPE sample1, sample2, phase_mod_frac, gain;
+  FTYPE sample1, sample2, phase_mod_frac;
   int32_t phase_ind, phase_mod_whole;
 
-  phase_mod_whole = floor(phase_mod * 0.5 * M_1_PI * (FTYPE)UGEN_TABLE_SIZE);
-  phase_mod_frac = fmod(phase_mod * 0.5 * M_1_PI * (FTYPE)UGEN_TABLE_SIZE, 1);
-  if ((ugen->p_inc_frac + phase_mod_frac) < 1 && (ugen->p_inc_frac + phase_mod_frac) > -1) {
-    phase_mod_frac += ugen->p_inc_frac;
-  } else if ((ugen->p_inc_frac + phase_mod_frac) >= 1) {
-    phase_mod_whole += ugen->p_inc_frac + phase_mod_frac;
-    phase_mod_frac = fmod(ugen->p_inc_frac + phase_mod_frac, 1);
-    phase_mod_whole -= phase_mod_frac;
-  } else if ((ugen->p_inc_frac + phase_mod_frac) <= -1) {
-    phase_mod_whole += ugen->p_inc_frac + phase_mod_frac;
-    phase_mod_frac = fmod(ugen->p_inc_frac + phase_mod_frac, 1);
-    phase_mod_whole -= phase_mod_frac;
+  if (phase_mod < 0.000001 && phase_mod > -0.000001) {
+    phase_mod_whole = 0;
+    phase_mod_frac = 0.0;
   } else {
-  }
-
-  if (ugen->gain) {
-    gain = ugen_sample_mod(ugen->gain, 0.0);
-  } else {
-    gain = 1.0;
-  }
-
-  if (ugen->u.impulse.duty_cycle) {
-    ugen->u.impulse.dc = ugen_sample_mod(ugen->u.impulse.duty_cycle, 0.0);
+    phase_mod *= 0.5 * M_1_PI * (FTYPE)UGEN_TABLE_SIZE;
+    phase_mod_whole = (int32_t)phase_mod;
+    phase_mod_frac = phase_mod - phase_mod_whole;
+    if ((ugen->p_inc_frac + phase_mod_frac) < 1 && (ugen->p_inc_frac + phase_mod_frac) > -1) {
+      phase_mod_frac += ugen->p_inc_frac;
+    } else if ((ugen->p_inc_frac + phase_mod_frac) >= 1) {
+      phase_mod_whole += ugen->p_inc_frac + phase_mod_frac;
+      phase_mod_frac = ugen->p_inc_frac + phase_mod_frac - (int32_t)(ugen->p_inc_frac + phase_mod_frac);
+      phase_mod_whole -= phase_mod_frac;
+    } else if ((ugen->p_inc_frac + phase_mod_frac) <= -1) {
+      phase_mod_whole += ugen->p_inc_frac + phase_mod_frac;
+      phase_mod_frac = ugen->p_inc_frac + phase_mod_frac - (int32_t)(ugen->p_inc_frac + phase_mod_frac);
+      phase_mod_whole -= phase_mod_frac;
+    } else {
+    }
   }
 
   // increment phase index
   ugen->p_ind += ugen->p_inc_whole;
   ugen->p_ind &= (UGEN_TABLE_SIZE - 1);
 
-  // iterate over all three desired phases
+  // iterate over both desired phases
   int i;
   for (i = UGEN_PHASE_NORM; i < UGEN_PHASE_QUAD_NEG; i++) {  
     // modulate phase
@@ -256,7 +216,7 @@ ugen_sample_mod_triphase(Ugen ugen, FTYPE phase_mod, triphase rv)
     }
 
     // sample the wave table
-    sample1 = ugen->sample(ugen, phase_ind & (UGEN_TABLE_SIZE - 1));
+    sample1 = ugen->sample(ugen, ((FTYPE)(phase_ind & (UGEN_TABLE_SIZE - 1))) * UGEN_TABLE_SIZE_INV);
 
     // prepare to sample the wave table at an adjacent index
     if ((ugen->p_inc_whole + phase_mod_whole) >= 0) {
@@ -266,7 +226,7 @@ ugen_sample_mod_triphase(Ugen ugen, FTYPE phase_mod, triphase rv)
     }
 
     // sample the wave table
-    sample2 = ugen->sample(ugen, phase_ind & (UGEN_TABLE_SIZE - 1));
+    sample2 = ugen->sample(ugen, ((FTYPE)(phase_ind & (UGEN_TABLE_SIZE - 1))) * UGEN_TABLE_SIZE_INV);
 
     // linear interpolate between the two samples
     if (phase_mod_frac >= 0) {
@@ -282,21 +242,89 @@ ugen_sample_mod_triphase(Ugen ugen, FTYPE phase_mod, triphase rv)
       sample1 = ugen->conv.bias + ugen->conv.scale * (sample1 + 1.0);
     }
 
-    // store the result scaled by its gain
-    rv[i] = sample1 * gain;
+    // store the result
+    rv[i] = sample1;
   }
   rv[UGEN_PHASE_QUAD_NEG] = -rv[UGEN_PHASE_QUAD];
   rv[UGEN_PHASE_INV] = -rv[UGEN_PHASE_NORM];
 }
 
+void
+ugen_sample_fast_triphase(Ugen ugen, FTYPE phase_mod, triphase rv)
+{
+  FTYPE sample;
+  FTYPE phase_ind;
+
+  ugen->p += ugen->p_inc;
+  ugen->p = ugen->p - (int32_t)ugen->p; // wrap to [0,1]
+
+  phase_mod *= 0.5 * M_1_PI; // convert radian to unit
 /*
- * Expect phase_mod as radians so convert to wave table phase units.
+ * -1.00 -> 1.00 f(x) = 1.0 + 1.0 + x = -x - 0.00
+ * -0.90 -> 0.10 f(x) = 1.0 + x       = -x - 0.80
+ * -0.80 -> 0.20 f(x) = 1.0 + x       = -x - 0.60
+ * -0.75 -> 0.25 f(x) = 1.0 + x       = -x - 0.50
+ * -0.70 -> 0.30 f(x) = 1.0 + x       = -x - 0.40
+ * -0.60 -> 0.40 f(x) = 1.0 + x       = -x - 0.20
+ * -0.50 -> 0.50 f(x) = 1.0 + x       = -x + 0.00
+ * -0.40 -> 0.60 f(x) = 1.0 + x       = -x + 0.20
+ * -0.30 -> 0.70 f(x) = 1.0 + x       = -x + 0.40
+ * -0.25 -> 0.75 f(x) = 1.0 + x       = -x + 0.50
+ * -0.20 -> 0.80 f(x) = 1.0 + x       = -x + 0.60
+ * -0.10 -> 0.90 f(x) = 1.0 + x       = -x + 0.80
+ *  0.00 -> 0.00 f(x) = x
+ *  0.10 -> 0.10 f(x) = x             = -x + 0.20
+ *  0.20 -> 0.20 f(x) = x             = -x + 0.40
+ *  0.25 -> 0.25 f(x) = x
+ *  0.40 -> 0.40 f(x) = x             = -x + 0.80
+ *  0.50 -> 0.50 f(x) = x             = -x + 1.00
+ *  0.60 -> 0.60 f(x) = x             = -x + 1.20
+ *  0.75 -> 0.75 f(x) = x
+ *  0.90 -> 0.90 f(x) = x             = -x + 1.80
+ *  1.00 -> 1.00 f(x) = x             = -x + 2.00
  */
+  phase_mod += phase_mod <= -1.0 ? 2.0 : phase_mod < 0 ? 1.0 : 0.0; // convert from [-1,1] to [0,1]
+  phase_ind = ugen->p + phase_mod - (int32_t)(ugen->p + phase_mod);
+
+  sample = ugen->sample(ugen, phase_ind);
+  if (ugen->conv.cr) {
+    sample = ugen->conv.bias + ugen->conv.scale * sample;
+  } else {
+    sample = ugen->conv.bias + ugen->conv.scale * (sample + 1.0);
+  }
+
+  // store the result
+  rv[UGEN_PHASE_NORM] = sample;
+  rv[UGEN_PHASE_INV] = -sample;
+
+  phase_ind += 0.25;
+  phase_ind = phase_ind - (int32_t)phase_ind;
+
+  sample = ugen->sample(ugen, phase_ind);
+  if (ugen->conv.cr) {
+    sample = ugen->conv.bias + ugen->conv.scale * sample;
+  } else {
+    sample = ugen->conv.bias + ugen->conv.scale * (sample + 1.0);
+  }
+
+  rv[UGEN_PHASE_QUAD] = sample;
+  rv[UGEN_PHASE_QUAD_NEG] = -sample;
+}
+
 FTYPE
 ugen_sample_mod(Ugen ugen, FTYPE phase_mod)
 {
   triphase rv;
 
-  ugen_sample_mod_triphase(ugen, phase_mod, rv);
+  ugen_sample_fast_triphase(ugen, phase_mod, rv);
+  return rv[UGEN_PHASE_NORM];
+}
+
+FTYPE
+ugen_sample_fast(Ugen ugen, FTYPE phase_mod)
+{
+  triphase rv;
+
+  ugen_sample_fast_triphase(ugen, phase_mod, rv);
   return rv[UGEN_PHASE_NORM];
 }

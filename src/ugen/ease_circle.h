@@ -7,8 +7,8 @@
 
 #include "ugen.h"
 
-FTYPE ugen_sample_ease_in_circle(Ugen ugen, size_t phase_ind);
-FTYPE ugen_sample_ease_out_circle(Ugen ugen, size_t phase_ind);
+FTYPE ugen_sample_ease_in_circle(Ugen ugen, FTYPE phase_ind);
+FTYPE ugen_sample_ease_out_circle(Ugen ugen, FTYPE phase_ind);
 
 void ugen_generate_table_ease_in_circle();
 void ugen_generate_table_ease_out_circle();

@@ -7,15 +7,15 @@
 #include "ramp_circle.h"
 
 FTYPE
-ugen_sample_ramp_circle_down(Ugen ugen, size_t phase_ind)
+ugen_sample_ramp_circle_down(Ugen ugen, FTYPE phase_ind)
 {
-  return ramp_circle_down[phase_ind];
+  return ramp_circle_down[(size_t)(phase_ind * UGEN_TABLE_SIZE)];
 }
 
 FTYPE
-ugen_sample_ramp_circle_up(Ugen ugen, size_t phase_ind)
+ugen_sample_ramp_circle_up(Ugen ugen, FTYPE phase_ind)
 {
-  return 1.0 - ramp_circle_down[phase_ind];
+  return 1.0 - ramp_circle_down[(size_t)(phase_ind * UGEN_TABLE_SIZE)];
 }
 
 void
