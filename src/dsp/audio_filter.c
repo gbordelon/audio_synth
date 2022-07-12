@@ -232,7 +232,8 @@ calculate_filter_coefficients(audio_filter_params *params)
     theta_c = 2.0 * M_PI * params->fc / (double)DEFAULT_SAMPLE_RATE;
     mu = pow(10, params->boost_cut_db / 20.0);
     sigma = 4.0 / (1.0 + mu);
-    beta = 0.5 * (1.0 - sigma * tan(theta_c / (2.0 * params->q))) / (1.0 + sigma * tan(theta_c / (2.0 * params->q)));
+    beta = sigma * tan(theta_c / (2.0 * params->q));
+    beta = 0.5 * (1.0 - beta) / (1.0 + beta);
     gamma = (0.5 + beta) * cos(theta_c);
 
     coeffs[BIQUAD_a0] = 0.5 - beta;
@@ -306,8 +307,8 @@ calculate_filter_coefficients(audio_filter_params *params)
 
     break;
   case AF_APF1: // pg 277
-    alpha = (tan(M_PI * params->fc / (double)DEFAULT_SAMPLE_RATE) - 1.0) /
-            (tan(M_PI * params->fc / (double)DEFAULT_SAMPLE_RATE) + 1.0);
+    alpha = tan(M_PI * params->fc / (double)DEFAULT_SAMPLE_RATE);
+    alpha = (alpha - 1.0) / (alpha + 1.0);
     
     coeffs[BIQUAD_a0] = alpha;
     coeffs[BIQUAD_a1] = 1.0;
@@ -317,9 +318,10 @@ calculate_filter_coefficients(audio_filter_params *params)
 
     break;
   case AF_APF2: // pg 277
-    alpha = (tan(M_PI * params->fc / ((double)DEFAULT_SAMPLE_RATE * params->q)) - 1.0) /
-            (tan(M_PI * params->fc / ((double)DEFAULT_SAMPLE_RATE * params->q)) + 1.0);
-    beta = -cos(2.0 * M_PI * params->fc / (double)DEFAULT_SAMPLE_RATE);
+    beta = M_PI * params->fc / (params->q * (double)DEFAULT_SAMPLE_RATE);
+    alpha = tan(beta);
+    alpha = (alpha - 1.0) / (alpha + 1.0);
+    beta = -cos(2.0 * params->q * beta);
 
     coeffs[BIQUAD_a0] = -alpha;
     coeffs[BIQUAD_a1] = beta * (1.0 - alpha);

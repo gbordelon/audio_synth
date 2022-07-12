@@ -200,8 +200,7 @@ ugen_sample_mod_triphase(Ugen ugen, FTYPE phase_mod, triphase rv)
   }
 
   // increment phase index
-  ugen->p_ind += ugen->p_inc_whole;
-  ugen->p_ind &= (UGEN_TABLE_SIZE - 1);
+  ugen->p_ind &= (UGEN_TABLE_SIZE - 1); // wrap
 
   // iterate over both desired phases
   int i;
@@ -245,6 +244,9 @@ ugen_sample_mod_triphase(Ugen ugen, FTYPE phase_mod, triphase rv)
     // store the result
     rv[i] = sample1;
   }
+
+  ugen->p_ind += ugen->p_inc_whole;
+
   rv[UGEN_PHASE_QUAD_NEG] = -rv[UGEN_PHASE_QUAD];
   rv[UGEN_PHASE_INV] = -rv[UGEN_PHASE_NORM];
 }
@@ -255,7 +257,6 @@ ugen_sample_fast_triphase(Ugen ugen, FTYPE phase_mod, triphase rv)
   FTYPE sample;
   FTYPE phase_ind;
 
-  ugen->p += ugen->p_inc;
   ugen->p = ugen->p - (int32_t)ugen->p; // wrap to [0,1]
 
   phase_mod *= 0.5 * M_1_PI; // convert radian to unit
@@ -309,6 +310,8 @@ ugen_sample_fast_triphase(Ugen ugen, FTYPE phase_mod, triphase rv)
 
   rv[UGEN_PHASE_QUAD] = sample;
   rv[UGEN_PHASE_QUAD_NEG] = -sample;
+
+  ugen->p += ugen->p_inc;
 }
 
 FTYPE

@@ -31,6 +31,8 @@ void
 helper(FTYPE *xn, FTYPE lfo_out, dsp_state *state)
 {
   // TODO this calls calculate_filter_coeffs which is hugely expensive
+  // there are only 1024 lfo outputs. how about 6 * 1024 all-pass filters?
+  // prepare them all beforehand then switch which set is to be used.
   // set fc for all 6 apfs
   int i;
   for (i = 0; i < PHASER_STAGES; i++) {
