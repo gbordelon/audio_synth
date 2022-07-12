@@ -4,9 +4,16 @@
 #include "ugen.h"
 
 FTYPE
-ugen_sample_saw(Ugen ugen, FTYPE phase_ind)
+ugen_sample_saw_table(Ugen ugen, FTYPE phase_ind)
 {
   return osc_saw[(size_t)(phase_ind * UGEN_TABLE_SIZE)];
+}
+
+FTYPE
+ugen_sample_saw(Ugen ugen, FTYPE phase_ind)
+{
+  // convert [0,1] to [-1,1]
+  return phase_ind * 2.0 - 1.0;
 }
 
 void

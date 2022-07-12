@@ -10,6 +10,7 @@
 #include "audio_filter.h"
 #include "biquad.h"
 #include "envelope_follower.h"
+#include "modulated_delay.h"
 #include "phase_shifter.h"
 
 typedef union dsp_state_u {
@@ -20,6 +21,7 @@ typedef union dsp_state_u {
   audio_delay_params audio_delay;
   audio_detector_params audio_detector;
   envelope_follower_params envelope_follower;
+  modulated_delay_params modulated_delay;
   phase_shifter_params phase_shifter;
 } dsp_state;
 
@@ -83,6 +85,11 @@ DSP_callback dsp_init_bitcrusher();
 
 DSP_callback dsp_init_envelope_follower(envelope_follower_params params);
 DSP_callback dsp_init_envelope_follower_default();
+
+DSP_callback dsp_init_modulated_delay(modulated_delay_params params);
+DSP_callback dsp_init_modulated_delay_chorus_default();
+DSP_callback dsp_init_modulated_delay_flanger_default();
+DSP_callback dsp_init_modulated_delay_vibrato_default();
 
 DSP_callback dsp_init_phase_shifter(phase_shifter_params params);
 DSP_callback dsp_init_phase_shifter_default();

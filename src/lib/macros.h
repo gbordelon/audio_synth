@@ -14,4 +14,9 @@
 #define FTYPE double
 #define BYTE unsigned char
 
+#define bipolar_to_unipolar(x) (0.5 * ((x) + 1.0))
+#define unipolar_to_bipolar(x) (2.0 * (x) - 1.0)
+#define unipolar_modulation_from_min(x, min, max) ((min) + ((max) - (min)) * (x))
+#define bipolar_modulation(x, min, max) ((min) + ((max) - (min)) * bipolar_to_unipolar(x))
+
 #endif

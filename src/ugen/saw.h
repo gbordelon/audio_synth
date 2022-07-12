@@ -7,6 +7,7 @@
 
 #include "ugen.h"
 
+FTYPE ugen_sample_saw_table(Ugen ugen, FTYPE phase_ind);
 FTYPE ugen_sample_saw(Ugen ugen, FTYPE phase_ind);
 void ugen_generate_table_saw();
 

@@ -7,6 +7,7 @@
 
 #include "ugen.h"
 
+FTYPE ugen_sample_tri_table(Ugen ugen, FTYPE phase_ind);
 FTYPE ugen_sample_tri(Ugen ugen, FTYPE phase_ind);
 void ugen_generate_table_tri();
 

@@ -48,16 +48,11 @@ main(int argc, char * argv[])
   icky_global_program_name = argv[0];
   //set_signal_handler();
 
-  printf("generating wave tables... ");
-  fflush(stdout);
-  clock_t t = clock();
   ugen_generate_tables();
-  t = clock() - t;
-  double tt = t / (double)CLOCKS_PER_SEC;
-  printf("took %f seconds.\n", tt);
+  printf("wavetables generated\n");
 
   gmix = mixer_init(2, 1.0);
-  gmix->gain = 0.7;
+  gmix->gain = 0.707;
   printf("mixer initialized.\n");
 
 /* gsynth */
@@ -79,12 +74,21 @@ main(int argc, char * argv[])
   dsp_fx_l = dsp_init_audio_delay_default(); // stereo
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
-  // then env follower or phaser
+  // then env follower or phaser or chorus or flanger or vibrato
   dsp_fx_l = dsp_init_envelope_follower_default();
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
-  dsp_fx_l = dsp_init_phase_shifter_default();
+  dsp_fx_l = dsp_init_modulated_delay_chorus_default();
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+
+  dsp_fx_l = dsp_init_modulated_delay_flanger_default();
   gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+
+  dsp_fx_l = dsp_init_modulated_delay_vibrato_default();
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+
+  dsp_fx_l = dsp_init_phase_shifter_default();
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
   //add_filter(gsynth, dsp_fx, params_af, AF_HPF2, 400.0, 5.707, 0.0);
   //add_filter(gsynth, dsp_fx, params_af, AF_LPF2, 4000.0, 5.707, 0.0);
