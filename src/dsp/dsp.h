@@ -38,6 +38,7 @@ typedef FTYPE (*dsp_stereo_fn)(FTYPE *, FTYPE *, dsp_state *, FTYPE);
 typedef enum {
   DSP_CONTROL_NONE,
   DSP_CONTROL_CALLBACK,
+  DSP_CONTROL_CONSTANT,
   DSP_CONTROL_UGEN
 } dsp_control_e;
 
@@ -54,6 +55,7 @@ typedef struct dsp_callback_t {
   union {
     struct dsp_callback_t *dsp;
     Ugen ugen;
+    FTYPE constant;
   } ctrl_u;
 
   dsp_fn_type fn_type;
@@ -96,6 +98,7 @@ void dsp_set_stereo(DSP_callback cb, dsp_stereo_fn fn);
 
 void dsp_set_control_ugen(DSP_callback cb, Ugen ugen);
 void dsp_set_control_dsp(DSP_callback cb, DSP_callback ctrl);
+void dsp_set_control_constant(DSP_callback cb, FTYPE ctrl);
 
 // prepend a new cb chain structure to the current chain
 DSP_callback dsp_add_to_chain(DSP_callback head, DSP_callback new_head);

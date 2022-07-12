@@ -106,6 +106,18 @@ dsp_set_control_dsp(DSP_callback cb, DSP_callback ctrl)
   cb->ctrl_u.dsp = ctrl;
 }
 
+void
+dsp_set_control_constant(DSP_callback cb, FTYPE ctrl)
+{
+  if (cb->control == DSP_CONTROL_UGEN) {
+    ugen_cleanup(cb->ctrl_u.ugen);
+  } else if (cb->control == DSP_CONTROL_CALLBACK) {
+    dsp_cleanup(cb->ctrl_u.dsp);
+  }
+  cb->control = DSP_CONTROL_CONSTANT;
+  cb->ctrl_u.constant = ctrl;
+}
+
 /*
  * TODO take into account functions in the chain which generate control signals for the next stage.
  * probably have a return value;
@@ -121,6 +133,8 @@ stereo_fx_chain(DSP_callback cb, FTYPE *L, FTYPE *R)
       ctrl = stereo_fx_chain(cb->ctrl_u.dsp, &Lc, &Rc);
     } else if (cb->control == DSP_CONTROL_UGEN) {
       ctrl = ugen_sample_mod(cb->ctrl_u.ugen, 0.0);
+    } else if (cb->control == DSP_CONTROL_CONSTANT) {
+      ctrl = cb->ctrl_u.constant;
     }
     switch (cb->fn_type) {
     case DSP_MONO_L:
