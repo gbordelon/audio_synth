@@ -27,7 +27,7 @@ stereo_effect(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
   if (state->modulated_delay.alg == MD_FLANGER) {
     mod_val = bipolar_to_unipolar(depth * lfo_out[UGEN_PHASE_NORM]);
     params.delay_samps_l = unipolar_modulation_from_min(mod_val, mod_min, mod_max);
-    mod_val = bipolar_to_unipolar(depth * lfo_out[UGEN_PHASE_QUAD]);
+    mod_val = bipolar_to_unipolar(depth * lfo_out[UGEN_PHASE_INV]);
     params.delay_samps_r = unipolar_modulation_from_min(mod_val, mod_min, mod_max);
 //  } else if (state->modulated_delay.alg == MD_VIBRATO) {
 //    mod_val = depth * lfo_out[UGEN_PHASE_NORM];
@@ -36,7 +36,7 @@ stereo_effect(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
   } else {
     mod_val = depth * lfo_out[UGEN_PHASE_NORM];
     params.delay_samps_l = bipolar_modulation(mod_val, mod_min, mod_max);
-    mod_val = depth * lfo_out[UGEN_PHASE_QUAD];
+    mod_val = depth * lfo_out[UGEN_PHASE_INV];
     params.delay_samps_r = bipolar_modulation(mod_val, mod_min, mod_max);
   }
   dsp_audio_delay_set_params(&state->modulated_delay.ad->state, params);
@@ -88,7 +88,7 @@ dsp_init_modulated_delay_flanger_default()
     .alg = AD_NORMAL,
     .wet_mix = pow(10.0, -3.0 / 20.0),
     .dry_mix = pow(10.0, -3.0 / 20.0),
-    .feedback = 0.95, // [-1, 1]
+    .feedback = 0.50, // [-1, 1]
     .delay_ratio = 1.0
   };
   modulated_delay_params params = {

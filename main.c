@@ -79,10 +79,10 @@ main(int argc, char * argv[])
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_modulated_delay_chorus_default();
-  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_modulated_delay_flanger_default();
-  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_modulated_delay_vibrato_default();
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
