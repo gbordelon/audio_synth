@@ -6,8 +6,6 @@
 
 #include "../lib/macros.h"
 
-#include "../ugen/ugen.h"
-
 #define env_spent(env) ((env)->p_ind >= \
 ((env)->max_samples[ENV_ATTACK] + \
  (env)->max_samples[ENV_DECAY] + \
@@ -31,12 +29,12 @@ typedef enum env_state_e {
 typedef struct envelope_t {
   // between 0 and 1
   FTYPE amps[ENV_NUM_STAGES];
-  Ugen ugens[ENV_NUM_STAGES];
 
   //ugen_type curves[4];
   FTYPE durs[ENV_NUM_STAGES]; // duration of each stage in seconds
   uint32_t max_samples[ENV_NUM_STAGES]; // number of samples to play for each stage
   uint32_t p_ind; // sample counter for state changes
+  FTYPE p_inc;
   FTYPE prev_sample;
   FTYPE decay_rate; // 0 means infinite sustain while mv->sustain is true
 

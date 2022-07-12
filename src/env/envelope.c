@@ -7,8 +7,6 @@
 
 #include "../lib/macros.h"
 
-#include "../ugen/ugen.h"
-
 #include "envelope.h"
 
 Envelope
@@ -48,29 +46,12 @@ env_default_durations(Envelope env)
 }
 
 void
-env_default_ugens(Envelope env)
-{
-  env->ugens[0] = ugen_init_ramp_linear(1.0 / env->durs[0]);
-  env->ugens[1] = ugen_init_ramp_linear(1.0 / env->durs[1]);
-  env->ugens[2] = ugen_init_ramp_linear(1.0 / env->durs[2]);
-  env->ugens[3] = ugen_init_ramp_linear(1.0 / env->durs[3]);
-
-  ugen_set_scale(env->ugens[0], env->amps[0], env->amps[1]);
-  ugen_set_scale(env->ugens[1], env->amps[1], env->amps[2]);
-  ugen_set_scale(env->ugens[2], env->amps[2], env->amps[3]);
-  ugen_set_scale(env->ugens[3], env->amps[3], 0.0);
-}
-
-void
 env_reset(Envelope env)
 {
   env->p_ind = 0;
   env->state = ENV_ATTACK;
-  ugen_reset_phase(env->ugens[0]);
-  ugen_reset_phase(env->ugens[1]);
-  ugen_reset_phase(env->ugens[2]);
-  ugen_reset_phase(env->ugens[3]);
-  ugen_set_scale(env->ugens[3], env->amps[3], 0.0);
+  env->p_inc = (env->amps[1] - env->amps[0]) / (FTYPE)env->max_samples[0];
+  env->prev_sample = 0.0;
 }
 
 void
@@ -78,8 +59,8 @@ env_set_release(Envelope env)
 {
   if (env->state != ENV_RELEASE) {
     env->p_ind = env->max_samples[0] + env->max_samples[1] + env->max_samples[2];
+    env->p_inc = (0.0 - env->prev_sample) / (FTYPE)env->max_samples[3];
     env->state = ENV_RELEASE;
-    ugen_set_scale(env->ugens[3], env->prev_sample, 0.0);
   }
 }
 
@@ -88,7 +69,6 @@ env_set_duration(Envelope env, FTYPE duration/*in seconds*/, env_state stage)
 {
   env->durs[stage] = duration;
   env->max_samples[stage] = floor(DEFAULT_SAMPLE_RATE * env->durs[stage]) - 1;
-  ugen_set_freq(env->ugens[stage], 1.0 / duration);
 }
 
 void
@@ -98,10 +78,6 @@ env_set_amplitudes(Envelope env, FTYPE amps[4])
   env->amps[1] = amps[1];
   env->amps[2] = amps[2];
   env->amps[3] = amps[3];
-  ugen_set_scale(env->ugens[0], env->amps[0], env->amps[1]);
-  ugen_set_scale(env->ugens[1], env->amps[1], env->amps[2]);
-  ugen_set_scale(env->ugens[2], env->amps[2], env->amps[3]);
-  ugen_set_scale(env->ugens[3], env->amps[3], 0.0);
 }
 
 Envelope
@@ -119,8 +95,8 @@ env_init_default()
   Envelope env = env_init();
   env_default_amp(env);
   env_default_durations(env);
-  env_default_ugens(env);
-  env->decay_rate = 0;
+  env->decay_rate = 0.0;
+  env->p_inc = 0.0;
 
   // init the phase index as complete
   env->p_ind = env_max_duration(env);
@@ -131,10 +107,6 @@ env_init_default()
 void
 env_cleanup(Envelope env)
 {
-  ugen_cleanup(env->ugens[0]);
-  ugen_cleanup(env->ugens[1]);
-  ugen_cleanup(env->ugens[2]);
-  ugen_cleanup(env->ugens[3]);
   env_free(env);
 }
 
@@ -150,18 +122,23 @@ env_sample(Envelope env, bool sustain)
   if (sustain && env->p_ind == (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
     sample = env->prev_sample;
   } else {
-    sample = ugen_sample_mod(env->ugens[env->state], 0.0);
+    sample = env->p_inc + env->prev_sample;
+    if (env->state == ENV_ATTACK && sample > env->amps[ENV_DECAY]) {
+      sample = env->amps[ENV_DECAY];
+    }
     env->prev_sample = sample;
   }
 
   switch(env->state) {
   case ENV_ATTACK:
     if (env->p_ind == env->max_samples[0]) {
+      env->p_inc = (env->amps[2] - env->amps[1]) / (FTYPE)env->max_samples[1];
       env->state = ENV_DECAY;
     }
     break;
   case ENV_DECAY:
     if (env->p_ind == env->max_samples[0] + env->max_samples[1]) {
+      env->p_inc = (env->amps[3] - env->amps[2]) / (FTYPE)env->max_samples[2];
       env->state = ENV_SUSTAIN;
     }
     break;
@@ -173,6 +150,7 @@ env_sample(Envelope env, bool sustain)
           env->prev_sample += env->decay_rate;
         } else if (env->prev_sample < 0.0) {
           env->prev_sample = 0.0;
+          env_set_release(env);
         }
       } else {
         env_set_release(env);
