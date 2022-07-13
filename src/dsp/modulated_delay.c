@@ -29,10 +29,10 @@ stereo_effect(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
     params.delay_samps_l = unipolar_modulation_from_min(mod_val, mod_min, mod_max);
     mod_val = bipolar_to_unipolar(depth * lfo_out[UGEN_PHASE_INV]);
     params.delay_samps_r = unipolar_modulation_from_min(mod_val, mod_min, mod_max);
-//  } else if (state->modulated_delay.alg == MD_VIBRATO) {
-//    mod_val = depth * lfo_out[UGEN_PHASE_NORM];
-//    params.delay_samps_l = bipolar_modulation(mod_val, mod_min, mod_max);
-//    params.delay_samps_r = bipolar_modulation(mod_val, mod_min, mod_max);
+  } else if (state->modulated_delay.alg == MD_VIBRATO) {
+    mod_val = depth * lfo_out[UGEN_PHASE_NORM];
+    params.delay_samps_l = bipolar_modulation(mod_val, mod_min, mod_max);
+    params.delay_samps_r = bipolar_modulation(mod_val, mod_min, mod_max);
   } else {
     mod_val = depth * lfo_out[UGEN_PHASE_NORM];
     params.delay_samps_l = bipolar_modulation(mod_val, mod_min, mod_max);

@@ -55,12 +55,40 @@ env_reset(Envelope env)
 }
 
 void
+env_set_attack(Envelope env)
+{
+  if (env->state != ENV_ATTACK) {
+    env_reset(env);
+  }
+}
+
+void
+env_set_decay(Envelope env)
+{
+  if (env->state != ENV_DECAY) {
+    env->p_inc = (env->amps[2] - env->amps[1]) / (FTYPE)env->max_samples[1];
+    env->state = ENV_DECAY;
+  }
+}
+
+void
+env_set_sustain(Envelope env)
+{
+  if (env->state != ENV_SUSTAIN) {
+    env->p_inc = (env->amps[3] - env->amps[2]) / (FTYPE)env->max_samples[2];
+    env->state = ENV_SUSTAIN;
+  }
+}
+
+void
 env_set_release(Envelope env)
 {
   if (env->state != ENV_RELEASE) {
+    env->state = ENV_RELEASE;
+  }
+  if (env->p_ind <= env->max_samples[0] + env->max_samples[1] + env->max_samples[2]) {
     env->p_ind = env->max_samples[0] + env->max_samples[1] + env->max_samples[2];
     env->p_inc = (0.0 - env->prev_sample) / (FTYPE)env->max_samples[3];
-    env->state = ENV_RELEASE;
   }
 }
 
@@ -132,25 +160,22 @@ env_sample(Envelope env, bool sustain)
   switch(env->state) {
   case ENV_ATTACK:
     if (env->p_ind == env->max_samples[0]) {
-      env->p_inc = (env->amps[2] - env->amps[1]) / (FTYPE)env->max_samples[1];
-      env->state = ENV_DECAY;
+      env_set_decay(env);
     }
     break;
   case ENV_DECAY:
     if (env->p_ind == env->max_samples[0] + env->max_samples[1]) {
-      env->p_inc = (env->amps[3] - env->amps[2]) / (FTYPE)env->max_samples[2];
-      env->state = ENV_SUSTAIN;
+      env_set_sustain(env);
     }
     break;
   case ENV_SUSTAIN:
-    if (env->p_ind == (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
+    if (env->p_ind >= (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
       if (sustain) {
         env->p_ind--;
-        if (env->prev_sample > 0.0) {
-          env->prev_sample += env->decay_rate;
-        } else if (env->prev_sample < 0.0) {
+        if (fabs(env->prev_sample) > 0.0) {
+          env->prev_sample *= env->decay_rate;
+        } else {
           env->prev_sample = 0.0;
-          env_set_release(env);
         }
       } else {
         env_set_release(env);
