@@ -12,11 +12,11 @@
  */
 
 typedef struct simple_delay_t {
-  FTYPE delay_samps;
+  uint32_t delay_samps;
   FTYPE delay_ms;
 
   FTYPE buf_len_ms;
-  FTYPE buf_len_samps;
+  uint32_t buf_len_samps;
 
   bool interpolate;
   Ringbuf buf;

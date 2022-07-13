@@ -22,7 +22,7 @@ simple_delay_init(uint32_t delay_samps)
   Simple_delay sd = simple_delay_alloc();
   sd->buf = ringbuf_init(delay_samps);
   sd->delay_samps = delay_samps;
-  sd->delay_ms = delay_samps * (FTYPE)DEFAULT_SAMPLE_RATE;
+  sd->delay_ms = 1000.0 * ((FTYPE)delay_samps) / (FTYPE)DEFAULT_SAMPLE_RATE;
 
   sd->buf_len_samps = sd->delay_samps;
   sd->buf_len_ms = sd->delay_ms;
@@ -55,7 +55,7 @@ FTYPE
 simple_delay_read_at_ms(Simple_delay sd, FTYPE ms)
 {
   FTYPE s1, s2;
-  FTYPE frac = ms * (FTYPE)DEFAULT_SAMPLE_RATE;
+  FTYPE frac = 0.001 * ms * (FTYPE)DEFAULT_SAMPLE_RATE;
   uint32_t index = (uint32_t)frac;
 
   s1 = ringbuf_read(sd->buf, index);
