@@ -18,6 +18,7 @@ comb_filter_alloc()
 }
 
 // TODO resizeable buffer
+// TODO accept ms instead of samples so a useful fraction can be calculated for interpolation
 Comb_filter
 comb_filter_init(uint32_t delay_samps, uint32_t rt60_samps, FTYPE lpf_g)
 {
@@ -27,7 +28,7 @@ comb_filter_init(uint32_t delay_samps, uint32_t rt60_samps, FTYPE lpf_g)
   cf->delay_ms = 1000.0 * ((FTYPE)delay_samps) / (FTYPE)DEFAULT_SAMPLE_RATE;
   cf->rt60_ms = 1000.0 * ((FTYPE)rt60_samps) / (FTYPE)DEFAULT_SAMPLE_RATE;
 
-  cf->g = pow(10.0, -3.0 * cf->delay_ms * ((FTYPE)DEFAULT_SAMPLE_RATE) / cf->rt60_ms);
+  cf->g = pow(10.0, -3.0 * cf->delay_ms / cf->rt60_ms);
 
   cf->buf_len_samps = cf->delay_samps;
   cf->buf_len_ms = cf->delay_ms;

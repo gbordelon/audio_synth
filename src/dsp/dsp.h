@@ -12,6 +12,7 @@
 #include "envelope_follower.h"
 #include "modulated_delay.h"
 #include "phase_shifter.h"
+#include "tester.h"
 
 typedef union dsp_state_u {
   struct {
@@ -23,6 +24,7 @@ typedef union dsp_state_u {
   envelope_follower_params envelope_follower;
   modulated_delay_params modulated_delay;
   phase_shifter_params phase_shifter;
+  tester_params tester;
 } dsp_state;
 
 typedef enum {
@@ -93,6 +95,8 @@ DSP_callback dsp_init_modulated_delay_vibrato_default();
 
 DSP_callback dsp_init_phase_shifter(phase_shifter_params params);
 DSP_callback dsp_init_phase_shifter_default();
+
+DSP_callback dsp_init_tester_default();
 
 DSP_callback dsp_init_stereo_pan();
 
