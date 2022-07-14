@@ -7,7 +7,7 @@
 #include "../ugen/ugen.h"
 
 /*
- * Using code from Designing Audio Effect Plugins in C++ by Prikle, pgs. 550:551
+ * Using code from Designing Audio Effect Plugins in C++ by Pirkle, pgs. 550:551
  */
 
 FTYPE
