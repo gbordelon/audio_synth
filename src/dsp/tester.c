@@ -32,8 +32,8 @@ stereo_tester(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
 */
   yn = *L * 0.5 + *R * 0.5;
   yn = delay_apf_process(state->tester.apf, yn);
-  *L = *L + yn * pow(10.0, -9.0 / 20.0);
-  *R = *R + yn * pow(10.0, -9.0 / 20.0);
+  *L = *L + yn * pow(10.0, 0.0 / 20.0);
+  *R = *R + yn * pow(10.0, 0.0 / 20.0);
   return control;
 }
 
@@ -61,7 +61,7 @@ dsp_init_tester_default()
     .delay = simple_delay_init(500.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE),
     .lpf = simple_lpf_init(0.99),
     .comb = comb_filter_init(100.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE, 500.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE, 0.8),
-    .apf = delay_apf_init_default(),
+    .apf = delay_apf_init_nested_default(),
   };
   DSP_callback cb = dsp_init_tester(params);
   return cb;

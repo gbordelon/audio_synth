@@ -53,6 +53,16 @@ delay_apf_init_default()
   return delay_apf_init(1.1, 0.707, 0.707, 120.0, 0.1, 0.4, 10.0);
 }
 
+Delay_apf
+delay_apf_init_nested_default()
+{
+  Delay_apf apf = delay_apf_init(0.9, 0.5, 0.3, 33.0 * 0.317, 0.15, 1.0, 0.3);
+  apf->nested_apf = delay_apf_init(0.0, -0.5, 0.0, 33.0 * 0.873, 0.15, 1.0, 0.3);
+  apf->nested_apf->enable_lpf = false;
+  apf->nested_apf->enable_lfo = false;
+  return apf;
+}
+
 void
 delay_apf_free(Delay_apf apf)
 {
@@ -65,6 +75,9 @@ delay_apf_cleanup(Delay_apf apf)
   simple_delay_cleanup(apf->sd);
   ugen_cleanup(apf->lfo);
   simple_lpf_cleanup(apf->lpf);
+  if (apf->nested_apf) {
+    delay_apf_cleanup(apf->nested_apf);
+  }
   delay_apf_free(apf);
 }
 
@@ -72,7 +85,7 @@ FTYPE
 delay_apf_process(Delay_apf apf, FTYPE xn)
 {
   FTYPE delay_ms;
-  FTYPE yn, zn, xn1;
+  FTYPE yn, zn, xn1, intermediate;
 
   if (apf->enable_lfo) {
     delay_ms = ugen_sample_mod(apf->lfo, 0.0) * apf->lfo_depth;
@@ -86,10 +99,15 @@ delay_apf_process(Delay_apf apf, FTYPE xn)
   yn = zn - xn1 * apf->apf_g;
 
   if (apf->enable_lpf) {
-    simple_delay_write(apf->sd, simple_lpf_process(apf->lpf, xn1) * apf->a);
+    intermediate = simple_lpf_process(apf->lpf, xn1) * apf->a;
   } else {
-    simple_delay_write(apf->sd, xn1);
+    intermediate = xn1;
   }
+
+  if (apf->nested_apf) {
+    intermediate = delay_apf_process(apf->nested_apf, intermediate);
+  }
+  simple_delay_write(apf->sd, intermediate);
 
   return yn;
 }

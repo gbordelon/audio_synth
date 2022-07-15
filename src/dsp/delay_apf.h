@@ -32,10 +32,14 @@ typedef struct delay_apf_t {
   Simple_lpf lpf;
   Ugen lfo;
   Simple_delay sd;
+
+  struct delay_apf_t *nested_apf;
 } *Delay_apf;
 
 Delay_apf delay_apf_init(FTYPE a, FTYPE apf_g, FTYPE lpf_g, FTYPE delay_ms, FTYPE lfo_freq, FTYPE lfo_depth, FTYPE lfo_max_mod_ms);
+
 Delay_apf delay_apf_init_default();
+Delay_apf delay_apf_init_nested_default();
 void delay_apf_cleanup(Delay_apf apf);
 
 FTYPE delay_apf_process(Delay_apf apf, FTYPE xn);
