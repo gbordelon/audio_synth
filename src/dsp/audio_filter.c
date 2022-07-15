@@ -8,7 +8,7 @@
 #include "dsp.h"
 
 /*
- * Based on code from Designing Audio Effect Plugins in C++ by Prikle, chapter 11
+ * Based on code from Designing Audio Effect Plugins in C++ by Pirkle, chapter 11
  */
 
 #define coeffs (params->biquad.coeffs)

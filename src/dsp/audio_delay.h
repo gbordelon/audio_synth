@@ -6,7 +6,7 @@
 #include "ringbuf.h"
 
 /*
- * Based on code from Designing Audio Effect Plugins in C++ by Prikle, chapter 14
+ * Based on code from Designing Audio Effect Plugins in C++ by Pirkle, chapter 14
  */
 
 typedef enum {
