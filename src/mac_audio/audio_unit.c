@@ -31,7 +31,8 @@ AudioBufferList *_input_buffer;
 
 size_t _mic_output_write_index = 0;
 size_t _mic_output_read_index = 0;
-FTYPE *_mic_output_buffer;
+FTYPE *_mic_output_buffer_L;
+FTYPE *_mic_output_buffer_R;
 
 void
 checkStatus(OSStatus status)
@@ -218,7 +219,8 @@ audio_unit_io_init()
     _input_buffer->mBuffers[i].mData = calloc(1, bufferSizeBytes);
   }
 
-  _mic_output_buffer = calloc(8 * MMAP_SIZE, sizeof(FTYPE));
+  _mic_output_buffer_L = calloc(8 * MMAP_SIZE, sizeof(FTYPE));
+  _mic_output_buffer_R = calloc(8 * MMAP_SIZE, sizeof(FTYPE));
 #endif
   _output_buffer = calloc(MMAP_SIZE, sizeof(FTYPE));
 
@@ -284,14 +286,17 @@ inputCallback(void *inRefCon,
 #else
       if(samplesLeft < numSamples) { // wrap around to the start of the buffer
         for (samplesAfterWrap = samplesLeft; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index++) {
-          _mic_output_buffer[_mic_output_write_index] = *samp + *(samp+1);
+          _mic_output_buffer_L[_mic_output_write_index] = *samp;
+          _mic_output_buffer_R[_mic_output_write_index] = *(samp+1);
         }
         for (samplesAfterWrap = numSamples - samplesLeft, _mic_output_write_index = 0; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index++) {
-          _mic_output_buffer[_mic_output_write_index] = *samp + *(samp+1);
+          _mic_output_buffer_L[_mic_output_write_index] = *samp;
+          _mic_output_buffer_R[_mic_output_write_index] = *(samp+1);
         }
       } else {
         for (samplesAfterWrap = numSamples; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index++) {
-          _mic_output_buffer[_mic_output_write_index] = *samp + *(samp+1);
+          _mic_output_buffer_L[_mic_output_write_index] = *samp;
+          _mic_output_buffer_R[_mic_output_write_index] = *(samp+1);
         }
       }
 #endif

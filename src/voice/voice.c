@@ -150,8 +150,11 @@ voice_play_chunk(Voice voice)
   // after all monovoices have been summed apply fx
   for (L = accum_l, R = accum_r; L - accum_l < CHUNK_SIZE; L++, R++) {
     stereo_fx_chain(voice->fx_chain, L, R);
+    peak = *L > 1.0 || *L < -1.0 || *R > 1.0 || *R < -1.0;
   }
-
+  if (peak) {
+    printf("peaked\n");
+  }
   // TODO check rv
   channel_write(left, accum_l);
   channel_write(right, accum_r);
@@ -188,8 +191,13 @@ voice_note_off(Voice voice, uint8_t mono_voice_index)
 bool
 mono_voice_playing(MonoVoice mv)
 {
+  if (mv->op_num == 0) {
+    return mv->sustain;
+  }
+
   Operator *op;
   bool rv = false;
+
   for (op = mv->ops; op - mv->ops < mv->op_num; op++) {
     rv = rv
        || ((*op)->e_type == OPERATOR_UGEN && mv->sustain)

@@ -13,6 +13,7 @@
 #include "modulated_delay.h"
 #include "phase_shifter.h"
 #include "tester.h"
+#include "two_band_shelving_filter.h"
 
 typedef union dsp_state_u {
   struct {
@@ -25,6 +26,7 @@ typedef union dsp_state_u {
   modulated_delay_params modulated_delay;
   phase_shifter_params phase_shifter;
   tester_params tester;
+  two_band_shelving_filter_params two_band_shelving_filter;
 } dsp_state;
 
 typedef enum {
@@ -96,9 +98,12 @@ DSP_callback dsp_init_modulated_delay_vibrato_default();
 DSP_callback dsp_init_phase_shifter(phase_shifter_params params);
 DSP_callback dsp_init_phase_shifter_default();
 
+DSP_callback dsp_init_stereo_pan();
+
 DSP_callback dsp_init_tester_default();
 
-DSP_callback dsp_init_stereo_pan();
+DSP_callback dsp_init_two_band_shelving_filter(two_band_shelving_filter_params params);
+DSP_callback dsp_init_two_band_shelving_filter_default();
 
 void dsp_cleanup();
 
