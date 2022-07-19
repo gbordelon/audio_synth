@@ -16,6 +16,7 @@
 #include "src/dsp/audio_filter.h"
 #include "src/dsp/bitcrusher.h"
 #include "src/dsp/dsp.h"
+#include "src/dsp/reverb_tank.h"
 #include "src/env/envelope.h"
 #include "src/midi/midi.h"
 #include "src/pcm/mixer.h"
@@ -52,7 +53,7 @@ main(int argc, char * argv[])
   printf("wavetables generated\n");
 
   gmix = mixer_init(2, 1.0);
-  gmix->gain = 0.707;
+  gmix->gain = 1.0;
   printf("mixer initialized.\n");
 
 /* gsynth */
@@ -71,6 +72,9 @@ main(int argc, char * argv[])
   DSP_callback dsp_fx_l, dsp_fx_r;
 
   dsp_fx_l = dsp_init_tester_default();
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+
+  dsp_fx_l = dsp_init_reverb_tank_default();
   gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
   // last is delay
@@ -91,7 +95,7 @@ main(int argc, char * argv[])
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_phase_shifter_default();
-  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
   //add_filter(gsynth, dsp_fx, params_af, AF_HPF2, 400.0, 5.707, 0.0);
   //add_filter(gsynth, dsp_fx, params_af, AF_LPF2, 4000.0, 5.707, 0.0);
@@ -115,13 +119,43 @@ main(int argc, char * argv[])
 
   // set slow triangle stereo pan on gmic
   gmic->fx_chain = dsp_init_stereo_pan();
-//  ug = ugen_init_tri(0.08);
-//  ugen_set_scale(ug, 0.3, 0.7);
-//  dsp_set_control_ugen(gmic->fx_chain, ug);
+  ug = ugen_init_tri(0.08);
+  ugen_set_scale(ug, 0.3, 0.7);
+  //dsp_set_control_ugen(gmic->fx_chain, ug);
+
+  dsp_fx_l = dsp_init_reverb_tank_default();
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+
+  dsp_fx_l = dsp_init_tester_default();
+  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+
+  // last is delay
+  dsp_fx_l = dsp_init_audio_delay_default(); // stereo
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+
+  // then env follower or phaser or chorus or flanger or vibrato
+  dsp_fx_l = dsp_init_envelope_follower_default();
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+
+  dsp_fx_l = dsp_init_modulated_delay_chorus_default();
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+
+  dsp_fx_l = dsp_init_modulated_delay_flanger_default();
+  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+
+  dsp_fx_l = dsp_init_modulated_delay_vibrato_default();
+  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+
+  dsp_fx_l = dsp_init_phase_shifter_default();
+  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
 
   // telephone style filter uses a LPF at 4k and a HPF at 400
-  add_filter(gmic, dsp_fx, params_af, AF_HPF2, 400.0, 5.707, 0.0);
-  add_filter(gmic, dsp_fx, params_af, AF_LPF2, 4000.0, 5.707, 0.0);
+  //add_filter(gmic, dsp_fx, params_af, AF_HPF2, 400.0, 5.707, 0.0);
+  //add_filter(gmic, dsp_fx, params_af, AF_LPF2, 4000.0, 5.707, 0.0);
+
+  dsp_fx_l = dsp_init_bitcrusher();
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, 7.5);
+  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
 
 /* end gmic */
 
@@ -141,7 +175,7 @@ main(int argc, char * argv[])
   printf("Synth started.\n");
   fflush(stdout);
 
-  //voice_note_on(gmic, 30, 127);
+  voice_note_on(gmic, 30, 127);
 
   int32_t msg;
   int command;    /* the current command */

@@ -74,17 +74,17 @@ dsp_init_envelope_follower_default()
   // .fc is set in the sample processing function, per sample
   audio_filter_params filter = {
     .q = 4.707,
-    .boost_cut_db = -6.0,
+    .boost_cut_db = -9.0,
     .alg = AF_LPF2
   };
 
   envelope_follower_params params = {
     .detector = detector,
     .filter = filter,
-    .fc = 2000.0,
+    .fc = 200.0,
     .fc_max = DEFAULT_SAMPLE_RATE>>1,
-    .threshold = pow(10.0, -12.0 / 20.0), // -12 dB
-    .sensitivity = 0.5
+    .threshold = pow(10.0, -6.0 / 20.0), // -12 dB
+    .sensitivity = 0.3
   };
 
   return dsp_init_envelope_follower(params);

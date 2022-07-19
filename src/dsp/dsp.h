@@ -12,6 +12,7 @@
 #include "envelope_follower.h"
 #include "modulated_delay.h"
 #include "phase_shifter.h"
+#include "reverb_tank.h"
 #include "tester.h"
 #include "two_band_shelving_filter.h"
 
@@ -25,6 +26,7 @@ typedef union dsp_state_u {
   envelope_follower_params envelope_follower;
   modulated_delay_params modulated_delay;
   phase_shifter_params phase_shifter;
+  reverb_tank_params reverb_tank;
   tester_params tester;
   two_band_shelving_filter_params two_band_shelving_filter;
 } dsp_state;
@@ -97,6 +99,9 @@ DSP_callback dsp_init_modulated_delay_vibrato_default();
 
 DSP_callback dsp_init_phase_shifter(phase_shifter_params params);
 DSP_callback dsp_init_phase_shifter_default();
+
+DSP_callback dsp_init_reverb_tank(reverb_tank_params params);
+DSP_callback dsp_init_reverb_tank_default();
 
 DSP_callback dsp_init_stereo_pan();
 
