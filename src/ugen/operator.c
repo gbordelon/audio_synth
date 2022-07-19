@@ -4,9 +4,11 @@
 
 #include "../lib/macros.h"
 
+#include "../env/envelope.h"
+
+#include "dfo.h"
 #include "operator.h"
 #include "ugen.h"
-#include "../env/envelope.h"
 
 Operator
 operator_alloc()
@@ -24,6 +26,7 @@ void
 operator_cleanup(Operator op)
 {
   ugen_cleanup(op->ugen);
+  dfo_cleanup(op->dfo);
   switch (op->e_type) {
   case OPERATOR_ENV:
     env_cleanup(op->env_u.env);
@@ -64,6 +67,7 @@ operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain)
   // fall through
   case UGEN_OSC_SIN:
     op->ugen = ugen_init_sin(0.0);
+    op->dfo = dfo_init();
     break;
   }
 
@@ -120,6 +124,9 @@ operator_set_fc(Operator op, FTYPE fc)
 {
   op->fc = pow(2.0, op->detune / 1200.0 + log2(fc));
   ugen_set_freq(op->ugen, op->mult * op->fc);
+  if (op->dfo) {
+    dfo_set_freq(op->dfo, op->mult * op->fc);
+  }
 }
 
 // convert from radians to wave table phase units inside the ugen sample function

@@ -5,13 +5,15 @@
 
 #include "../lib/macros.h"
 
+#include "../env/envelope.h"
+
+#include "dfo.h"
 #include "operator.h"
 #include "ugen.h"
-#include "../env/envelope.h"
 
 /*
  * The envelope generator is an LFO or an Envelope
- * */
+ */
 typedef enum {
   OPERATOR_ENV,
   OPERATOR_UGEN,
@@ -20,6 +22,7 @@ typedef enum {
 
 typedef struct operator_t {
   Ugen ugen;
+  Dfo dfo;
 
   operator_env_e e_type;
   union {
