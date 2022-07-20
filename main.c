@@ -71,17 +71,24 @@ main(int argc, char * argv[])
   // add gsynth fx backward
   DSP_callback dsp_fx_l, dsp_fx_r;
 
+  {
   dsp_fx_l = dsp_init_tester_default();
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  }
 
+  {
   dsp_fx_l = dsp_init_reverb_tank_default();
-  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  }
 
   // last is delay
+  {
   dsp_fx_l = dsp_init_audio_delay_default(); // stereo
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  }
 
   // then env follower or phaser or chorus or flanger or vibrato
+  {
   dsp_fx_l = dsp_init_envelope_follower_default();
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
@@ -95,16 +102,19 @@ main(int argc, char * argv[])
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_phase_shifter_default();
-  gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
+  }
 
   //add_filter(gsynth, dsp_fx, params_af, AF_HPF2, 400.0, 5.707, 0.0);
   //add_filter(gsynth, dsp_fx, params_af, AF_LPF2, 4000.0, 5.707, 0.0);
 
   // first is distortion
+  {
   dsp_fx_l = dsp_init_bitcrusher();
   dsp_set_bitcrusher_param(&dsp_fx_l->state, 5.5);
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
+  }
 /*
   // panning
   ug = ugen_init_tri(0.05);

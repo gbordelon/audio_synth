@@ -15,6 +15,7 @@
 #include "reverb_tank.h"
 #include "tester.h"
 #include "two_band_shelving_filter.h"
+#include "waveshaper.h"
 
 typedef union dsp_state_u {
   struct {
@@ -29,6 +30,7 @@ typedef union dsp_state_u {
   reverb_tank_params reverb_tank;
   tester_params tester;
   two_band_shelving_filter_params two_band_shelving_filter;
+  waveshaper_params waveshaper;
 } dsp_state;
 
 typedef enum {
@@ -109,6 +111,9 @@ DSP_callback dsp_init_tester_default();
 
 DSP_callback dsp_init_two_band_shelving_filter(two_band_shelving_filter_params params);
 DSP_callback dsp_init_two_band_shelving_filter_default();
+
+DSP_callback dsp_init_waveshaper(waveshaper_params params);
+DSP_callback dsp_init_waveshaper_default();
 
 void dsp_cleanup();
 
