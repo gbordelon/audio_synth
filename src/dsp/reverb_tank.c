@@ -102,6 +102,9 @@ dsp_reverb_tank_set_params(
   int i, m;
   reverb_tank_cleanup_helper(state);
 
+  if (params.sample_rate < DEFAULT_SAMPLE_RATE) {
+    params.sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE;
+  }
   state->reverb_tank = params;
 
   FTYPE global_max_apf_delay =
@@ -121,7 +124,8 @@ dsp_reverb_tank_set_params(
       global_max_apf_delay * state->reverb_tank.apf_delay_weights[m++],
       lfo_rates[i],
       1.0,
-      0.3
+      0.3,
+      params.sample_rate
     );
     state->reverb_tank.nested_branch_delays[i]->enable_lfo = true;
     state->reverb_tank.nested_branch_delays[i]->enable_lpf = false;
@@ -132,7 +136,8 @@ dsp_reverb_tank_set_params(
       global_max_apf_delay * state->reverb_tank.apf_delay_weights[m++],
       lfo_rates[i],
       1.0,
-      0.3
+      0.3,
+      params.sample_rate
     );
     state->reverb_tank.nested_branch_delays[i]->nested_apf->enable_lfo = true;
     state->reverb_tank.nested_branch_delays[i]->nested_apf->enable_lpf = false;
@@ -140,8 +145,9 @@ dsp_reverb_tank_set_params(
     // fixed delays
     state->reverb_tank.branch_delays[i] = simple_delay_init((uint32_t)(
       global_max_fixed_delay * state->reverb_tank.fixed_delay_weights[i]
-      * 0.001 * (FTYPE)DEFAULT_SAMPLE_RATE
-    ));
+      * 0.001 * params.sample_rate),
+      params.sample_rate
+    );
 
     // lpfs
     state->reverb_tank.branch_lpfs[i] = simple_lpf_init(state->reverb_tank.lpf_g);
@@ -149,6 +155,7 @@ dsp_reverb_tank_set_params(
 
   // shelving filters
   two_band_shelving_filter_params fp = {
+    .sample_rate = params.sample_rate,
     .low_shelf_fc = state->reverb_tank.low_shelf_fc, 
     .low_shelf_boost_cut_db = state->reverb_tank.low_shelf_boost_cut_db,
     .high_shelf_fc = state->reverb_tank.high_shelf_fc, 
@@ -161,8 +168,9 @@ dsp_reverb_tank_set_params(
 
   // pre delay
   state->reverb_tank.pre_delay = simple_delay_init((uint32_t)(
-    params.pre_delay_time_ms * 0.001 * (FTYPE)DEFAULT_SAMPLE_RATE
-  ));
+    params.pre_delay_time_ms * 0.001 * params.sample_rate),
+    params.sample_rate
+  );
 }
 
 DSP_callback

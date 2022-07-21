@@ -12,6 +12,7 @@
  */
 
 typedef struct simple_delay_t {
+  FTYPE sample_rate;
   uint32_t delay_samps;
   FTYPE delay_ms;
 
@@ -22,7 +23,7 @@ typedef struct simple_delay_t {
   Ringbuf buf;
 } *Simple_delay;
 
-Simple_delay simple_delay_init(uint32_t delay_samps);
+Simple_delay simple_delay_init(uint32_t delay_samps, FTYPE sample_rate);
 void simple_delay_cleanup(Simple_delay sd);
 
 FTYPE simple_delay_read(Simple_delay sd);

@@ -16,6 +16,7 @@ typedef union dsp_state_u dsp_state;
 typedef struct dsp_callback_t *DSP_callback;
 
 typedef struct phase_shifter_t {
+  FTYPE sample_rate;
   audio_filter_params filters[PHASER_STAGES];
   DSP_callback apfs[PHASER_STAGES];
   Ugen lfo;

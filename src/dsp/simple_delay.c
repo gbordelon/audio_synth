@@ -17,12 +17,13 @@ simple_delay_alloc()
 
 // TODO resizeable buffers
 Simple_delay
-simple_delay_init(uint32_t delay_samps)
+simple_delay_init(uint32_t delay_samps, FTYPE sample_rate)
 {
   Simple_delay sd = simple_delay_alloc();
+  sd->sample_rate = sample_rate;
   sd->buf = ringbuf_init(delay_samps);
   sd->delay_samps = delay_samps;
-  sd->delay_ms = 1000.0 * ((FTYPE)delay_samps) / (FTYPE)DEFAULT_SAMPLE_RATE;
+  sd->delay_ms = 1000.0 * ((FTYPE)delay_samps) / sample_rate;
 
   sd->buf_len_samps = sd->delay_samps;
   sd->buf_len_ms = sd->delay_ms;
@@ -55,7 +56,7 @@ FTYPE
 simple_delay_read_at_ms(Simple_delay sd, FTYPE ms)
 {
   FTYPE s1, s2;
-  FTYPE frac = 0.001 * ms * (FTYPE)DEFAULT_SAMPLE_RATE;
+  FTYPE frac = 0.001 * ms * sd->sample_rate;
   uint32_t index = (uint32_t)frac;
 
   s1 = ringbuf_read(sd->buf, index);

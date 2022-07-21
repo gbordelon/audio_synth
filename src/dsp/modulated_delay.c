@@ -57,10 +57,14 @@ dsp_modulated_delay_set_params(
   DSP_callback ad = state->modulated_delay.ad;
   state->modulated_delay = params;
 
+  if (state->modulated_delay.sample_rate < DEFAULT_SAMPLE_RATE) {
+    state->modulated_delay.sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE;
+  }
+
   if (params.alg == MD_VIBRATO) {
-    state->modulated_delay.lfo = ugen_init_sin(params.lfo_freq);
+    state->modulated_delay.lfo = ugen_init_sin(params.lfo_freq, state->modulated_delay.sample_rate);
   } else {
-    state->modulated_delay.lfo = ugen_init_tri(params.lfo_freq);
+    state->modulated_delay.lfo = ugen_init_tri(params.lfo_freq, state->modulated_delay.sample_rate);
   }
 
   if (ad) {
@@ -92,6 +96,7 @@ dsp_init_modulated_delay_flanger_default()
     .delay_ratio = 1.0
   };
   modulated_delay_params params = {
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
     .alg = MD_FLANGER,
     .adp = adp,
     .lfo_freq = 0.2,
@@ -115,6 +120,7 @@ dsp_init_modulated_delay_chorus_default()
     .delay_ratio = 1.0
   };
   modulated_delay_params params = {
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
     .alg = MD_CHORUS,
     .adp = adp,
     .lfo_freq = 0.2,
@@ -138,6 +144,7 @@ dsp_init_modulated_delay_vibrato_default()
     .delay_ratio = 1.0
   };
   modulated_delay_params params = {
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
     .alg = MD_VIBRATO,
     .adp = ad,
     .lfo_freq = 0.2,

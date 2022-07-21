@@ -37,9 +37,13 @@ dsp_two_band_shelving_filter_set_params(
 {
   two_band_shelving_filter_cleanup_helper(state);
 
+  if (params.sample_rate < DEFAULT_SAMPLE_RATE) {
+    params.sample_rate = DEFAULT_SAMPLE_RATE;
+  }
   state->two_band_shelving_filter = params;
 
   audio_filter_params afp1 = {
+    .sample_rate = params.sample_rate,
     .fc = params.high_shelf_fc,
     .q = 0.707,
     .boost_cut_db = params.high_shelf_boost_cut_db,
@@ -47,6 +51,7 @@ dsp_two_band_shelving_filter_set_params(
   };
 
   audio_filter_params afp2 = {
+    .sample_rate = params.sample_rate,
     .fc = params.low_shelf_fc,
     .q = 0.707,
     .boost_cut_db = params.low_shelf_boost_cut_db,
@@ -72,6 +77,7 @@ DSP_callback
 dsp_init_two_band_shelving_filter_default()
 {
   two_band_shelving_filter_params params = {
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
     .low_shelf_fc = 400.0,
     .low_shelf_boost_cut_db = 3.0,
     .high_shelf_fc = 4000.0,

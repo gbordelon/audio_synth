@@ -41,7 +41,7 @@ operator_cleanup(Operator op)
 }
 
 Operator
-operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain)
+operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain, FTYPE sample_rate)
 {
   Operator op = operator_alloc();
   op->e_type = e_type;
@@ -55,26 +55,26 @@ operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain)
 
   switch (u_type) {
   case UGEN_OSC_IMP:
-    op->ugen = ugen_init_imp(0.0, 0.5);
+    op->ugen = ugen_init_imp(0.0, 0.5, sample_rate);
     break;
   case UGEN_OSC_SAW:
-    op->ugen = ugen_init_saw(0.0);
+    op->ugen = ugen_init_saw(0.0, sample_rate);
     break;
   case UGEN_OSC_TRI:
-    op->ugen = ugen_init_tri(0.0);
+    op->ugen = ugen_init_tri(0.0, sample_rate);
     break;
   default:
   // fall through
   case UGEN_OSC_SIN:
-    op->ugen = ugen_init_sin(0.0);
-    op->dfo = dfo_init();
+    op->ugen = ugen_init_sin(0.0, sample_rate);
+    op->dfo = dfo_init(sample_rate);
     break;
   }
 
   // TODO support configuration of EG at init time
   switch (e_type) {
   case OPERATOR_UGEN:
-    op->env_u.lfo = ugen_init_sin(1.0);
+    op->env_u.lfo = ugen_init_sin(1.0, sample_rate);
     ugen_set_scale(op->env_u.lfo, 0.0, 1.0);
     break;
   case OPERATOR_ENV:
@@ -91,7 +91,7 @@ operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain)
 Operator
 operator_init_default()
 {
-  return operator_init(UGEN_OSC_SIN, OPERATOR_ENV, 1.0);
+  return operator_init(UGEN_OSC_SIN, OPERATOR_ENV, 1.0, DEFAULT_SAMPLE_RATE);
 }
 
 void

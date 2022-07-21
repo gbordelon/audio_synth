@@ -69,6 +69,12 @@ main(int argc, char * argv[])
   gsynth = voice_init(chans, NUM_CHANNELS, VOICE_DX7, params_mv);
   //gsynth = voice_init(chans, NUM_CHANNELS, VOICE_SIMPLE_SYNTH, params_mv);
 
+/*
+  // panning
+  ug = ugen_init_tri(0.05, DEFAULT_SAMPLE_RATE);
+  ugen_set_scale(ug, 0.3, 0.7);
+  dsp_set_control_ugen(gsynth->fx_chain, ug);
+*/
   // add gsynth fx backward
   DSP_callback dsp_fx_l, dsp_fx_r;
 
@@ -118,12 +124,6 @@ main(int argc, char * argv[])
   dsp_fx_l = dsp_init_class_a_tube_pre_default();
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
   }
-/*
-  // panning
-  ug = ugen_init_tri(0.05);
-  ugen_set_scale(ug, 0.3, 0.7);
-  dsp_set_control_ugen(gsynth->fx_chain, ug);
-*/
 /* end gsynth */
 
 /* gmic */
@@ -132,7 +132,7 @@ main(int argc, char * argv[])
 
   // set slow triangle stereo pan on gmic
   gmic->fx_chain = dsp_init_stereo_pan();
-  ug = ugen_init_tri(0.08);
+  ug = ugen_init_tri(0.08, DEFAULT_SAMPLE_RATE);
   ugen_set_scale(ug, 0.3, 0.7);
   //dsp_set_control_ugen(gmic->fx_chain, ug);
 

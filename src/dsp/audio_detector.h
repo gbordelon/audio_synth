@@ -16,8 +16,9 @@ typedef enum {
 } detect_mode_e;
 
 typedef struct {
-  double attack_time;
-  double release_time;
+  FTYPE sample_rate;
+  FTYPE attack_time;
+  FTYPE release_time;
   detect_mode_e detect_mode;
   bool detect_db;
   bool clamp_to_unity_max;

@@ -13,6 +13,7 @@
  */
 
 typedef struct comb_filter_t {
+  FTYPE sample_rate;
   FTYPE delay_ms;
   uint32_t delay_samps;
   FTYPE rt60_ms;
@@ -29,7 +30,7 @@ typedef struct comb_filter_t {
   Simple_lpf lpf;
 } *Comb_filter;
 
-Comb_filter comb_filter_init(uint32_t delay_samps, uint32_t rt60_samps, FTYPE lpf_g);
+Comb_filter comb_filter_init(uint32_t delay_samps, uint32_t rt60_samps, FTYPE lpf_g, FTYPE sample_rate);
 void comb_filter_cleanup(Comb_filter cf);
 
 FTYPE comb_filter_process(Comb_filter cf, FTYPE xn);

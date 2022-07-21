@@ -20,6 +20,7 @@ typedef enum {
 } audio_delay_update_e;
 
 typedef struct audio_delay_params_t {
+  FTYPE sample_rate;
   audio_delay_algorithm alg;
   audio_delay_update_e update_type; // not used yet
   FTYPE wet_mix;

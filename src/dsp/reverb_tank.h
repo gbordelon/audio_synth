@@ -14,8 +14,6 @@
  */
 
 #define NUM_BRANCHES 4
-static const FTYPE DEFAULT_DELAY_MS = 100.0f;
-static const uint32_t DEFAULT_DELAY_SAMPS = DEFAULT_DELAY_MS * 0.001 * (FTYPE)DEFAULT_SAMPLE_RATE;
 
 typedef enum {
   REVERB_THICK,
@@ -27,6 +25,7 @@ typedef union dsp_state_u dsp_state;
 typedef struct dsp_callback_t *DSP_callback;
 
 typedef struct reverb_tank_params_t {
+  FTYPE sample_rate;
   reverb_density_e density;
 
   // tweaker settings

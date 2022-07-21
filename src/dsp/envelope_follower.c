@@ -41,6 +41,9 @@ dsp_envelope_follower_set_params(
   dsp_state *state,
   envelope_follower_params params)
 {
+  if (params.sample_rate < DEFAULT_SAMPLE_RATE) {
+    params.sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE;
+  }
   state->envelope_follower = params;
   dsp_audio_detector_set_params(&state->envelope_follower.d->state, params.detector);
   dsp_audio_filter_set_params(&state->envelope_follower.f->state, params.filter);
@@ -64,6 +67,7 @@ DSP_callback
 dsp_init_envelope_follower_default()
 {
   audio_detector_params detector = {
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
     .attack_time = 20,
     .release_time = 200.0,
     .detect_mode = AUDIO_DETECTOR_MODE_RMS,
@@ -73,12 +77,14 @@ dsp_init_envelope_follower_default()
 
   // .fc is set in the sample processing function, per sample
   audio_filter_params filter = {
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
     .q = 4.707,
     .boost_cut_db = -9.0,
     .alg = AF_LPF2
   };
 
   envelope_follower_params params = {
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
     .detector = detector,
     .filter = filter,
     .fc = 200.0,

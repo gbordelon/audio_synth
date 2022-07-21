@@ -42,9 +42,11 @@ typedef enum {
 } audio_filter_algorithm;
 
 typedef struct audio_filter_params_t {
-  double fc;
-  double q;
-  double boost_cut_db;
+  FTYPE sample_rate;
+  FTYPE sample_rate_i;
+  FTYPE fc;
+  FTYPE q;
+  FTYPE boost_cut_db;
   audio_filter_algorithm alg;
   biquad_params biquad;
 } audio_filter_params;

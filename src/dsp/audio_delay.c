@@ -39,15 +39,20 @@ dsp_audio_delay_set_params(
     audio_delay_params params)
 {
   Ringbuf rb0, rb1;
+
+  if (params.sample_rate < DEFAULT_SAMPLE_RATE) {
+    params.sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE;
+  }
+
   if (state->audio_delay.bufs[0]) {
     rb0 = state->audio_delay.bufs[0];
   } else {
-    rb0 = ringbuf_init_default(); // 2 secs of buffer
+    rb0 = ringbuf_init(params.sample_rate * 2); // 2 secs of buffer
   }
   if (state->audio_delay.bufs[1]) {
     rb1 = state->audio_delay.bufs[1];
   } else {
-    rb1 = ringbuf_init_default(); // 2 secs of buffer
+    rb1 = ringbuf_init(params.sample_rate * 2); // 2 secs of buffer
   }
   state->audio_delay = params;
   state->audio_delay.bufs[0] = rb0;
@@ -68,6 +73,7 @@ DSP_callback
 dsp_init_audio_delay_default()
 {
   audio_delay_params params = {
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
     .alg = AD_PINGPONG,
     .update_type = AD_LEFT_AND_RIGHT,
     .wet_mix = pow(10.0, -24.0 / 20.0),

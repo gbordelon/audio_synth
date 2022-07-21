@@ -101,6 +101,9 @@ dsp_init_phase_shifter(phase_shifter_params params)
   DSP_callback cb = dsp_init();
   int i;
   for (i = 0; i < PHASER_STAGES; i++) {
+    if (params.filters[i].sample_rate < DEFAULT_SAMPLE_RATE) {
+      params.filters[i].sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE;
+    }
     params.apfs[i] = dsp_init_audio_filter(params.filters[i]);
   }
 
@@ -108,8 +111,11 @@ dsp_init_phase_shifter(phase_shifter_params params)
     dsp_add_to_chain(params.apfs[i], params.apfs[i - 1]);
   }
 
+  if (params.sample_rate < DEFAULT_SAMPLE_RATE) {
+    params.sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE;
+  }
   cb->state.phase_shifter = params;
-  cb->state.phase_shifter.lfo = ugen_init_sin(params.lfo_rate);
+  cb->state.phase_shifter.lfo = ugen_init_sin(params.lfo_rate, params.sample_rate);
 
   dsp_set_stereo(cb, stereo_phase_shifter);
 
@@ -120,6 +126,7 @@ DSP_callback
 dsp_init_phase_shifter_default()
 {
   phase_shifter_params params = {
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
     .lfo_rate = 0.5,
     .lfo_scale = 0.7,
     .intensity = 0.85,
@@ -130,6 +137,7 @@ dsp_init_phase_shifter_default()
   for (i = 0; i < PHASER_STAGES; i++) {
     // .fc set by lfo in sample processing fn
     params.filters[i].alg = AF_APF1;
+    params.filters[i].sample_rate = DEFAULT_SAMPLE_RATE;
   }
 
   return dsp_init_phase_shifter(params);

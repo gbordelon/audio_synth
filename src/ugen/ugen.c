@@ -32,11 +32,15 @@ ugen_alloc()
 }
 
 Ugen
-ugen_init()
+ugen_init(FTYPE sample_rate)
 {
   Ugen rv = ugen_alloc();
   // null checks
 
+  rv->sample_rate =
+      sample_rate < DEFAULT_SAMPLE_RATE
+      ? DEFAULT_SAMPLE_RATE
+      : sample_rate;
   ugen_set_scale(rv, -1.0, 1.0);
   rv->conv.cr = false;
 
@@ -44,9 +48,9 @@ ugen_init()
 }
 
 Ugen
-ugen_init_imp(FTYPE freq, FTYPE duty_cycle)
+ugen_init_imp(FTYPE freq, FTYPE duty_cycle, FTYPE sample_rate)
 {
-  Ugen ugen = ugen_init();
+  Ugen ugen = ugen_init(sample_rate);
   ugen->sample = ugen_sample_imp;
   ugen_set_freq(ugen, freq);
   ugen->u.impulse.dc = duty_cycle;
@@ -55,9 +59,9 @@ ugen_init_imp(FTYPE freq, FTYPE duty_cycle)
 }
 
 Ugen
-ugen_init_saw(FTYPE freq)
+ugen_init_saw(FTYPE freq, FTYPE sample_rate)
 {
-  Ugen ugen = ugen_init();
+  Ugen ugen = ugen_init(sample_rate);
   ugen->sample = ugen_sample_saw;
   ugen_set_freq(ugen, freq);
 
@@ -65,9 +69,9 @@ ugen_init_saw(FTYPE freq)
 }
 
 Ugen
-ugen_init_sin(FTYPE freq)
+ugen_init_sin(FTYPE freq, FTYPE sample_rate)
 {
-  Ugen ugen = ugen_init();
+  Ugen ugen = ugen_init(sample_rate);
   ugen->sample = ugen_sample_sin_p;
   ugen_set_freq(ugen, freq);
 
@@ -75,9 +79,9 @@ ugen_init_sin(FTYPE freq)
 }
 
 Ugen
-ugen_init_tri(FTYPE freq)
+ugen_init_tri(FTYPE freq, FTYPE sample_rate)
 {
-  Ugen ugen = ugen_init();
+  Ugen ugen = ugen_init(sample_rate);
   ugen->sample = ugen_sample_tri;
   ugen_set_freq(ugen, freq);
 
@@ -85,9 +89,9 @@ ugen_init_tri(FTYPE freq)
 }
 
 Ugen
-ugen_init_ease_in_circle(FTYPE freq)
+ugen_init_ease_in_circle(FTYPE freq, FTYPE sample_rate)
 {
-  Ugen ugen = ugen_init();
+  Ugen ugen = ugen_init(sample_rate);
   ugen->sample = ugen_sample_ease_in_circle;
   ugen_set_freq(ugen, freq);
   ugen->conv.cr = true;
@@ -95,9 +99,9 @@ ugen_init_ease_in_circle(FTYPE freq)
 }
 
 Ugen
-ugen_init_ease_out_circle(FTYPE freq)
+ugen_init_ease_out_circle(FTYPE freq, FTYPE sample_rate)
 {
-  Ugen ugen = ugen_init();
+  Ugen ugen = ugen_init(sample_rate);
   ugen->sample = ugen_sample_ease_out_circle;
   ugen_set_freq(ugen, freq);
   ugen->conv.cr = true;
@@ -105,9 +109,9 @@ ugen_init_ease_out_circle(FTYPE freq)
 }
 
 Ugen
-ugen_init_ramp_linear(FTYPE freq)
+ugen_init_ramp_linear(FTYPE freq, FTYPE sample_rate)
 {
-  Ugen ugen = ugen_init();
+  Ugen ugen = ugen_init(sample_rate);
   ugen->sample = ugen_sample_ramp_linear;
   ugen_set_freq(ugen, freq);
   ugen->conv.cr = true;
@@ -129,15 +133,26 @@ ugen_cleanup(Ugen ugen)
   }
 }
 
-static const FTYPE DSR_INV = ((FTYPE)UGEN_TABLE_SIZE) / (FTYPE)DEFAULT_SAMPLE_RATE;
-
 void
 ugen_set_freq(Ugen ugen, FTYPE freq)
 {
-  ugen->p_inc_whole = floor(freq * DSR_INV);
-  ugen->p_inc_frac = fmod(freq * DSR_INV, 1);
+  ugen->p_inc_whole = floor(freq * ((FTYPE)UGEN_TABLE_SIZE) / ugen->sample_rate);
+  ugen->p_inc_frac = fmod(freq * ((FTYPE)UGEN_TABLE_SIZE) / ugen->sample_rate, 1);
 
-  ugen->p_inc = freq / (FTYPE)DEFAULT_SAMPLE_RATE;
+  ugen->p_inc = freq / ugen->sample_rate;
+}
+
+void
+ugen_set_sample_rate(Ugen ugen, FTYPE sample_rate)
+{
+  ugen->p_inc_whole = floor(ugen->p_inc_whole * ugen->sample_rate / sample_rate);
+  ugen->p_inc_frac = fmod(ugen->p_inc_frac * ugen->sample_rate / sample_rate, 1);
+  ugen->p_inc *= ugen->sample_rate / sample_rate;
+
+  ugen->sample_rate =
+      sample_rate < DEFAULT_SAMPLE_RATE
+      ? DEFAULT_SAMPLE_RATE
+      : sample_rate;
 }
 
 void

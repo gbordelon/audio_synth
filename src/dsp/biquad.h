@@ -30,8 +30,8 @@ typedef enum {
 } biquad_state_array_indexes;
 
 typedef struct biquad_param_t {
-  double coeffs[BIQUAD_NUM_COEFF];
-  double states[BIQUAD_NUM_STATES];
+  FTYPE coeffs[BIQUAD_NUM_COEFF];
+  FTYPE states[BIQUAD_NUM_STATES];
   biquad_algorithm alg;
 } biquad_params;
 

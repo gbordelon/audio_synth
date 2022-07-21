@@ -58,9 +58,9 @@ DSP_callback
 dsp_init_tester_default()
 {
   tester_params params = {
-    .delay = simple_delay_init(500.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE),
+    .delay = simple_delay_init(500.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE, DEFAULT_SAMPLE_RATE),
     .lpf = simple_lpf_init(0.99),
-    .comb = comb_filter_init(100.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE, 500.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE, 0.8),
+    .comb = comb_filter_init(100.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE, 500.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE, 0.8, DEFAULT_SAMPLE_RATE),
     .apf = delay_apf_init_nested_default(),
   };
   DSP_callback cb = dsp_init_tester(params);

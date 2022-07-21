@@ -12,6 +12,7 @@ typedef union dsp_state_u dsp_state;
 typedef struct dsp_callback_t *DSP_callback;
 
 typedef struct envelope_follower_t {
+  FTYPE sample_rate;
   audio_detector_params detector;
   DSP_callback d;
   audio_filter_params filter;

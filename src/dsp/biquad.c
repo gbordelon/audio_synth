@@ -21,8 +21,8 @@ biquad_set_params(biquad_params *params, biquad_algorithm alg)
 FTYPE
 biquad_process_sample(biquad_params *params, FTYPE sample)
 {
-  double yn = xn;
-  double wn;
+  FTYPE yn = xn;
+  FTYPE wn;
 
   switch (params->alg) {
   case BIQUAD_CANONICAL:

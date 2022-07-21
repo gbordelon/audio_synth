@@ -51,6 +51,8 @@ typedef struct ar_cr_t {
 } rate_converter;
 
 typedef struct ugen_t {
+  FTYPE sample_rate;
+
   // ugen to be used as a gain/velocity modulator
   struct ugen_t *gain;
 
@@ -80,17 +82,18 @@ typedef FTYPE (*sample_fn)(Ugen, FTYPE);
 
 void ugen_generate_tables();
 
-Ugen ugen_init_imp(FTYPE freq, FTYPE duty_cycle);
-Ugen ugen_init_saw(FTYPE freq);
-Ugen ugen_init_sin(FTYPE freq);
-Ugen ugen_init_tri(FTYPE freq);
+Ugen ugen_init_imp(FTYPE freq, FTYPE duty_cycle, FTYPE sample_rate);
+Ugen ugen_init_saw(FTYPE freq, FTYPE sample_rate);
+Ugen ugen_init_sin(FTYPE freq, FTYPE sample_rate);
+Ugen ugen_init_tri(FTYPE freq, FTYPE sample_rate);
 
-Ugen ugen_init_ease_in_circle(FTYPE freq);
-Ugen ugen_init_ease_out_circle(FTYPE freq);
-Ugen ugen_init_ramp_linear(FTYPE freq);
+Ugen ugen_init_ease_in_circle(FTYPE freq, FTYPE sample_rate);
+Ugen ugen_init_ease_out_circle(FTYPE freq, FTYPE sample_rate);
+Ugen ugen_init_ramp_linear(FTYPE freq, FTYPE sample_rate);
 
 void ugen_cleanup(Ugen ugen);
 
+void ugen_set_sample_rate(Ugen ugen, FTYPE sample_rate);
 void ugen_set_duty_cycle(Ugen ugen, FTYPE duty_cycle);
 void ugen_set_freq(Ugen ugen, FTYPE freq);
 void ugen_set_scale(Ugen ugen, FTYPE low, FTYPE high);

@@ -18,6 +18,7 @@ typedef enum {
 } modulated_delay_algorithm;
 
 typedef struct modulated_delay_params_t {
+  FTYPE sample_rate;
   modulated_delay_algorithm alg;
   audio_delay_params adp;
   Ugen lfo;

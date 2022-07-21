@@ -21,6 +21,8 @@ typedef enum {
 } operator_env_e;
 
 typedef struct operator_t {
+  FTYPE sample_rate;
+
   Ugen ugen;
   Dfo dfo;
 
@@ -43,7 +45,7 @@ typedef struct operator_t {
   FTYPE pan; // 0 pure left, 1 pure right
 } *Operator;
 
-Operator operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain);
+Operator operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain, FTYPE sample_rate);
 Operator operator_init_default();
 
 void operator_cleanup(Operator op);

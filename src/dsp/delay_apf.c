@@ -26,18 +26,20 @@ delay_apf_init(
     FTYPE delay_ms,
     FTYPE lfo_freq,
     FTYPE lfo_depth,
-    FTYPE lfo_max_mod_ms)
+    FTYPE lfo_max_mod_ms,
+    FTYPE sample_rate)
 {
   Delay_apf apf = delay_apf_alloc();
+  apf->sample_rate = sample_rate;
   apf->delay_ms = delay_ms;
-  apf->delay_samps = delay_ms * 0.001 * (FTYPE)DEFAULT_SAMPLE_RATE;
+  apf->delay_samps = delay_ms * 0.001 * sample_rate;
   apf->a = a;
   apf->apf_g = apf_g;
   apf->lfo_depth = lfo_depth;
   apf->lfo_max_mod_ms = lfo_max_mod_ms;
 
-  apf->sd = simple_delay_init(apf->delay_samps);
-  apf->lfo = ugen_init_tri(lfo_freq);
+  apf->sd = simple_delay_init(apf->delay_samps, sample_rate);
+  apf->lfo = ugen_init_tri(lfo_freq, sample_rate);
   apf->lpf = simple_lpf_init(lpf_g);
 
   apf->sd->interpolate = false;
@@ -50,14 +52,14 @@ delay_apf_init(
 Delay_apf
 delay_apf_init_default()
 {
-  return delay_apf_init(1.1, 0.707, 0.707, 120.0, 0.1, 0.4, 10.0);
+  return delay_apf_init(1.1, 0.707, 0.707, 120.0, 0.1, 0.4, 10.0, DEFAULT_SAMPLE_RATE);
 }
 
 Delay_apf
 delay_apf_init_nested_default()
 {
-  Delay_apf apf = delay_apf_init(0.9, 0.5, 0.3, 33.0 * 0.317, 0.15, 1.0, 0.3);
-  apf->nested_apf = delay_apf_init(0.0, -0.5, 0.0, 33.0 * 0.873, 0.15, 1.0, 0.3);
+  Delay_apf apf = delay_apf_init(0.9, 0.5, 0.3, 33.0 * 0.317, 0.15, 1.0, 0.3, DEFAULT_SAMPLE_RATE);
+  apf->nested_apf = delay_apf_init(0.0, -0.5, 0.0, 33.0 * 0.873, 0.15, 1.0, 0.3, DEFAULT_SAMPLE_RATE);
   apf->nested_apf->enable_lpf = false;
   apf->nested_apf->enable_lfo = false;
   return apf;

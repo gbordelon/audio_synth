@@ -11,14 +11,14 @@
 FTYPE
 mono_detector(FTYPE *L, dsp_state *state, FTYPE control)
 {
-  double input = fabs(*L);
+  FTYPE input = fabs(*L);
 
   if (state->audio_detector.detect_mode == AUDIO_DETECTOR_MODE_MS ||
       state->audio_detector.detect_mode == AUDIO_DETECTOR_MODE_RMS) {
     input *= input;
   }
 
-  double current_envelope = 0.0;
+  FTYPE current_envelope = 0.0;
   if (input > state->audio_detector.previous_envelope) {
     current_envelope = state->audio_detector.attack_time * (state->audio_detector.previous_envelope - input) + input;
   } else {
@@ -52,8 +52,12 @@ dsp_audio_detector_set_params(
     dsp_state *state,
     audio_detector_params params)
 {
-  state->audio_detector.attack_time = exp(AUDIO_DETECTOR_ENVELOPE_ANALOG_TC / (params.attack_time * DEFAULT_SAMPLE_RATE * 0.001));
-  state->audio_detector.release_time = exp(AUDIO_DETECTOR_ENVELOPE_ANALOG_TC / (params.release_time * DEFAULT_SAMPLE_RATE * 0.001));
+  if (params.sample_rate < DEFAULT_SAMPLE_RATE) {
+    params.sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE;
+  }
+  state->audio_detector.sample_rate = params.sample_rate;
+  state->audio_detector.attack_time = exp(AUDIO_DETECTOR_ENVELOPE_ANALOG_TC / (params.attack_time * params.sample_rate * 0.001));
+  state->audio_detector.release_time = exp(AUDIO_DETECTOR_ENVELOPE_ANALOG_TC / (params.release_time * params.sample_rate * 0.001));
   state->audio_detector.detect_mode = params.detect_mode;
   state->audio_detector.detect_db = params.detect_db;
   state->audio_detector.clamp_to_unity_max = params.clamp_to_unity_max;
@@ -75,6 +79,7 @@ DSP_callback
 dsp_init_audio_detector_default()
 {
   audio_detector_params params = {
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
     .attack_time = 1.0,
     .release_time = 1.0,
     .detect_mode = AUDIO_DETECTOR_MODE_PEAK,

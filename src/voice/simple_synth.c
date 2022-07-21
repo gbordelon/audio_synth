@@ -19,11 +19,11 @@ simple_synth_init(MonoVoice mv, mono_voice_params params)
 {
   mv->op_num = 4;
   mv->ops = calloc(4, sizeof(struct operator_t *));
-  mv->ops[0] = operator_init(UGEN_OSC_SIN, OPERATOR_ENV, 0.7); //carrier
-  mv->ops[1] = operator_init(UGEN_OSC_IMP, OPERATOR_ENV, 0.25); //modulator
+  mv->ops[0] = operator_init(UGEN_OSC_SIN, OPERATOR_ENV, 0.7, DEFAULT_SAMPLE_RATE); //carrier
+  mv->ops[1] = operator_init(UGEN_OSC_IMP, OPERATOR_ENV, 0.25, DEFAULT_SAMPLE_RATE); //modulator
   operator_set_mult(mv->ops[1], 5.0);
-  mv->ops[2] = operator_init(UGEN_OSC_SIN, OPERATOR_NONE, 1.0); // duty cycle for modulator
-  mv->ops[3] = operator_init(UGEN_OSC_SIN, OPERATOR_NONE, 1.0); // gain for modulator
+  mv->ops[2] = operator_init(UGEN_OSC_SIN, OPERATOR_NONE, 1.0, DEFAULT_SAMPLE_RATE); // duty cycle for modulator
+  mv->ops[3] = operator_init(UGEN_OSC_SIN, OPERATOR_NONE, 1.0, DEFAULT_SAMPLE_RATE); // gain for modulator
 
   operator_set_vel_s(mv->ops[1], 0.0);
   operator_set_vel_s(mv->ops[2], 0.0);

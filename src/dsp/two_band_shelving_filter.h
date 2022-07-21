@@ -12,6 +12,7 @@ typedef union dsp_state_u dsp_state;
 typedef struct dsp_callback_t *DSP_callback;
 
 typedef struct two_band_shelving_filter_params_t {
+  FTYPE sample_rate;
   FTYPE low_shelf_fc;
   FTYPE low_shelf_boost_cut_db;
   FTYPE high_shelf_fc;
