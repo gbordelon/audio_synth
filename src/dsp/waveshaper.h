@@ -3,7 +3,9 @@
 
 #include "../lib/macros.h"
 
-#include "dsp.h"
+/*
+ * Based on equations from Designing Audio Effect Plugins in C++ by Pirkle, chapter 19
+ */
 
 #define sgn(x) (((x) > 0) - ((x) < 0))
 
@@ -13,6 +15,7 @@ typedef enum {
   WS_SIG2,
   WS_TANH,
   WS_ATAN,
+  WS_SCLIP,
   WS_FEXP1,
   WS_FEXP2,
   WS_EXP2,
@@ -28,6 +31,7 @@ typedef enum {
 
 // forward declaration
 typedef struct waveshaper_params_t waveshaper_params;
+typedef union dsp_state_u dsp_state;
 
 typedef void (* shaper_fn)(FTYPE *, waveshaper_params *);
 

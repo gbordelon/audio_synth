@@ -15,6 +15,7 @@
 
 #include "src/dsp/audio_filter.h"
 #include "src/dsp/bitcrusher.h"
+#include "src/dsp/class_a_tube_pre.h"
 #include "src/dsp/dsp.h"
 #include "src/dsp/reverb_tank.h"
 #include "src/env/envelope.h"
@@ -114,6 +115,8 @@ main(int argc, char * argv[])
   dsp_set_bitcrusher_param(&dsp_fx_l->state, 5.5);
   //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
 
+  dsp_fx_l = dsp_init_class_a_tube_pre_default();
+  //gsynth->fx_chain = dsp_add_to_chain(gsynth->fx_chain, dsp_fx_l);
   }
 /*
   // panning

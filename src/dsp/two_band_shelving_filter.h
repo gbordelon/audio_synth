@@ -3,8 +3,6 @@
 
 #include "../lib/macros.h"
 
-#include "dsp.h"
-
 /*
  * Based on code from Designing Audio Effect Plugins in C++ by Pirkle, chapter 17
  */
@@ -22,5 +20,6 @@ typedef struct two_band_shelving_filter_params_t {
 } two_band_shelving_filter_params;
 
 void dsp_two_band_shelving_filter_set_params(dsp_state *state, two_band_shelving_filter_params params);
+void dsp_two_band_shelving_filter_cleanup(DSP_callback cb);
 
 #endif

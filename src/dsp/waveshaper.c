@@ -4,11 +4,10 @@
 #include "../lib/macros.h"
 
 #include "dsp.h"
-#include "bitcrusher.h"
-#include "../ugen/ugen.h"
+#include "waveshaper.h"
 
 /*
- * Using code from Designing Audio Effect Plugins in C++ by Pirkle, pgs. 550:551
+ * Based on equations from Designing Audio Effect Plugins in C++ by Pirkle, chapter 19
  */
 
 FTYPE
@@ -52,6 +51,12 @@ void
 arctangent(FTYPE *x, waveshaper_params *p)
 {
   *x = atan(p->saturation * *x) * p->atan_k;
+}
+
+void
+soft_clip(FTYPE *x, waveshaper_params *p)
+{
+  *x = sgn(*x) * (1.0 - exp(-fabs(p->saturation * *x)));
 }
 
 inline FTYPE
@@ -167,6 +172,9 @@ dsp_init_waveshaper(waveshaper_params params)
   case WS_ATAN:
     params.fn = arctangent;
     break;
+  case WS_SCLIP:
+    params.fn = soft_clip;
+    break;
   case WS_FEXP1:
     params.fn = fuzz_exponential_1;
     break;
@@ -213,7 +221,7 @@ DSP_callback
 dsp_init_waveshaper_default()
 {
   waveshaper_params p = {
-    .shape = WS_ARRY,
+    .shape = WS_SCLIP,
     .saturation = 1.0,
     .asymmetry = -0.5
   };

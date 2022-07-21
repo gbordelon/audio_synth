@@ -9,11 +9,13 @@
 #include "audio_detector.h"
 #include "audio_filter.h"
 #include "biquad.h"
+#include "class_a_tube_pre.h"
 #include "envelope_follower.h"
 #include "modulated_delay.h"
 #include "phase_shifter.h"
 #include "reverb_tank.h"
 #include "tester.h"
+#include "triode_class_a.h"
 #include "two_band_shelving_filter.h"
 #include "waveshaper.h"
 
@@ -24,11 +26,13 @@ typedef union dsp_state_u {
   audio_filter_params audio_filter;
   audio_delay_params audio_delay;
   audio_detector_params audio_detector;
+  class_a_tube_pre_params class_a_tube_pre;
   envelope_follower_params envelope_follower;
   modulated_delay_params modulated_delay;
   phase_shifter_params phase_shifter;
   reverb_tank_params reverb_tank;
   tester_params tester;
+  triode_class_a_params triode_class_a;
   two_band_shelving_filter_params two_band_shelving_filter;
   waveshaper_params waveshaper;
 } dsp_state;
@@ -91,6 +95,9 @@ DSP_callback dsp_init_audio_filter_default();
 
 DSP_callback dsp_init_bitcrusher();
 
+DSP_callback dsp_init_class_a_tube_pre(class_a_tube_pre_params params);
+DSP_callback dsp_init_class_a_tube_pre_default();
+
 DSP_callback dsp_init_envelope_follower(envelope_follower_params params);
 DSP_callback dsp_init_envelope_follower_default();
 
@@ -108,6 +115,9 @@ DSP_callback dsp_init_reverb_tank_default();
 DSP_callback dsp_init_stereo_pan();
 
 DSP_callback dsp_init_tester_default();
+
+DSP_callback dsp_init_triode_class_a(triode_class_a_params params);
+DSP_callback dsp_init_triode_class_a_default();
 
 DSP_callback dsp_init_two_band_shelving_filter(two_band_shelving_filter_params params);
 DSP_callback dsp_init_two_band_shelving_filter_default();

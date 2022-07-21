@@ -18,16 +18,26 @@ mono_shelving_filter(FTYPE *L, dsp_state *state, FTYPE control)
 }
 
 void
+two_band_shelving_filter_cleanup_helper(dsp_state *state)
+{
+  dsp_cleanup(state->two_band_shelving_filter.filter_head);
+}
+
+void
+dsp_two_band_shelving_filter_cleanup(DSP_callback cb)
+{
+  two_band_shelving_filter_cleanup_helper(&cb->state);
+  dsp_cleanup(cb);
+}
+
+void
 dsp_two_band_shelving_filter_set_params(
     dsp_state *state,
     two_band_shelving_filter_params params)
 {
-  DSP_callback head = NULL;
-  if (state->two_band_shelving_filter.filter_head) {
-    head = state->two_band_shelving_filter.filter_head; 
-  }
+  two_band_shelving_filter_cleanup_helper(state);
+
   state->two_band_shelving_filter = params;
-  state->two_band_shelving_filter.filter_head = head;
 
   audio_filter_params afp1 = {
     .fc = params.high_shelf_fc,
@@ -43,14 +53,9 @@ dsp_two_band_shelving_filter_set_params(
     .alg = AF_LowShelf
   };
 
-  if (head) {
-    dsp_audio_filter_set_params(&head->state, afp2);
-    dsp_audio_filter_set_params(&head->next->state, afp1);
-  } else {
-    state->two_band_shelving_filter.filter_head = dsp_init_audio_filter(afp1);
-    head = dsp_init_audio_filter(afp2);
-    state->two_band_shelving_filter.filter_head = dsp_add_to_chain(state->two_band_shelving_filter.filter_head, head);
-  }
+  state->two_band_shelving_filter.filter_head = dsp_init_audio_filter(afp1);
+  DSP_callback head = dsp_init_audio_filter(afp2);
+  state->two_band_shelving_filter.filter_head = dsp_add_to_chain(state->two_band_shelving_filter.filter_head, head);
 }
 
 DSP_callback
