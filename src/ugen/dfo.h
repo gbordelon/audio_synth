@@ -22,11 +22,13 @@ typedef enum {
 } dfo_states;
 
 typedef struct dfo_t {
+  FTYPE sample_rate;
+  FTYPE sr_conv;
   FTYPE coeffs[DF_NUM_COEFFS];
   FTYPE states[DF_NUM_STATES];
 } *Dfo;
 
-Dfo dfo_init();
+Dfo dfo_init(FTYPE smaple_rate);
 void dfo_cleanup(Dfo dfo);
 
 void dfo_set_freq(Dfo dfo, FTYPE freq);

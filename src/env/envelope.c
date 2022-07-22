@@ -23,26 +23,8 @@ env_free(Envelope env)
 }
 
 void
-env_default_amp(Envelope env)
-{
-  env->amps[0] = 0.0;
-  env->amps[1] = 1.0;
-  env->amps[2] = 0.7;
-  env->amps[3] = 0.6;
-}
-
-void
 env_default_durations(Envelope env)
 {
-  env->durs[0] = 0.05;
-  env->durs[1] = 0.05;
-  env->durs[2] = 0.80;
-  env->durs[3] = 0.10;
-
-  env->max_samples[0] = floor(DEFAULT_SAMPLE_RATE * env->durs[0]) - 1;
-  env->max_samples[1] = floor(DEFAULT_SAMPLE_RATE * env->durs[1]) - 1;
-  env->max_samples[2] = floor(DEFAULT_SAMPLE_RATE * env->durs[2]) - 1;
-  env->max_samples[3] = floor(DEFAULT_SAMPLE_RATE * env->durs[3]) - 1;
 }
 
 void
@@ -86,17 +68,37 @@ env_set_release(Envelope env)
   if (env->state != ENV_RELEASE) {
     env->state = ENV_RELEASE;
   }
-  if (env->p_ind <= env->max_samples[0] + env->max_samples[1] + env->max_samples[2]) {
+  if (env->p_ind != env->max_samples[0] + env->max_samples[1] + env->max_samples[2]) {
     env->p_ind = env->max_samples[0] + env->max_samples[1] + env->max_samples[2];
     env->p_inc = (0.0 - env->prev_sample) / (FTYPE)env->max_samples[3];
+  } else {
+    env->p_inc = (0.0 - env->amps[3]) / (FTYPE)env->max_samples[3];
   }
+}
+
+void
+env_set_sample_rate(Envelope env, FTYPE sample_rate)
+{
+  env->sample_rate = sample_rate;
+
+  int i;
+  for (i = ENV_ATTACK; i < ENV_NUM_STAGES; i++) {
+    env_set_rate(env, env->rates[i], i);
+  }
+  env_reset(env);
+}
+
+void
+env_set_rate(Envelope env, FTYPE rate/*in 1.0 / seconds*/, env_state stage)
+{
+  env->rates[stage] = rate;
+  env->max_samples[stage] = floor(env->sample_rate / rate) - 1;
 }
 
 void
 env_set_duration(Envelope env, FTYPE duration/*in seconds*/, env_state stage)
 {
-  env->durs[stage] = duration;
-  env->max_samples[stage] = floor(DEFAULT_SAMPLE_RATE * env->durs[stage]) - 1;
+  env_set_rate(env, 1.0 / duration, stage);
 }
 
 void
@@ -109,26 +111,38 @@ env_set_amplitudes(Envelope env, FTYPE amps[4])
 }
 
 Envelope
-env_init()
+env_init(envelope_params p)
 {
   Envelope env = env_alloc();
   // null checks
 
+  env->decay_rate = p.decay_rate;
+  env->sample_rate = p.sample_rate;
+  env->p_inc = 0.0;
+
+  int i;
+  for (i = ENV_ATTACK; i < ENV_NUM_STAGES; i++) {
+    env->amps[i] = p.amps[i];
+    env->rates[i] = p.rates[i];
+    env->max_samples[i] = floor(p.sample_rate / env->rates[i]) - 1;
+  }
+
+  // init the phase index as complete
+  env->p_ind = env_max_duration(env);
+  env->state = ENV_RELEASE;
   return env;
 }
 
 Envelope
 env_init_default()
 {
-  Envelope env = env_init();
-  env_default_amp(env);
-  env_default_durations(env);
-  env->decay_rate = 0.0;
-  env->p_inc = 0.0;
-
-  // init the phase index as complete
-  env->p_ind = env_max_duration(env);
-  env->state = ENV_RELEASE;
+  envelope_params p = {
+    .amps = { 0.0, 1.0, 0.7, 0.6 },
+    .rates = { 1.0 / 0.5, 1.0 / 0.5, 1.0 / 0.80, 1.0 / 0.10 },
+    .decay_rate = 0.0,
+    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE
+  };
+  Envelope env = env_init(p);
   return env;
 }
 
@@ -151,8 +165,11 @@ env_sample(Envelope env, bool sustain)
     sample = env->prev_sample;
   } else {
     sample = env->p_inc + env->prev_sample;
-    if (env->state == ENV_ATTACK && sample > env->amps[ENV_DECAY]) {
-      sample = env->amps[ENV_DECAY];
+    if (env->state == ENV_ATTACK /*&& sample > env->amps[ENV_DECAY]) {
+      sample = env->amps[ENV_DECAY];*/) {
+    } else if (env->state == ENV_DECAY) {
+    } else if (env->state == ENV_SUSTAIN) {
+    } else if (env->state == ENV_RELEASE) {
     }
     env->prev_sample = sample;
   }
@@ -169,7 +186,7 @@ env_sample(Envelope env, bool sustain)
     }
     break;
   case ENV_SUSTAIN:
-    if (env->p_ind >= (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
+    if (env->p_ind == (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
       if (sustain) {
         env->p_ind--;
         if (fabs(env->prev_sample) > 0.0) {
@@ -188,6 +205,9 @@ env_sample(Envelope env, bool sustain)
     break;
   }
 
+  if (sample > 1.000001) {
+    printf("%s: %d %f %u %f\n", __FILE__, env->state, env->prev_sample, env->p_ind, env->p_inc);
+  }
   return sample; 
 }
 

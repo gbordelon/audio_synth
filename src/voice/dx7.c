@@ -50,35 +50,35 @@ dx7_e_piano_1(mono_voice_params *params)
   params->dx7.patch.env_amps[5][3] = 0.1;
 
 
-  params->dx7.patch.env_durs[0][0] = 0.1/0.95;
-  params->dx7.patch.env_durs[0][1] = 0.1/0.25;
-  params->dx7.patch.env_durs[0][2] = 0.5/0.25;
-  params->dx7.patch.env_durs[0][3] = 0.1/0.67;
+  params->dx7.patch.env_rates[0][0] = 9.5;
+  params->dx7.patch.env_rates[0][1] = 5.0;
+  params->dx7.patch.env_rates[0][2] = 0.5;
+  params->dx7.patch.env_rates[0][3] = 6.7;
 
-  params->dx7.patch.env_durs[1][0] = 0.1/0.95;
-  params->dx7.patch.env_durs[1][1] = 0.1/0.50;
-  params->dx7.patch.env_durs[1][2] = 0.5/0.35;
-  params->dx7.patch.env_durs[1][3] = 0.1/0.78;
+  params->dx7.patch.env_rates[1][0] = 9.5;
+  params->dx7.patch.env_rates[1][1] = 10.0;
+  params->dx7.patch.env_rates[1][2] = 0.7;
+  params->dx7.patch.env_rates[1][3] = 7.8;
 
-  params->dx7.patch.env_durs[2][0] = 0.1/0.95;
-  params->dx7.patch.env_durs[2][1] = 0.1/0.20;
-  params->dx7.patch.env_durs[2][2] = 0.5/0.20;
-  params->dx7.patch.env_durs[2][3] = 0.1/0.50;
+  params->dx7.patch.env_rates[2][0] = 9.5;
+  params->dx7.patch.env_rates[2][1] = 4.0;
+  params->dx7.patch.env_rates[2][2] = 0.4;
+  params->dx7.patch.env_rates[2][3] = 5.0;
 
-  params->dx7.patch.env_durs[3][0] = 0.1/0.95;
-  params->dx7.patch.env_durs[3][1] = 0.1/0.29;
-  params->dx7.patch.env_durs[3][2] = 0.5/0.20;
-  params->dx7.patch.env_durs[3][3] = 0.1/0.50;
+  params->dx7.patch.env_rates[3][0] = 9.5;
+  params->dx7.patch.env_rates[3][1] = 5.8;
+  params->dx7.patch.env_rates[3][2] = 0.4;
+  params->dx7.patch.env_rates[3][3] = 5.0;
 
-  params->dx7.patch.env_durs[4][0] = 0.1/0.95;
-  params->dx7.patch.env_durs[4][1] = 0.1/0.20;
-  params->dx7.patch.env_durs[4][2] = 0.5/0.20;
-  params->dx7.patch.env_durs[4][3] = 0.1/0.50;
+  params->dx7.patch.env_rates[4][0] = 9.5;
+  params->dx7.patch.env_rates[4][1] = 4.0;
+  params->dx7.patch.env_rates[4][2] = 0.4;
+  params->dx7.patch.env_rates[4][3] = 5.0;
 
-  params->dx7.patch.env_durs[5][0] = 0.1/0.95;
-  params->dx7.patch.env_durs[5][1] = 0.1/0.29;
-  params->dx7.patch.env_durs[5][2] = 0.5/0.20;
-  params->dx7.patch.env_durs[5][3] = 0.1/0.50;
+  params->dx7.patch.env_rates[5][0] = 9.5;
+  params->dx7.patch.env_rates[5][1] = 5.8;
+  params->dx7.patch.env_rates[5][2] = 0.4;
+  params->dx7.patch.env_rates[5][3] = 5.0;
 
 
   params->dx7.patch.detune[0] = 0.0;
@@ -135,14 +135,14 @@ dx7_init(MonoVoice mv, mono_voice_params params)
 
     mv->ops[i]->env_u.env->decay_rate = params.dx7.decay_rate;
     env_set_amplitudes(mv->ops[i]->env_u.env, params.dx7.patch.env_amps[i]);
-    env_set_duration(mv->ops[i]->env_u.env,
-                     params.dx7.patch.env_durs[i][ENV_ATTACK], ENV_ATTACK);
-    env_set_duration(mv->ops[i]->env_u.env,
-                     params.dx7.patch.env_durs[i][ENV_DECAY], ENV_DECAY);
-    env_set_duration(mv->ops[i]->env_u.env,
-                     params.dx7.patch.env_durs[i][ENV_SUSTAIN], ENV_SUSTAIN);
-    env_set_duration(mv->ops[i]->env_u.env,
-                     params.dx7.patch.env_durs[i][ENV_RELEASE], ENV_RELEASE);
+    env_set_rate(mv->ops[i]->env_u.env,
+                     params.dx7.patch.env_rates[i][ENV_ATTACK], ENV_ATTACK);
+    env_set_rate(mv->ops[i]->env_u.env,
+                     params.dx7.patch.env_rates[i][ENV_DECAY], ENV_DECAY);
+    env_set_rate(mv->ops[i]->env_u.env,
+                     params.dx7.patch.env_rates[i][ENV_SUSTAIN], ENV_SUSTAIN);
+    env_set_rate(mv->ops[i]->env_u.env,
+                     params.dx7.patch.env_rates[i][ENV_RELEASE], ENV_RELEASE);
     mv->ops[i]->env_u.env->p_ind = env_max_duration(mv->ops[i]->env_u.env);
   }
 

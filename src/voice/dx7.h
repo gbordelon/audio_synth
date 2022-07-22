@@ -7,6 +7,8 @@
 
 #include "voice.h"
 
+#define DX7_NUM_OPS 6
+
 typedef enum {
   DX7_1,
   DX7_2,
@@ -44,21 +46,21 @@ typedef enum {
 
 typedef struct dx7_patch_t {
   // carrier detune in cents
-  FTYPE detune[6];
+  FTYPE detune[DX7_NUM_OPS];
   // gain for each operator
-  FTYPE gain[6];
+  FTYPE gain[DX7_NUM_OPS];
   // pan for each operator
-  FTYPE pan[6];
+  FTYPE pan[DX7_NUM_OPS];
   // carrier freq multiplier for each operator
-  FTYPE mult[6];
+  FTYPE mult[DX7_NUM_OPS];
   // velocity scaling for each operator
-  FTYPE vel_s[6];
+  FTYPE vel_s[DX7_NUM_OPS];
 
   // ADSR envelope targets [0,1]
-  FTYPE env_amps[6][4];
+  FTYPE env_amps[DX7_NUM_OPS][ENV_NUM_STAGES];
 
   // ADSR envelope durations > 0
-  FTYPE env_durs[6][4];
+  FTYPE env_rates[DX7_NUM_OPS][ENV_NUM_STAGES];
 } dx7_patch;
 
 typedef struct dx7_params_t {

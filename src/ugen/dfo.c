@@ -18,9 +18,12 @@ dfo_free(Dfo dfo)
 }
 
 Dfo
-dfo_init()
+dfo_init(FTYPE sample_rate)
 {
-  return dfo_alloc();
+  Dfo dfo = dfo_alloc();
+  dfo->sample_rate = sample_rate;
+  dfo->sr_conv = M_PI / sample_rate;
+  return dfo;
 }
 
 void
@@ -29,11 +32,10 @@ dfo_cleanup(Dfo dfo)
   dfo_free(dfo);
 }
 
-static const FTYPE HZ_TO_THETA = M_PI / (FTYPE)DEFAULT_SAMPLE_RATE;
 void
 dfo_set_freq(Dfo dfo, FTYPE freq)
 {
-  FTYPE wT = HZ_TO_THETA * freq;
+  FTYPE wT = dfo->sr_conv * freq;
   dfo->coeffs[DF_B1] = -2.0 * cos(wT);
   dfo->coeffs[DF_B2] = 1.0;
 

@@ -79,6 +79,7 @@ operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain, FTYPE sampl
     break;
   case OPERATOR_ENV:
     op->env_u.env = env_init_default();
+    env_set_sample_rate(op->env_u.env, sample_rate);
     break;
   default:
     // none
