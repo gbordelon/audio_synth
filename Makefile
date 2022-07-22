@@ -5,7 +5,7 @@ OBJDIR	:= $(TOPDIR)/obj
 CFILES	:= c
 OFILES	:= o
 CC		:= cc
-CFLAGS	:= -std=c11 -pedantic -Wall -g -march=native -Ofast
+CFLAGS	:= -std=c11 -pedantic -Wall -march=native -Ofast -g
 
 C_NAMES	:= $(shell find . -name '*.c')
 H_NAMES	:= $(shell find . -name '*.h')
@@ -20,7 +20,7 @@ exe: $(EXE)
 
 
 $(EXE): $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^ -lportmidi -framework CoreAudio -framework CoreServices -framework AudioUnit -framework AudioToolBox -g -fno-pie
+	$(CC) $(CFLAGS) -o $@ $^ -lfftw3 -lportmidi -framework CoreAudio -framework CoreServices -framework AudioUnit -framework AudioToolBox -fno-pie
 
 $(OBJDIR)/%.$(OFILES): $(SRCDIR)/%.$(CFILES) $(DEPS)
 	mkdir -p $(dir $@)
