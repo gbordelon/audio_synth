@@ -21,7 +21,7 @@
 #define kInputBus 1
 
 extern Mixer gmix;
-extern Voice gsynth; // TODO collection of voices, not just one
+extern Voice gsynth[2]; // TODO collection of voices, not just one
 extern Voice gmic; // TODO collection of voices, not just one
 AudioComponentInstance _audioUnit;
 
@@ -311,7 +311,8 @@ inputCallback(void *inRefCon,
 static void
 pull_samples()
 {
-  voice_play_chunk(gsynth);
+  voice_play_chunk(gsynth[0]);
+  voice_play_chunk(gsynth[1]);
   voice_play_chunk(gmic);
   mixer_update(gmix);
   memcpy(_output_buffer, gmix->write_buf, MMAP_SIZE * sizeof(FTYPE));
