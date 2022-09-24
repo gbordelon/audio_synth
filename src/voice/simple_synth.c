@@ -5,7 +5,6 @@
 
 #include "../lib/macros.h"
 
-#include "../env/envelope.h"
 #include "../midi/midi.h"
 #include "../ugen/imp.h"
 #include "../ugen/sin.h"
@@ -31,14 +30,14 @@ simple_synth_init(MonoVoice mv, mono_voice_params params)
 
   // variable duty cycle for modulator
   // output of op3 should be control rate between 0 and 0.1 instead of AR [-1, 1]
-  ugen_set_scale(mv->ops[2]->ugen, 0.0, 0.1);
+  ugen_set_scale(mv->ops[2]->ugen, 0.1, 0.2);
   operator_set_fc(mv->ops[2], 0.1); // LFO. always 0.1 Hz
 
   // variable gain for modulator
   ugen_set_scale(mv->ops[3]->ugen, 0.3, 0.8);
   operator_set_fc(mv->ops[3], 0.5); // LFO. always 0.5 Hz
 
-  mv->params.ss.fback_s = 0.0/7.0;
+  mv->params.ss.fback_s = 6.0/7.0;
 }
 
 void

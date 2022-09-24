@@ -137,9 +137,9 @@ Envelope
 env_init_default()
 {
   envelope_params p = {
-    .amps = { 0.0, 1.0, 0.7, 0.6 },
-    .rates = { 1.0 / 0.5, 1.0 / 0.5, 1.0 / 0.80, 1.0 / 0.10 },
-    .decay_rate = 0.0,
+    .amps = { 0.0, 1.0, 0.7, 0.5 },
+    .rates = { 8.0, 4.0, 1.0, 20.0 },
+    .decay_rate = 1.0,
     .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE
   };
   Envelope env = env_init(p);
@@ -165,8 +165,7 @@ env_sample(Envelope env, bool sustain)
     sample = env->prev_sample;
   } else {
     sample = env->p_inc + env->prev_sample;
-    if (env->state == ENV_ATTACK /*&& sample > env->amps[ENV_DECAY]) {
-      sample = env->amps[ENV_DECAY];*/) {
+    if (env->state == ENV_ATTACK) {
     } else if (env->state == ENV_DECAY) {
     } else if (env->state == ENV_SUSTAIN) {
     } else if (env->state == ENV_RELEASE) {
@@ -189,7 +188,7 @@ env_sample(Envelope env, bool sustain)
     if (env->p_ind == (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
       if (sustain) {
         env->p_ind--;
-        if (fabs(env->prev_sample) > 0.0) {
+        if (fabs(env->prev_sample) > 0.000001) {
           env->prev_sample *= env->decay_rate;
         } else {
           env->prev_sample = 0.0;
@@ -205,9 +204,6 @@ env_sample(Envelope env, bool sustain)
     break;
   }
 
-  if (sample > 1.000001) {
-    printf("%s: %d %f %u %f\n", __FILE__, env->state, env->prev_sample, env->p_ind, env->p_inc);
-  }
   return sample; 
 }
 

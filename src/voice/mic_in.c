@@ -57,7 +57,7 @@ mic_in_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE])
     _mic_output_read_index = 0;
   }
   for (; e_sample - bufs[2] < CHUNK_SIZE; e_sample++) {
-    *e_sample = 1.0;
+    *e_sample = 0.707;
   }
 
   mv->cur_dur += CHUNK_SIZE;
