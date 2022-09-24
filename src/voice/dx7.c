@@ -17,7 +17,7 @@ dx7_e_piano_1(mono_voice_params *params)
 {
   params->dx7.alg = DX7_5;
   params->dx7.fback_s = 1.0/7.0; // between 0 and 1
-  params->dx7.decay_rate = ((FTYPE)DEFAULT_SAMPLE_RATE - 1.0)/(FTYPE)DEFAULT_SAMPLE_RATE; // between -1 and 0
+  params->dx7.decay_rate = 0.99; // between 0 and 1
 
   params->dx7.patch.env_amps[0][0] = 0.0;
   params->dx7.patch.env_amps[0][1] = 1.0;
