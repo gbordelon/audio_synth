@@ -10,7 +10,8 @@ velocity_range = (95,127)
 note_choice_maj9 = [30, 34, 37, 41, 42, 44, 46, 49, 53, 54, 56, 58, 61, 65, 68]
 note_choice_9 =    [37, 41, 44, 47, 49, 51, 53, 56, 59, 61, 63, 65, 68, 71, 75]
 #note_choice = [68]
-notes_on = []
+notes_on = [[],[]]
+current_instrument = 0
 keys = [1, 4, 5]
 num_notes_played = 0
 note_choice = note_choice_maj9
@@ -30,17 +31,17 @@ def init():
 def arpeggiator(output):
   while True:
     for arp, root in zip([arpeggio1, arpeggio2, arpeggio3, arpeggio4], arpeggio_roots):
+      notes_on[current_instrument].append(root)
       output.note_on(root, 127)
-      notes_on.append(root)
       for note, velocity in zip(arp, velocity_arp):
+        notes_on[current_instrument].append(root)
         output.note_on(note, velocity)
-        notes_on.append(note)
         time.sleep(delay_arp)
         output.note_off(note, velocity)
-        del notes_on[1]
+        del notes_on[current_instrument][1]
         time.sleep(delay_arp/2)
-      output.note_off(notes_on[0], 64)
-      del notes_on[0]
+      output.note_off(notes_on[current_instrument][0], 64)
+      del notes_on[current_instrument][0]
 
 def random_loop(output):
   global note_choice
@@ -48,18 +49,18 @@ def random_loop(output):
   num_notes_played = 0
   while True:
     # after two or three are on
-    if len(notes_on) > random.randint(2,3):
+    if len(notes_on[current_instrument]) > random.randint(2,3):
       # turn one off
-      note_idx = random.randrange(0,len(notes_on))
-      note = notes_on[note_idx]
+      note_idx = random.randrange(0,len(notes_on[current_instrument]))
+      note = notes_on[current_instrument][note_idx]
       output.note_off(note, 64)
       print("OFF", note, 64)
-      del notes_on[note_idx]
+      del notes_on[current_instrument][note_idx]
 
     if random.randint(0,1) > 0:
       time.sleep(delay)
 
-    if len(notes_on) == 0 or random.randint(0,4) > 0:
+    if len(notes_on[current_instrument]) == 0 or random.randint(0,4) > 0:
       # random note on
       #note = random.randint(*note_range)
       note = random.choice(note_choice)
@@ -68,7 +69,7 @@ def random_loop(output):
       velocity = random.randint(*velocity_range)
       output.note_on(note, velocity)
       print("ON", note, velocity)
-      notes_on.append(note)
+      notes_on[current_instrument].append(note)
       num_notes_played += 1
     if num_notes_played == 10:
       num_notes_played = 0
@@ -91,14 +92,22 @@ if __name__ == '__main__':
   init()
   output_id = midi.get_default_output_id()
   output = midi.Output(output_id)
+  output.set_instrument(current_instrument)
+  time.sleep(0.01)
 
   try:
-    #random_loop(output)
-    arpeggiator(output)
+    random_loop(output)
+    #arpeggiator(output)
   except KeyboardInterrupt:
     # turn off all notes
-    for note in notes_on:
+    output.set_instrument(0)
+    for note in range(0, 127):
       output.note_off(note, 64)
+      time.sleep(0.001)
+    output.set_instrument(1)
+    for note in range(0, 127):
+      output.note_off(note, 64)
+      time.sleep(0.001)
     print('')
   finally:
     print('quitting')
