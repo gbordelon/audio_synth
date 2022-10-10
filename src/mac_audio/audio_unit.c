@@ -311,11 +311,18 @@ inputCallback(void *inRefCon,
 static void
 pull_samples()
 {
+  // generate a chunk of samples
   voice_play_chunk(gsynth[0]);
   voice_play_chunk(gsynth[1]);
   voice_play_chunk(gmic);
+
+  // mix chunks into mixer buffer
   mixer_update(gmix);
+
+  // copy mixer buffer data to mac audio buffer
   memcpy(_output_buffer, gmix->write_buf, MMAP_SIZE * sizeof(FTYPE));
+
+  // clear mixer buffer
   memset(gmix->write_buf, 0, MMAP_SIZE * sizeof(FTYPE));
 }
 

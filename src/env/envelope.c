@@ -164,6 +164,7 @@ env_sample(Envelope env, bool sustain)
   if (sustain && env->p_ind == (env->max_samples[0] + env->max_samples[1] + env->max_samples[2])) {
     sample = env->prev_sample;
   } else {
+    // env->p_inc never changes so this is a linear decay.
     sample = env->p_inc + env->prev_sample;
     if (env->state == ENV_ATTACK) {
     } else if (env->state == ENV_DECAY) {

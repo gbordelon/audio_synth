@@ -136,30 +136,30 @@ main(int argc, char * argv[])
   //dsp_set_control_ugen(gmic->fx_chain, ug);
 
   dsp_fx_l = dsp_init_reverb_tank_default();
-  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_tester_default();
   //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
 
   // last is delay
   dsp_fx_l = dsp_init_audio_delay_default(); // stereo
-  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
 
   // then env follower or phaser or chorus or flanger or vibrato
   dsp_fx_l = dsp_init_envelope_follower_default();
   //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_modulated_delay_chorus_default();
-  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_modulated_delay_flanger_default();
   //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_modulated_delay_vibrato_default();
-  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_phase_shifter_default();
-  //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
+  gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
 
   // telephone style filter uses a LPF at 4k and a HPF at 400
   //add_filter(gmic, dsp_fx, params_af, AF_HPF2, 400.0, 5.707, 0.0);

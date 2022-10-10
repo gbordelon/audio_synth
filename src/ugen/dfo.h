@@ -30,6 +30,7 @@ typedef struct dfo_t {
 
 Dfo dfo_init(FTYPE smaple_rate);
 void dfo_cleanup(Dfo dfo);
+void dfo_set_sample_rate(Dfo dfo, FTYPE sample_rate);
 
 void dfo_set_freq(Dfo dfo, FTYPE freq);
 FTYPE dfo_sample(Dfo dfo);
