@@ -34,7 +34,7 @@ typedef struct mv_fns_t {
   void (*cleanup)(MonoVoice mv);
   void (*note_on)(MonoVoice mv, uint8_t midi_note, FTYPE velocity);
   void (*note_off)(MonoVoice mv);
-  void (*play_chunk)(MonoVoice mv, FTYPE samples[3][CHUNK_SIZE]);
+  void (*play_chunk)(MonoVoice mv, FTYPE samples[2][CHUNK_SIZE]);
 } mv_fns;
 
 typedef struct voice_t {

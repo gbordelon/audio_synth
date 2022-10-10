@@ -109,19 +109,14 @@ simple_synth_play_sample(MonoVoice mv, FTYPE *L, FTYPE *R)
 }
 
 void
-simple_synth_play_chunk(MonoVoice mv, FTYPE bufs[3][CHUNK_SIZE])
+simple_synth_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE])
 {
   FTYPE *l_sample = bufs[0];
   FTYPE *r_sample = bufs[1];
-  FTYPE *e_sample = bufs[2];
 
   int i;
   for (i = 0; i < CHUNK_SIZE; i++, l_sample++, r_sample++) {
     simple_synth_play_sample(mv, l_sample, r_sample);
   }
-  for (i = 0; i < CHUNK_SIZE; i++, e_sample++) {
-    *e_sample = 1.0;
-  }
-
   mv->cur_dur += CHUNK_SIZE;
 }

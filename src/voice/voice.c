@@ -120,10 +120,10 @@ voice_play_chunk(Voice voice)
   Channel left = voice->channels;
   Channel right = voice->channels + 1;
 
-  static FTYPE samples[3][CHUNK_SIZE];
+  static FTYPE samples[2][CHUNK_SIZE];
   static FTYPE accum_l[CHUNK_SIZE];
   static FTYPE accum_r[CHUNK_SIZE];
-  FTYPE *sL, *sR, *e, *L, *R;
+  FTYPE *sL, *sR, *L, *R;
 
   memset(accum_l, 0, CHUNK_SIZE * sizeof(FTYPE));
   memset(accum_r, 0, CHUNK_SIZE * sizeof(FTYPE));
@@ -134,11 +134,11 @@ voice_play_chunk(Voice voice)
   for (mv = voice->voices; mv - voice->voices < voice->voice_num; mv++) {
     if (mono_voice_playing(mv)) {
       voice->fns.play_chunk(mv, samples);
-      for (L = accum_l, R = accum_r, sL = samples[0], sR = samples[1], e = samples[2];
+      for (L = accum_l, R = accum_r, sL = samples[0], sR = samples[1];
            L - accum_l < CHUNK_SIZE;
-           sL++, sR++, e++, L++, R++) {
-        *L += *sL * *e;
-        *R += *sR * *e;
+           sL++, sR++, L++, R++) {
+        *L += *sL;
+        *R += *sR;
         peak = *L > 1.0 || *L < -1.0 || *R > 1.0 || *R < -1.0;
       }
     }
@@ -160,10 +160,11 @@ voice_play_chunk(Voice voice)
   channel_write(right, accum_r);
 }
 
-static const FTYPE INV_127 = 1.0 / 127.0;
 uint8_t
 voice_note_on(Voice voice, uint8_t midi_note, uint8_t midi_velocity)
 {
+  static const FTYPE INV_127 = 1.0 / 127.0;
+
   MonoVoice mv;
   for (mv = voice->voices; mv - voice->voices < voice->voice_num; mv++) {
     if (!mono_voice_playing(mv)) {
