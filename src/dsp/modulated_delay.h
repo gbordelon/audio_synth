@@ -35,6 +35,8 @@ typedef struct dsp_callback_t *DSP_callback;
 
 void dsp_modulated_delay_set_params(dsp_state *state, modulated_delay_params params);
 
+void dsp_modulated_delay_reset(DSP_callback cb);
+
 void dsp_modulated_delay_cleanup(DSP_callback cb);
 
 #endif

@@ -72,6 +72,13 @@ delay_apf_free(Delay_apf apf)
 }
 
 void
+delay_apf_reset(Delay_apf apf)
+{
+  simple_delay_reset(apf->sd);
+  ugen_reset_phase(apf->lfo);
+}
+
+void
 delay_apf_cleanup(Delay_apf apf)
 {
   simple_delay_cleanup(apf->sd);

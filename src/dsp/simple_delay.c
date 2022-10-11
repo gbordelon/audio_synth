@@ -40,6 +40,12 @@ simple_delay_free(Simple_delay sd)
 }
 
 void
+simple_delay_reset(Simple_delay sd)
+{
+  ringbuf_reset(sd->buf);
+}
+
+void
 simple_delay_cleanup(Simple_delay sd)
 {
   ringbuf_cleanup(sd->buf);

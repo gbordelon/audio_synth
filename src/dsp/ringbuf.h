@@ -14,6 +14,7 @@ typedef struct ringbuf_t {
 Ringbuf ringbuf_init(uint32_t buf_len);
 Ringbuf ringbuf_init_default();
 
+void ringbuf_reset(Ringbuf rb);
 void ringbuf_cleanup(Ringbuf rb);
 
 FTYPE ringbuf_read(Ringbuf rb, FTYPE delay_in_samples);

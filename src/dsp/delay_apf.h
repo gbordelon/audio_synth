@@ -42,6 +42,8 @@ Delay_apf delay_apf_init(FTYPE a, FTYPE apf_g, FTYPE lpf_g, FTYPE delay_ms, FTYP
 
 Delay_apf delay_apf_init_default();
 Delay_apf delay_apf_init_nested_default();
+
+void delay_apf_reset(Delay_apf apf);
 void delay_apf_cleanup(Delay_apf apf);
 
 FTYPE delay_apf_process(Delay_apf apf, FTYPE xn);

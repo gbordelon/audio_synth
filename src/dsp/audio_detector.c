@@ -89,3 +89,9 @@ dsp_init_audio_detector_default()
 
   return dsp_init_audio_detector(params);
 }
+
+void
+dsp_audio_detector_reset(DSP_callback cb)
+{
+  cb->state.audio_detector.previous_envelope = 0.0;
+}

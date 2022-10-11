@@ -30,4 +30,9 @@ typedef union dsp_state_u dsp_state;
 
 void dsp_audio_detector_set_params(dsp_state *state, audio_detector_params params);
 
+// forward declaration of type from dsp.h
+typedef struct dsp_callback_t *DSP_callback;
+
+void dsp_audio_detector_reset(DSP_callback cb);
+
 #endif

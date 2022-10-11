@@ -59,6 +59,9 @@ typedef struct reverb_tank_params_t {
 } reverb_tank_params;
 
 void dsp_reverb_tank_set_params(dsp_state *state, reverb_tank_params params);
+
+void dsp_reverb_tank_reset(DSP_callback cb);
+
 void dsp_reverb_tank_cleanup(DSP_callback cb);
 
 #endif

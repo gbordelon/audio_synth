@@ -144,9 +144,15 @@ dsp_init_phase_shifter_default()
 }
 
 void
-dsp_phase_shifter_cleanup(DSP_callback ps)
+dsp_phase_shifter_reset(DSP_callback cb)
 {
-  ugen_cleanup(ps->state.phase_shifter.lfo);
-  dsp_cleanup(ps->state.phase_shifter.apfs[0]); // chaining should cleanup the rest
-  dsp_cleanup(ps);
+  ugen_reset_phase(cb->state.phase_shifter.lfo);
+}
+
+void
+dsp_phase_shifter_cleanup(DSP_callback cb)
+{
+  ugen_cleanup(cb->state.phase_shifter.lfo);
+  dsp_cleanup(cb->state.phase_shifter.apfs[0]); // chaining should cleanup the rest
+  dsp_cleanup(cb);
 }

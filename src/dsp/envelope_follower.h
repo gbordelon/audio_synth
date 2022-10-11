@@ -25,4 +25,6 @@ typedef struct envelope_follower_t {
 
 void dsp_envelope_follower_set_params(dsp_state *state, envelope_follower_params params);
 
+void dsp_envelope_follower_reset(DSP_callback cb);
+
 #endif

@@ -58,7 +58,7 @@ dsp_modulated_delay_set_params(
   state->modulated_delay = params;
 
   if (state->modulated_delay.sample_rate < DEFAULT_SAMPLE_RATE) {
-    state->modulated_delay.sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE;
+    state->modulated_delay.sample_rate = DEFAULT_SAMPLE_RATE;
   }
 
   if (params.alg == MD_VIBRATO) {
@@ -96,13 +96,13 @@ dsp_init_modulated_delay_flanger_default()
     .delay_ratio = 1.0
   };
   modulated_delay_params params = {
-    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
+    .sample_rate = DEFAULT_SAMPLE_RATE,
     .alg = MD_FLANGER,
     .adp = adp,
     .lfo_freq = 0.2,
     .lfo_depth = 0.50,
-    .min_delay_samps = 0.1 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE,
-    .max_depth_samps = 7.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE,
+    .min_delay_samps = 0.1 / 1000.0 * DEFAULT_SAMPLE_RATE,
+    .max_depth_samps = 7.0 / 1000.0 * DEFAULT_SAMPLE_RATE,
   };
   DSP_callback cb = dsp_init_modulated_delay(params);
 
@@ -120,13 +120,13 @@ dsp_init_modulated_delay_chorus_default()
     .delay_ratio = 1.0
   };
   modulated_delay_params params = {
-    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
+    .sample_rate = DEFAULT_SAMPLE_RATE,
     .alg = MD_CHORUS,
     .adp = adp,
     .lfo_freq = 0.2,
     .lfo_depth = 0.50,
-    .min_delay_samps = 10.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE,
-    .max_depth_samps = 30.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE,
+    .min_delay_samps = 10.0 / 1000.0 * DEFAULT_SAMPLE_RATE,
+    .max_depth_samps = 30.0 / 1000.0 * DEFAULT_SAMPLE_RATE,
   };
   DSP_callback cb = dsp_init_modulated_delay(params);
 
@@ -144,17 +144,24 @@ dsp_init_modulated_delay_vibrato_default()
     .delay_ratio = 1.0
   };
   modulated_delay_params params = {
-    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
+    .sample_rate = DEFAULT_SAMPLE_RATE,
     .alg = MD_VIBRATO,
     .adp = ad,
     .lfo_freq = 0.2,
     .lfo_depth = 0.50,
-    .min_delay_samps = 0.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE,
-    .max_depth_samps = 7.0 / 1000.0 * (FTYPE)DEFAULT_SAMPLE_RATE,
+    .min_delay_samps = 0.0 / 1000.0 * DEFAULT_SAMPLE_RATE,
+    .max_depth_samps = 7.0 / 1000.0 * DEFAULT_SAMPLE_RATE,
   };
   DSP_callback cb = dsp_init_modulated_delay(params);
 
   return cb;
+}
+
+void
+dsp_modulated_delay_reset(DSP_callback cb)
+{
+  ugen_reset_phase(cb->state.modulated_delay.lfo);
+  dsp_audio_delay_reset(cb->state.modulated_delay.ad);
 }
 
 void

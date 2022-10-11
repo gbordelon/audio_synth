@@ -88,10 +88,16 @@ dsp_init_envelope_follower_default()
     .detector = detector,
     .filter = filter,
     .fc = 200.0,
-    .fc_max = DEFAULT_SAMPLE_RATE>>1,
+    .fc_max = ((unsigned long)DEFAULT_SAMPLE_RATE)>>1,
     .threshold = pow(10.0, -6.0 / 20.0), // -12 dB
     .sensitivity = 0.3
   };
 
   return dsp_init_envelope_follower(params);
+}
+
+void
+dsp_envelope_follower_reset(DSP_callback cb)
+{
+  dsp_audio_detector_reset(cb->state.envelope_follower.d);
 }

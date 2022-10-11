@@ -27,6 +27,9 @@ typedef struct phase_shifter_t {
 } phase_shifter_params;
 
 void dsp_phase_shifter_set_params(dsp_state *state, phase_shifter_params params);
-void dsp_phase_shifter_cleanup(DSP_callback ps);
+
+void dsp_phase_shifter_reset(DSP_callback cb);
+
+void dsp_phase_shifter_cleanup(DSP_callback cb);
 
 #endif

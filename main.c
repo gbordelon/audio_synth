@@ -117,7 +117,8 @@ main(int argc, char * argv[])
   // first is distortion
   {
   dsp_fx_l = dsp_init_bitcrusher();
-  dsp_set_bitcrusher_param(&dsp_fx_l->state, 5.5);
+  bitcrusher_params bcp = { 5.5 };
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, bcp);
   //gsynth[0]->fx_chain = dsp_add_to_chain(gsynth[0]->fx_chain, dsp_fx_l);
 
   dsp_fx_l = dsp_init_class_a_tube_pre_default();
@@ -164,11 +165,12 @@ main(int argc, char * argv[])
   // telephone style filter uses a LPF at 4k and a HPF at 400
   //add_filter(gmic, dsp_fx, params_af, AF_HPF2, 400.0, 5.707, 0.0);
   //add_filter(gmic, dsp_fx, params_af, AF_LPF2, 4000.0, 5.707, 0.0);
-
+  {
   dsp_fx_l = dsp_init_bitcrusher();
-  dsp_set_bitcrusher_param(&dsp_fx_l->state, 7.5);
+  bitcrusher_params bcp = { 7.5 };
+  dsp_set_bitcrusher_param(&dsp_fx_l->state, bcp);
   //gmic->fx_chain = dsp_add_to_chain(gmic->fx_chain, dsp_fx_l);
-
+  }
 /* end gmic */
 
   printf("instrument initialized.\n");

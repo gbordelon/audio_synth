@@ -9,6 +9,7 @@
 #include "audio_detector.h"
 #include "audio_filter.h"
 #include "biquad.h"
+#include "bitcrusher.h"
 #include "class_a_tube_pre.h"
 #include "envelope_follower.h"
 #include "modulated_delay.h"
@@ -20,11 +21,9 @@
 #include "waveshaper.h"
 
 typedef union dsp_state_u {
-  struct {
-    FTYPE quantized_bit_depth;
-  } bitcrusher;
-  audio_filter_params audio_filter;
+  bitcrusher_params bitcrusher;
   audio_delay_params audio_delay;
+  audio_filter_params audio_filter;
   audio_detector_params audio_detector;
   class_a_tube_pre_params class_a_tube_pre;
   envelope_follower_params envelope_follower;

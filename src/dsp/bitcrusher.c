@@ -20,17 +20,18 @@ stereo_bitcrush(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
 }
 
 void
-dsp_set_bitcrusher_param(dsp_state *state, double quantized_bit_depth)
+dsp_set_bitcrusher_param(dsp_state *state, bitcrusher_params params)
 {
-  state->bitcrusher.quantized_bit_depth = 2.0 / (pow(2.0, quantized_bit_depth) - 1.0);
+  state->bitcrusher.quantized_bit_depth = 2.0 / (pow(2.0, params.quantized_bit_depth) - 1.0);
 }
 
 DSP_callback
 dsp_init_bitcrusher()
 {
+  bitcrusher_params params = { 4.0 };
   DSP_callback cb = dsp_init();
   dsp_set_stereo(cb, stereo_bitcrush);
-  dsp_set_bitcrusher_param(&cb->state, 4.0);
+  dsp_set_bitcrusher_param(&cb->state, params);
 
   return cb;
 }

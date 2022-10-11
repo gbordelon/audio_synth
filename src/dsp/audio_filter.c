@@ -505,7 +505,7 @@ dsp_audio_filter_set_params(
   state->audio_filter.fc = params.fc;
   state->audio_filter.boost_cut_db = params.boost_cut_db;
   state->audio_filter.q =
-      params.q <= 0
+      params.q <= 0.0
       ? 0.707
       : params.q;
 

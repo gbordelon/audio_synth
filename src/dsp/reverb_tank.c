@@ -70,6 +70,23 @@ stereo_reverb(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
 }
 
 void
+dsp_reverb_tank_reset(DSP_callback cb)
+{
+  int i;
+  for (i = 0; i < NUM_BRANCHES; i++) {
+    if (cb->state.reverb_tank.branch_delays[i]) {
+      simple_delay_reset(cb->state.reverb_tank.branch_delays[i]);
+    }
+    if (cb->state.reverb_tank.nested_branch_delays[i]) {
+      delay_apf_reset(cb->state.reverb_tank.nested_branch_delays[i]);
+    }
+  }
+  if (cb->state.reverb_tank.pre_delay) {
+    simple_delay_reset(cb->state.reverb_tank.pre_delay);
+  }
+}
+
+void
 reverb_tank_cleanup_helper(dsp_state *state)
 {
   int i;

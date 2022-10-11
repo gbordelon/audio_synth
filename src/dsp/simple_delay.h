@@ -24,6 +24,8 @@ typedef struct simple_delay_t {
 } *Simple_delay;
 
 Simple_delay simple_delay_init(uint32_t delay_samps, FTYPE sample_rate);
+
+void simple_delay_reset(Simple_delay sd);
 void simple_delay_cleanup(Simple_delay sd);
 
 FTYPE simple_delay_read(Simple_delay sd);

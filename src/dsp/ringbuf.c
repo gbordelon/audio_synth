@@ -49,6 +49,12 @@ ringbuf_flush(Ringbuf rb)
   memset(rb->buf, 0, rb->buf_len * sizeof(FTYPE));
 }
 
+void
+ringbuf_reset(Ringbuf rb)
+{
+  ringbuf_flush(rb);
+}
+
 FTYPE
 _ringbuf_read(Ringbuf rb, int32_t delay_in_samples)
 {
