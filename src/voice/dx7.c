@@ -357,6 +357,686 @@ dx7_play_sample(MonoVoice mv, FTYPE *L, FTYPE *R)
     *L += rv * (1.0 - mv->ops[0]->pan);
     *R += rv * (mv->ops[0]->pan);
     break;
+  case DX7_7:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L += rv * (1.0 - mv->ops[0]->pan);
+    *R += rv * (mv->ops[0]->pan);
+    break;
+  case DX7_8:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    // sample 4
+    rv += operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // feedback for 4
+    operator_set_mod(mv->ops[3], rv * mv->params.dx7.fback_s / mv->ops[3]->gain_c);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L += rv * (1.0 - mv->ops[0]->pan);
+    *R += rv * (mv->ops[0]->pan);
+    break;
+  case DX7_9:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    // sample 4
+    rv += operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // feedback for 2
+    operator_set_mod(mv->ops[1], rv * mv->params.dx7.fback_s / mv->ops[1]->gain_c);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L += rv * (1.0 - mv->ops[0]->pan);
+    *R += rv * (mv->ops[0]->pan);
+    break;
+  case DX7_10:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    // prepare 2
+    operator_set_mod(mv->ops[1], rv);
+    // feedback for 3
+    operator_set_mod(mv->ops[2], rv * mv->params.dx7.fback_s / mv->ops[2]->gain_c);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L += rv * (1.0 - mv->ops[3]->pan);
+    *R += rv * (mv->ops[3]->pan);
+    break;
+  case DX7_11:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    // prepare 2
+    operator_set_mod(mv->ops[1], rv);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L += rv * (1.0 - mv->ops[3]->pan);
+    *R += rv * (mv->ops[3]->pan);
+    break;
+  case DX7_12:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // sample 4
+    rv += operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // feedback for 2
+    operator_set_mod(mv->ops[1], rv * mv->params.dx7.fback_s / mv->ops[1]->gain_c);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    break;
+  case DX7_13:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // sample 4
+    rv += operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    break;
+  case DX7_14:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    break;
+  case DX7_15:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // feedback for 2
+    operator_set_mod(mv->ops[1], rv * mv->params.dx7.fback_s / mv->ops[1]->gain_c);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    break;
+  case DX7_16:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    // sample 3
+    rv += operator_sample(mv->ops[2], mv->sustain);
+    // sample 2
+    rv += operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_17:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // feedback for 2
+    operator_set_mod(mv->ops[1], rv * mv->params.dx7.fback_s / mv->ops[1]->gain_c);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // sample 3
+    rv += operator_sample(mv->ops[2], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_18:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    // feedback for 3
+    operator_set_mod(mv->ops[2], rv * mv->params.dx7.fback_s / mv->ops[2]->gain_c);
+    // sample 4
+    rv += operator_sample(mv->ops[3], mv->sustain);
+    // sample 2
+    rv += operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_19:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    // prepare 2
+    operator_set_mod(mv->ops[1], rv);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    *L = rv * (1.0 - mv->ops[4]->pan);
+    *R = rv * (mv->ops[4]->pan);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L += rv * (1.0 - mv->ops[3]->pan);
+    *R += rv * (mv->ops[3]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L += rv * (1.0 - mv->ops[0]->pan);
+    *R += rv * (mv->ops[0]->pan);
+    break;
+  case DX7_20:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    // prepare 2
+    operator_set_mod(mv->ops[1], rv);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // feedback for 3
+    operator_set_mod(mv->ops[2], rv * mv->params.dx7.fback_s / mv->ops[2]->gain_c);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L = rv * (1.0 - mv->ops[3]->pan);
+    *R = rv * (mv->ops[3]->pan);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L += rv * (1.0 - mv->ops[1]->pan);
+    *R += rv * (mv->ops[1]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_21:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    // prepare 2
+    operator_set_mod(mv->ops[1], rv);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // feedback for 3
+    operator_set_mod(mv->ops[2], rv * mv->params.dx7.fback_s / mv->ops[2]->gain_c);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    *L = rv * (1.0 - mv->ops[4]->pan);
+    *R = rv * (mv->ops[4]->pan);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L = rv * (1.0 - mv->ops[3]->pan);
+    *R = rv * (mv->ops[3]->pan);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L += rv * (1.0 - mv->ops[1]->pan);
+    *R += rv * (mv->ops[1]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_22:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    *L += rv * (1.0 - mv->ops[4]->pan);
+    *R += rv * (mv->ops[4]->pan);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L += rv * (1.0 - mv->ops[3]->pan);
+    *R += rv * (mv->ops[3]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_23:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    // prepare 2
+    operator_set_mod(mv->ops[1], rv);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    *L = rv * (1.0 - mv->ops[4]->pan);
+    *R = rv * (mv->ops[4]->pan);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L = rv * (1.0 - mv->ops[3]->pan);
+    *R = rv * (mv->ops[3]->pan);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L += rv * (1.0 - mv->ops[1]->pan);
+    *R += rv * (mv->ops[1]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_24:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    *L += rv * (1.0 - mv->ops[4]->pan);
+    *R += rv * (mv->ops[4]->pan);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L += rv * (1.0 - mv->ops[3]->pan);
+    *R += rv * (mv->ops[3]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L = rv * (1.0 - mv->ops[1]->pan);
+    *R = rv * (mv->ops[1]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_25:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    *L = rv * (1.0 - mv->ops[4]->pan);
+    *R = rv * (mv->ops[4]->pan);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L = rv * (1.0 - mv->ops[3]->pan);
+    *R = rv * (mv->ops[3]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L = rv * (1.0 - mv->ops[2]->pan);
+    *R = rv * (mv->ops[2]->pan);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L += rv * (1.0 - mv->ops[1]->pan);
+    *R += rv * (mv->ops[1]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_26:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    // prepare 2
+    operator_set_mod(mv->ops[1], rv);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L += rv * (1.0 - mv->ops[3]->pan);
+    *R += rv * (mv->ops[3]->pan);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L = rv * (1.0 - mv->ops[1]->pan);
+    *R = rv * (mv->ops[1]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_27:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // sample 5
+    rv += operator_sample(mv->ops[4], mv->sustain);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    // prepare 2
+    operator_set_mod(mv->ops[1], rv);
+    // feedback for 3
+    operator_set_mod(mv->ops[2], rv * mv->params.dx7.fback_s / mv->ops[2]->gain_c);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L = rv * (1.0 - mv->ops[3]->pan);
+    *R = rv * (mv->ops[3]->pan);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L += rv * (1.0 - mv->ops[1]->pan);
+    *R += rv * (mv->ops[1]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_28:
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    // feedback for 5
+    operator_set_mod(mv->ops[4], rv * mv->params.dx7.fback_s / mv->ops[4]->gain_c);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    // prepare 1
+    operator_set_mod(mv->ops[0], rv);
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    *L += rv * (1.0 - mv->ops[5]->pan);
+    *R += rv * (mv->ops[5]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_29:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    *L = rv * (1.0 - mv->ops[4]->pan);
+    *R = rv * (mv->ops[4]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L += rv * (1.0 - mv->ops[1]->pan);
+    *R += rv * (mv->ops[1]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L += rv * (1.0 - mv->ops[0]->pan);
+    *R += rv * (mv->ops[0]->pan);
+    break;
+  case DX7_30:
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    // feedback for 5
+    operator_set_mod(mv->ops[4], rv * mv->params.dx7.fback_s / mv->ops[4]->gain_c);
+    // prepare 4
+    operator_set_mod(mv->ops[3], rv);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    // prepare 3
+    operator_set_mod(mv->ops[2], rv);
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    *L += rv * (1.0 - mv->ops[5]->pan);
+    *R += rv * (mv->ops[5]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L += rv * (1.0 - mv->ops[2]->pan);
+    *R += rv * (mv->ops[2]->pan);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L = rv * (1.0 - mv->ops[1]->pan);
+    *R = rv * (mv->ops[1]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
+  case DX7_31:
+    // sample 6
+    rv = operator_sample(mv->ops[5], mv->sustain);
+    // prepare 5
+    operator_set_mod(mv->ops[4], rv);
+    // feedback for 6
+    operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
+    // sample 5
+    rv = operator_sample(mv->ops[4], mv->sustain);
+    *L = rv * (1.0 - mv->ops[4]->pan);
+    *R = rv * (mv->ops[4]->pan);
+    // sample 4
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L = rv * (1.0 - mv->ops[3]->pan);
+    *R = rv * (mv->ops[3]->pan);
+    // sample 3
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L = rv * (1.0 - mv->ops[2]->pan);
+    *R = rv * (mv->ops[2]->pan);
+    // sample 2
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L = rv * (1.0 - mv->ops[1]->pan);
+    *R = rv * (mv->ops[1]->pan);
+    // sample 1
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
+    break;
   default:
   // fall through
   case DX7_32:
@@ -364,21 +1044,21 @@ dx7_play_sample(MonoVoice mv, FTYPE *L, FTYPE *R)
     operator_set_mod(mv->ops[5], rv * mv->params.dx7.fback_s / mv->ops[5]->gain_c);
     *L = rv * (1.0 - mv->ops[5]->pan);
     *R = rv * (mv->ops[5]->pan);
-    rv = operator_sample(mv->ops[0], mv->sustain);
-    *L = rv * (1.0 - mv->ops[0]->pan);
-    *R = rv * (mv->ops[0]->pan);
-    rv = operator_sample(mv->ops[1], mv->sustain);
-    *L = rv * (1.0 - mv->ops[1]->pan);
-    *R = rv * (mv->ops[1]->pan);
-    rv = operator_sample(mv->ops[2], mv->sustain);
-    *L = rv * (1.0 - mv->ops[2]->pan);
-    *R = rv * (mv->ops[2]->pan);
-    rv = operator_sample(mv->ops[3], mv->sustain);
-    *L = rv * (1.0 - mv->ops[3]->pan);
-    *R = rv * (mv->ops[3]->pan);
     rv = operator_sample(mv->ops[4], mv->sustain);
     *L = rv * (1.0 - mv->ops[4]->pan);
     *R = rv * (mv->ops[4]->pan);
+    rv = operator_sample(mv->ops[3], mv->sustain);
+    *L = rv * (1.0 - mv->ops[3]->pan);
+    *R = rv * (mv->ops[3]->pan);
+    rv = operator_sample(mv->ops[2], mv->sustain);
+    *L = rv * (1.0 - mv->ops[2]->pan);
+    *R = rv * (mv->ops[2]->pan);
+    rv = operator_sample(mv->ops[1], mv->sustain);
+    *L = rv * (1.0 - mv->ops[1]->pan);
+    *R = rv * (mv->ops[1]->pan);
+    rv = operator_sample(mv->ops[0], mv->sustain);
+    *L = rv * (1.0 - mv->ops[0]->pan);
+    *R = rv * (mv->ops[0]->pan);
     break;
   }
 }
