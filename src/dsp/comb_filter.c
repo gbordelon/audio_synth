@@ -56,6 +56,12 @@ comb_filter_cleanup(Comb_filter cf)
   comb_filter_free(cf);
 }
 
+void
+comb_filter_reset(Comb_filter cf)
+{
+  ringbuf_reset(cf->buf);
+}
+
 FTYPE
 comb_filter_process(Comb_filter cf, FTYPE xn)
 {

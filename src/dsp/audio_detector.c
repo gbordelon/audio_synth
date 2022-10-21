@@ -53,7 +53,7 @@ dsp_audio_detector_set_params(
     audio_detector_params params)
 {
   if (params.sample_rate < DEFAULT_SAMPLE_RATE) {
-    params.sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE;
+    params.sample_rate = DEFAULT_SAMPLE_RATE;
   }
   state->audio_detector.sample_rate = params.sample_rate;
   state->audio_detector.attack_time = exp(AUDIO_DETECTOR_ENVELOPE_ANALOG_TC / (params.attack_time * params.sample_rate * 0.001));
@@ -79,7 +79,7 @@ DSP_callback
 dsp_init_audio_detector_default()
 {
   audio_detector_params params = {
-    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
+    .sample_rate = DEFAULT_SAMPLE_RATE,
     .attack_time = 1.0,
     .release_time = 1.0,
     .detect_mode = AUDIO_DETECTOR_MODE_PEAK,

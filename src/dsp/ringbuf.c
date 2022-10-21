@@ -25,23 +25,6 @@ ringbuf_cleanup(Ringbuf rb)
   ringbuf_free(rb);
 }
 
-Ringbuf
-ringbuf_init(uint32_t buf_len)
-{
-  Ringbuf rb = ringbuf_alloc();
-  rb->buf_len = (size_t)pow(2.0, ceil(log2(buf_len)));
-  rb->wrap_mask = rb->buf_len - 1;
-  rb->buf = calloc(rb->buf_len, sizeof(FTYPE));
-
-  return rb;
-}
-
-Ringbuf
-ringbuf_init_default()
-{
-  return ringbuf_init(DEFAULT_SAMPLE_RATE * 2); // 2 seconds
-}
-
 void
 ringbuf_flush(Ringbuf rb)
 {
@@ -53,6 +36,37 @@ void
 ringbuf_reset(Ringbuf rb)
 {
   ringbuf_flush(rb);
+}
+
+void
+ringbuf_resize(Ringbuf rb, uint32_t buf_len)
+{
+  buf_len = (uint32_t)pow(2.0, ceil(log2(buf_len)));
+
+  if (buf_len > rb->buf_len) {
+    rb->buf_len = buf_len;
+    rb->wrap_mask = rb->buf_len - 1;
+    rb->buf = realloc(rb->buf, rb->buf_len * sizeof(FTYPE));
+
+    ringbuf_reset(rb);
+  }
+}
+
+Ringbuf
+ringbuf_init(uint32_t buf_len)
+{
+  Ringbuf rb = ringbuf_alloc();
+  rb->buf_len = 0;
+  rb->buf = NULL;
+  ringbuf_resize(rb, buf_len);
+
+  return rb;
+}
+
+Ringbuf
+ringbuf_init_default()
+{
+  return ringbuf_init(DEFAULT_SAMPLE_RATE * 2); // 2 seconds
 }
 
 FTYPE

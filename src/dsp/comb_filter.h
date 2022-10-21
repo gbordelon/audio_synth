@@ -33,6 +33,8 @@ typedef struct comb_filter_t {
 Comb_filter comb_filter_init(uint32_t delay_samps, uint32_t rt60_samps, FTYPE lpf_g, FTYPE sample_rate);
 void comb_filter_cleanup(Comb_filter cf);
 
+void comb_filter_reset(Comb_filter cf);
+
 FTYPE comb_filter_process(Comb_filter cf, FTYPE xn);
 
 #endif

@@ -13,10 +13,10 @@
 FTYPE
 stereo_delay(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
 {
-  double ynL = ringbuf_read(state->audio_delay.bufs[0], state->audio_delay.delay_samps_l);
-  double ynR = ringbuf_read(state->audio_delay.bufs[1], state->audio_delay.delay_samps_r);
-  double dnL = *L + state->audio_delay.feedback * ynL;
-  double dnR = *R + state->audio_delay.feedback * ynR;
+  FTYPE ynL = ringbuf_read(state->audio_delay.bufs[0], state->audio_delay.delay_samps_l);
+  FTYPE ynR = ringbuf_read(state->audio_delay.bufs[1], state->audio_delay.delay_samps_r);
+  FTYPE dnL = *L + state->audio_delay.feedback * ynL;
+  FTYPE dnR = *R + state->audio_delay.feedback * ynR;
 
   if (state->audio_delay.alg == AD_NORMAL) {
     ringbuf_write(state->audio_delay.bufs[0], dnL); 
@@ -32,31 +32,39 @@ stereo_delay(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
   return control;
 }
 
-// TODO resizable bufs
 void
 dsp_audio_delay_set_params(
     dsp_state *state,
     audio_delay_params params)
 {
-  Ringbuf rb0, rb1;
+  Ringbuf rb;
+
+  rb = state->audio_delay.bufs[0];
+  if (!rb || state->audio_delay.delay_samps_l != params.delay_samps_l) {
+    if (rb) {
+      ringbuf_resize(rb, params.delay_samps_l * 2);
+    } else {
+      rb = ringbuf_init(params.delay_samps_l * 2); // 2 secs of buffer
+      state->audio_delay.bufs[0] = rb;
+    }
+  }
+
+  rb = state->audio_delay.bufs[1];
+  if (!rb || state->audio_delay.delay_samps_r != params.delay_samps_r) {
+    if (rb) {
+      ringbuf_resize(rb, params.delay_samps_r * 2);
+    } else {
+      rb = ringbuf_init(params.delay_samps_r * 2); // 2 secs of buffer
+      state->audio_delay.bufs[1] = rb;
+    }
+  }
 
   if (params.sample_rate < DEFAULT_SAMPLE_RATE) {
     params.sample_rate = DEFAULT_SAMPLE_RATE;
   }
-
-  if (state->audio_delay.bufs[0]) {
-    rb0 = state->audio_delay.bufs[0];
-  } else {
-    rb0 = ringbuf_init(params.sample_rate * 2); // 2 secs of buffer
-  }
-  if (state->audio_delay.bufs[1]) {
-    rb1 = state->audio_delay.bufs[1];
-  } else {
-    rb1 = ringbuf_init(params.sample_rate * 2); // 2 secs of buffer
-  }
+  params.bufs[0] = state->audio_delay.bufs[0];
+  params.bufs[1] = state->audio_delay.bufs[1];
   state->audio_delay = params;
-  state->audio_delay.bufs[0] = rb0;
-  state->audio_delay.bufs[1] = rb1;
 }
 
 DSP_callback

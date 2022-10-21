@@ -126,7 +126,7 @@ DSP_callback
 dsp_init_phase_shifter_default()
 {
   phase_shifter_params params = {
-    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
+    .sample_rate = DEFAULT_SAMPLE_RATE,
     .lfo_rate = 0.5,
     .lfo_scale = 0.7,
     .intensity = 0.85,

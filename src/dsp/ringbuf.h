@@ -17,6 +17,8 @@ Ringbuf ringbuf_init_default();
 void ringbuf_reset(Ringbuf rb);
 void ringbuf_cleanup(Ringbuf rb);
 
+void ringbuf_resize(Ringbuf rb, uint32_t buf_len);
+
 FTYPE ringbuf_read(Ringbuf rb, FTYPE delay_in_samples);
 void ringbuf_write(Ringbuf rb, FTYPE sample);
 

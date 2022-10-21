@@ -76,6 +76,9 @@ delay_apf_reset(Delay_apf apf)
 {
   simple_delay_reset(apf->sd);
   ugen_reset_phase(apf->lfo);
+  if (apf->nested_apf) {
+    delay_apf_reset(apf->nested_apf);
+  }
 }
 
 void

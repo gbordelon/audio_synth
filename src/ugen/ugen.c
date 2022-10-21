@@ -135,14 +135,16 @@ ugen_set_freq(Ugen ugen, FTYPE freq)
 void
 ugen_set_sample_rate(Ugen ugen, FTYPE sample_rate)
 {
+  sample_rate =
+      sample_rate < DEFAULT_SAMPLE_RATE
+      ? DEFAULT_SAMPLE_RATE
+      : sample_rate;
+
   ugen->p_inc_whole = floor(ugen->p_inc_whole * ugen->sample_rate / sample_rate);
   ugen->p_inc_frac = fmod(ugen->p_inc_frac * ugen->sample_rate / sample_rate, 1);
   ugen->p_inc *= ugen->sample_rate / sample_rate;
 
-  ugen->sample_rate =
-      sample_rate < DEFAULT_SAMPLE_RATE
-      ? DEFAULT_SAMPLE_RATE
-      : sample_rate;
+  ugen->sample_rate = sample_rate;
 }
 
 void

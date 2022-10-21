@@ -84,7 +84,7 @@ main(int argc, char * argv[])
 
   {
   dsp_fx_l = dsp_init_reverb_tank_default();
-  //gsynth[0]->fx_chain = dsp_add_to_chain(gsynth[0]->fx_chain, dsp_fx_l);
+  gsynth[0]->fx_chain = dsp_add_to_chain(gsynth[0]->fx_chain, dsp_fx_l);
   }
 
   // last is delay
