@@ -13,7 +13,7 @@
 FTYPE
 stereo_bitcrush(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)
 {
-  double QL = state->bitcrusher.quantized_bit_depth;
+  FTYPE QL = state->bitcrusher.quantized_bit_depth;
   *L = QL * ((int)(*L / QL));
   *R = QL * ((int)(*R / QL));
   return control;
