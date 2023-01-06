@@ -3,6 +3,7 @@
 #include <porttime.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "../lib/macros.h"
 #include "midi.h"
@@ -34,6 +35,8 @@ handle_midi_in(PmMessage data)
   int command;    /* the current command */
   int chan;   /* the midi channel of the current event */
   int len;    /* used to get constant field width */
+  static sysex_msg_idx = 0;
+  static my_midi_data midi_data = { 0 };
 
   /* printf("handle_midi_in data %8x; ", data); */
 
@@ -41,27 +44,43 @@ handle_midi_in(PmMessage data)
   chan = Pm_MessageStatus(data) & MIDI_CHN_MASK;
 
   if (in_sysex || Pm_MessageStatus(data) == MIDI_SYSEX) {
-#define sysex_max 16
     int i;
     PmMessage data_copy = data;
     in_sysex = true;
+    if (sysex_msg_idx < (sysex_max >> 2)) {
+      midi_data.u.data[sysex_msg_idx] = data;
+    }
     /* look for MIDI_EOX in first 3 bytes
      * if realtime messages are embedded in sysex message, they will
      * be printed as if they are part of the sysex message
      */
-    for (i = 0; (i < 4) && ((data_copy & 0xFF) != MIDI_EOX); i++)
+    for (i = 0; (i < 4) && ((data_copy & 0xFF) != MIDI_EOX); i++) {
       data_copy >>= 8;
+    }
+
+    if (sysex_msg_idx < (sysex_max >> 2)) {
+      midi_data.sysex_size += i;
+    }
+    sysex_msg_idx++;
+
     if (i < 4) {
       in_sysex = false;
-      i++; /* include the EOX byte in output */
+      if (midi_data.sysex_size < sysex_max) {
+        midi_data.sysex_size++; /* include the EOX byte in output */
+      }
+      Pm_Enqueue(midi_to_main, &midi_data);
+      memset(&midi_data, 0, sizeof(struct my_midi_st));
+      sysex_msg_idx = 0;
+    } else if (sysex_msg_idx >= (sysex_max >> 2)) {
+      // sysex message is larger than we can read...
     }
     //showbytes(data, i, verbose);
   } else if (command == MIDI_ON_NOTE) {
-    Pm_Enqueue(midi_to_main, &data);
+    Pm_Enqueue(midi_to_main, &midi_data);
   } else if (command == MIDI_OFF_NOTE) {
-    Pm_Enqueue(midi_to_main, &data);
+    Pm_Enqueue(midi_to_main, &midi_data);
   } else if (command == MIDI_CH_PROGRAM) {
-    Pm_Enqueue(midi_to_main, &data);
+    Pm_Enqueue(midi_to_main, &midi_data);
   } else if (command == MIDI_CTRL) {
     /* controls 121 (MIDI_RESET_CONTROLLER) to 127 are channel mode messages. */
     if (Pm_MessageData1(data) < MIDI_ALL_SOUND_OFF) {
@@ -210,7 +229,7 @@ midi_listener_init()
     return NULL;
   }
 
-  midi_to_main = Pm_QueueCreate(64, sizeof(int32_t));
+  midi_to_main = Pm_QueueCreate(64, sizeof(struct my_midi_st));
   return midi_to_main;
 }
 

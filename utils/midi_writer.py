@@ -24,9 +24,20 @@ arpeggio_roots = [42, 39, 38, 44]
 velocity_arp = [120, 90, 70, 60]
 delay_arp = 0.2
 
+sysex_msgs = [
+  b'\xF0\x7D\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1F\x1E\x1D\xF7',
+  b'\xF0\x7D\x10\x11\x12\x13\x14\x15\x16\xF7',
+  b'\xF0\xF7'
+]
+
 def init():
   midi.init()
   print('initialized pygame midi')
+
+def sysex(output):
+  while True:
+    output.write_sys_ex(midi.time(), random.choice(sysex_msgs))
+    time.sleep(delay_arp * 5)
 
 def arpeggiator(output):
   while True:
@@ -96,7 +107,8 @@ if __name__ == '__main__':
   time.sleep(0.01)
 
   try:
-    random_loop(output)
+    sysex(output)
+    #random_loop(output)
     #arpeggiator(output)
   except KeyboardInterrupt:
     # turn off all notes

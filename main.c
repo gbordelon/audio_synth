@@ -191,36 +191,49 @@ main(int argc, char * argv[])
 
   voice_note_on(gmic, 30, 127);
 
-  int32_t msg;
+  my_midi_data msg_raw;
+  int32_t *msg = (int32_t *)&(msg_raw.u.data[0]);
   int command;    /* the current command */
   uint8_t note_ind;
   int spin;
   int num_active_notes = 0;
   int instrument_select = 0;
+  int i;
   for (;;) {
     // read midi messages
-    spin = Pm_Dequeue(midi_to_main, &msg);
+    spin = Pm_Dequeue(midi_to_main, &msg_raw);
     if (spin) {
-      command = Pm_MessageStatus(msg) & MIDI_CODE_MASK;
-      if (command == MIDI_ON_NOTE) {
-        if (active_voices[instrument_select][Pm_MessageData1(msg)] == 64) {
-          note_ind = voice_note_on(gsynth[instrument_select], Pm_MessageData1(msg), Pm_MessageData2(msg));
-          active_voices[instrument_select][Pm_MessageData1(msg)] = note_ind;
+      command = Pm_MessageStatus(*msg) & MIDI_CODE_MASK;
+
+      if (command == MIDI_SYSEX || msg_raw.sysex_size > 0) {
+        printf("sysex_size %u: msg:", msg_raw.sysex_size);
+        int j;
+        for (j = 0; j < msg_raw.sysex_size; j++) {
+          if (j % 4 == 0) {
+            printf(" ");
+          }
+          printf("%2x", msg_raw.u.sysex_data[j]);
+        }
+        printf("\n");
+      } else if (command == MIDI_ON_NOTE) {
+        if (active_voices[instrument_select][Pm_MessageData1(*msg)] == 64) {
+          note_ind = voice_note_on(gsynth[instrument_select], Pm_MessageData1(*msg), Pm_MessageData2(*msg));
+          active_voices[instrument_select][Pm_MessageData1(*msg)] = note_ind;
           num_active_notes++;
         } else {
         }
       } else if (command == MIDI_OFF_NOTE) {
-        if (active_voices[instrument_select][Pm_MessageData1(msg)] < 64) {
-          voice_note_off(gsynth[instrument_select], active_voices[instrument_select][Pm_MessageData1(msg)]);
-          active_voices[instrument_select][Pm_MessageData1(msg)] = 64;
+        if (active_voices[instrument_select][Pm_MessageData1(*msg)] < 64) {
+          voice_note_off(gsynth[instrument_select], active_voices[instrument_select][Pm_MessageData1(*msg)]);
+          active_voices[instrument_select][Pm_MessageData1(*msg)] = 64;
           num_active_notes--;
         }
       } else if (command == MIDI_CTRL) {
-        if (Pm_MessageData1(msg) < MIDI_ALL_SOUND_OFF) {
+        if (Pm_MessageData1(*msg) < MIDI_ALL_SOUND_OFF) {
         } else {
         }
       } else if (command == MIDI_CH_PROGRAM) {
-        instrument_select = Pm_MessageData1(msg);
+        instrument_select = Pm_MessageData1(*msg);
       }
     }
   }

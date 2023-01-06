@@ -172,6 +172,16 @@ static const FTYPE midi_note_to_freq_table[128] = {
 //  13289.75
 };
 
+// TODO support ariable length sysex messages by including message length in the messages.
+#define sysex_max 16
+typedef struct my_midi_st {
+  uint8_t sysex_size;
+  union {
+    PmMessage data[sysex_max >> 2];
+    uint8_t sysex_data[sysex_max];
+  } u;
+} my_midi_data;
+
 PmQueue *midi_listener_init();
 void midi_cleanup();
 
