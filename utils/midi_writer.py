@@ -40,6 +40,7 @@ def sysex(output):
     time.sleep(delay_arp * 5)
 
 def arpeggiator(output):
+  global current_instrument
   while True:
     for arp, root in zip([arpeggio1, arpeggio2, arpeggio3, arpeggio4], arpeggio_roots):
       notes_on[current_instrument].append(root)
@@ -53,6 +54,8 @@ def arpeggiator(output):
         time.sleep(delay_arp/2)
       output.note_off(notes_on[current_instrument][0], 64)
       del notes_on[current_instrument][0]
+      current_instrument = random.randint(0,1)
+      output.set_instrument(current_instrument)
 
 def random_loop(output):
   global note_choice
@@ -107,9 +110,9 @@ if __name__ == '__main__':
   time.sleep(0.01)
 
   try:
-    sysex(output)
+    #sysex(output)
     #random_loop(output)
-    #arpeggiator(output)
+    arpeggiator(output)
   except KeyboardInterrupt:
     # turn off all notes
     output.set_instrument(0)

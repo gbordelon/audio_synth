@@ -76,10 +76,13 @@ handle_midi_in(PmMessage data)
     }
     //showbytes(data, i, verbose);
   } else if (command == MIDI_ON_NOTE) {
+    midi_data.u.data[sysex_msg_idx] = data;
     Pm_Enqueue(midi_to_main, &midi_data);
   } else if (command == MIDI_OFF_NOTE) {
+    midi_data.u.data[sysex_msg_idx] = data;
     Pm_Enqueue(midi_to_main, &midi_data);
   } else if (command == MIDI_CH_PROGRAM) {
+    midi_data.u.data[sysex_msg_idx] = data;
     Pm_Enqueue(midi_to_main, &midi_data);
   } else if (command == MIDI_CTRL) {
     /* controls 121 (MIDI_RESET_CONTROLLER) to 127 are channel mode messages. */
