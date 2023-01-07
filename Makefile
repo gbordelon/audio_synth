@@ -14,17 +14,15 @@ H_NAMES	:= $(shell find . -name '*.h')
 SYNTH		:= $(TOPDIR)/synth
 FX		:= $(TOPDIR)/fx_proc
 DEPS	:= $(H_NAMES)
-SYNTH_OBJECTS	:= $(shell sed -e 's/.\/src/obj/g' <<< " $(SYNTH_C_NAMES:%.c=%.o) " )
-FX_OBJECTS	:= $(shell sed -e 's/.\/src/obj/g' <<< " $(FX_C_NAMES:%.c=%.o) " )
+SYNTH_OBJECTS	:= $(shell sed -e 's/.\/src/obj/g' <<< " $(SYNTH_C_NAMES:.c=.o) " )
+FX_OBJECTS	:= $(shell sed -e 's/.\/src/obj/g' <<< " $(FX_C_NAMES:.c=.o) " )
 
 .PHONY: all alldefault clean synth fx
 
-synth: $(SYNTH)
-fx: $(FX)
-
-
 $(SYNTH): $(SYNTH_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ -lfftw3 -lportmidi -framework CoreAudio -framework CoreServices -framework AudioUnit -framework AudioToolBox -fno-pie
+
+fx: $(FX)
 
 $(FX): $(FX_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ -lfftw3 -lportmidi -framework CoreAudio -framework CoreServices -framework AudioUnit -framework AudioToolBox -fno-pie
