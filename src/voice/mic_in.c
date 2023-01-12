@@ -45,13 +45,17 @@ mic_in_note_off(MonoVoice mv)
 void
 mic_in_play_chunk(MonoVoice mv, FTYPE bufs[2][CHUNK_SIZE])
 {
-  memcpy(bufs[0], _mic_output_buffer_L + _mic_output_read_index, CHUNK_SIZE * sizeof(FTYPE));
-  memcpy(bufs[1], _mic_output_buffer_R + _mic_output_read_index, CHUNK_SIZE * sizeof(FTYPE));
-  memset(_mic_output_buffer_L + _mic_output_read_index, 0, CHUNK_SIZE * sizeof(FTYPE));
-  memset(_mic_output_buffer_R + _mic_output_read_index, 0, CHUNK_SIZE * sizeof(FTYPE));
-  _mic_output_read_index += CHUNK_SIZE;
+  size_t cpy_amt = CHUNK_SIZE;
+  if ((cpy_amt + _mic_output_read_index) >= CHUNK_SIZE * NUM_CHANNELS * 8) {
+    cpy_amt = CHUNK_SIZE * NUM_CHANNELS * 8 - _mic_output_read_index;
+  }
+  memcpy(bufs[0], _mic_output_buffer_L + _mic_output_read_index, cpy_amt * sizeof(FTYPE));
+  memcpy(bufs[1], _mic_output_buffer_R + _mic_output_read_index, cpy_amt * sizeof(FTYPE));
+  memset(_mic_output_buffer_L + _mic_output_read_index, 0, cpy_amt * sizeof(FTYPE));
+  memset(_mic_output_buffer_R + _mic_output_read_index, 0, cpy_amt * sizeof(FTYPE));
+  _mic_output_read_index += cpy_amt;
   if (_mic_output_read_index >= CHUNK_SIZE * NUM_CHANNELS * 8) {
     _mic_output_read_index = 0;
   }
-  mv->cur_dur += CHUNK_SIZE;
+  mv->cur_dur += cpy_amt;
 }
