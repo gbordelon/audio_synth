@@ -8,6 +8,7 @@
 *.so
 *.wav
 synth
+fx_proc
 DEADBEEF
 
 # Packages #

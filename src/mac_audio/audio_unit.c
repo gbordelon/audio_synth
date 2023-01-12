@@ -8,6 +8,8 @@
 #include <AudioToolbox/AudioToolbox.h>
 
 #include "../lib/macros.h"
+#include "../fx/buffer.h"
+#include "../fx/fx.h"
 #include "../pcm/mixer.h"
 #include "../voice/voice.h"
 
@@ -33,6 +35,12 @@ size_t _mic_output_write_index = 0;
 size_t _mic_output_read_index = 0;
 FTYPE *_mic_output_buffer_L;
 FTYPE *_mic_output_buffer_R;
+FTYPE *_mic_output_buffer_stereo;
+
+static const FTYPE gain = 6.0; // dB
+
+#define fx_unit_input_buffer_idx 0
+#define fx_unit_output_buffer_idx 1
 
 void
 checkStatus(OSStatus status)
@@ -219,8 +227,9 @@ audio_unit_io_init()
     _input_buffer->mBuffers[i].mData = calloc(1, bufferSizeBytes);
   }
 
-  _mic_output_buffer_L = calloc(8 * MMAP_SIZE, sizeof(FTYPE));
-  _mic_output_buffer_R = calloc(8 * MMAP_SIZE, sizeof(FTYPE));
+  //_mic_output_buffer_L = calloc(8 * MMAP_SIZE, sizeof(FTYPE));
+  //_mic_output_buffer_R = calloc(8 * MMAP_SIZE, sizeof(FTYPE));
+  _mic_output_buffer_stereo = calloc(MMAP_SIZE, sizeof(FTYPE));
 #endif
   _output_buffer = calloc(MMAP_SIZE, sizeof(FTYPE));
 
@@ -249,16 +258,21 @@ inputCallback(void *inRefCon,
 
   if (inNumberFrames > 1024) {
     //printf("inputCallback wants to render more than 1024 frames: %d\n", inNumberFrames);
+  } else if (inNumberFrames < 1024) {
+    //printf("inputCallback wants to render less than 1024 frames: %d\n", inNumberFrames);
+  } else {
+    //printf("inputCallback wants to render 1024 frames: %d\n", inNumberFrames);
   }
-  if (_mic_output_write_index >= MMAP_SIZE * 8) {
+
+  if (_mic_output_write_index >= MMAP_SIZE) {
     _mic_output_write_index = 0;
   }
 
   // convert to FTYPE and copy into _mic_output_buffer + _mic_output_index
   UInt32 i;
-  int numSamples = inNumberFrames; // number of frames to copy at 1 channel per frame
+  int numSamples = inNumberFrames; // number of frames to copy at 1 (or 2) channel per frame
   for (i = 0; i < _input_buffer->mNumberBuffers; ++i) { // should only be 1 buffer
-    int samplesLeft = MMAP_SIZE * 8 - _mic_output_write_index; // remaining amount of sample space
+    int samplesLeft = MMAP_SIZE - _mic_output_write_index; // remaining amount of sample space
     int samplesAfterWrap;
 
     if (samplesLeft > 0) {
@@ -285,18 +299,24 @@ inputCallback(void *inRefCon,
       //printf("max sample input for this chunk: %f\n", sqrt(max));
 #else
       if(samplesLeft < numSamples) { // wrap around to the start of the buffer
-        for (samplesAfterWrap = samplesLeft; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index++) {
-          _mic_output_buffer_L[_mic_output_write_index] = *samp;
-          _mic_output_buffer_R[_mic_output_write_index] = *(samp+1);
+        for (samplesAfterWrap = samplesLeft; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index+=2) {
+          //_mic_output_buffer_L[_mic_output_write_index] = *samp;
+          //_mic_output_buffer_R[_mic_output_write_index] = *(samp+1);
+          _mic_output_buffer_stereo[_mic_output_write_index] = *samp * gain;
+          _mic_output_buffer_stereo[_mic_output_write_index + 1] = *(samp+1) * gain;
         }
-        for (samplesAfterWrap = numSamples - samplesLeft, _mic_output_write_index = 0; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index++) {
-          _mic_output_buffer_L[_mic_output_write_index] = *samp;
-          _mic_output_buffer_R[_mic_output_write_index] = *(samp+1);
+        for (samplesAfterWrap = numSamples - samplesLeft, _mic_output_write_index = 0; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index+=2) {
+          //_mic_output_buffer_L[_mic_output_write_index] = *samp;
+          //_mic_output_buffer_R[_mic_output_write_index] = *(samp+1);
+          _mic_output_buffer_stereo[_mic_output_write_index] = *samp * gain;
+          _mic_output_buffer_stereo[_mic_output_write_index + 1] = *(samp+1) * gain;
         }
       } else {
-        for (samplesAfterWrap = numSamples; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index++) {
-          _mic_output_buffer_L[_mic_output_write_index] = *samp;
-          _mic_output_buffer_R[_mic_output_write_index] = *(samp+1);
+        for (samplesAfterWrap = numSamples; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index+=2) {
+          //_mic_output_buffer_L[_mic_output_write_index] = *samp;
+          //_mic_output_buffer_R[_mic_output_write_index] = *(samp+1);
+          _mic_output_buffer_stereo[_mic_output_write_index] = *samp * gain;
+          _mic_output_buffer_stereo[_mic_output_write_index + 1] = *(samp+1) * gain;
         }
       }
 #endif
@@ -312,18 +332,26 @@ static void
 pull_samples()
 {
   // generate a chunk of samples
-  voice_play_chunk(gsynth[0]);
-  voice_play_chunk(gsynth[1]);
-  voice_play_chunk(gmic);
+  //voice_play_chunk(gsynth[0]);
+  //voice_play_chunk(gsynth[1]);
+  //voice_play_chunk(gmic);
+
+  fx_unit_buffer_write_chunk(fx_unit_input_buffer_idx, _mic_output_buffer_stereo, _mic_output_write_index);
 
   // mix chunks into mixer buffer
-  mixer_update(gmix);
+  //mixer_update(gmix);
+  int i;
+  for (i = 0; i < CHUNK_SIZE; i++) {
+    fx_unit_process_frame(fx_unit_output_buffer_idx);
+    fx_unit_reset_output_buffers();
+  }
 
   // copy mixer buffer data to mac audio buffer
-  memcpy(_output_buffer, gmix->write_buf, MMAP_SIZE * sizeof(FTYPE));
+  //memcpy(_output_buffer, gmix->write_buf, MMAP_SIZE * sizeof(FTYPE));
+  fx_unit_buffer_read_chunk(fx_unit_output_buffer_idx, _output_buffer);
 
   // clear mixer buffer
-  memset(gmix->write_buf, 0, MMAP_SIZE * sizeof(FTYPE));
+  //memset(gmix->write_buf, 0, MMAP_SIZE * sizeof(FTYPE));
 }
 
 // called about every 10 millis

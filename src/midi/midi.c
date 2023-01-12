@@ -35,7 +35,7 @@ handle_midi_in(PmMessage data)
   int command;    /* the current command */
   int chan;   /* the midi channel of the current event */
   int len;    /* used to get constant field width */
-  static sysex_msg_idx = 0;
+  static size_t sysex_msg_idx = 0;
   static my_midi_data midi_data = { 0 };
 
   /* printf("handle_midi_in data %8x; ", data); */
