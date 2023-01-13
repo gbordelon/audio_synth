@@ -11,6 +11,7 @@
 #include "control_joiner.h"
 #include "pan.h"
 #include "signal_source.h"
+#include "stereo2mono.h"
 
 #include "../ugen/ugen.h"
 
@@ -40,6 +41,7 @@ typedef enum fx_unit_type_e {
   FX_UNIT_CONTROL_JOINER,
   FX_UNIT_PAN,
   FX_UNIT_SIGNAL_SOURCE,
+  FX_UNIT_STEREO_2_MONO,
 } fx_unit_type;
 
 typedef struct fx_unit_params_t {
@@ -52,7 +54,8 @@ typedef struct fx_unit_params_t {
     fx_unit_control_joiner_params control_joiner;
     fx_unit_pan_params pan;
     fx_unit_signal_source_params signal_source;
-    
+    fx_unit_s2m_params s2m;
+
   } u;
 } fx_unit_params;
 
@@ -77,6 +80,7 @@ typedef struct fx_unit_state_t {
     fx_unit_control_joiner_state control_joiner;
     fx_unit_pan_state pan;
     fx_unit_signal_source_state signal_source;
+    fx_unit_s2m_state s2m;
 
   } u; // actual state
 } fx_unit_state;
