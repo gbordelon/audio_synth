@@ -5,7 +5,7 @@
 #include "../lib/macros.h"
 
 #include "comb_filter.h"
-#include "ringbuf.h"
+#include "../fx/ringbuf.h"
 #include "simple_lpf.h"
 
 /*

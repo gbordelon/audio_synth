@@ -20,4 +20,5 @@ typedef struct fx_unit_params_t *FX_unit_params;
 typedef int16_t fx_unit_idx;
 
 fx_unit_idx fx_unit_pan_init(FX_unit_params params);
+
 #endif

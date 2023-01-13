@@ -32,12 +32,10 @@ main(int argc, char * argv[])
   ugen_generate_tables();
   printf("wavetables generated\n");
 
-/* gmic */
-/* end gmic */
-
   fx_unit_params params = {0};
   params.sample_rate = DEFAULT_SAMPLE_RATE;
 
+/* control signal generator */
   params.t = FX_UNIT_SIGNAL_SOURCE;
   params.u.signal_source.d = FX_SIGNAL_C;
   //params.u.signal_source.t = FX_SIGNAL_CONSTANT;
@@ -52,19 +50,29 @@ main(int argc, char * argv[])
   params.u.signal_source.u.dfo = dfo_init(DEFAULT_SAMPLE_RATE);
   dfo_set_freq(params.u.signal_source.u.dfo, 0.2);
   dfo_set_scale(params.u.signal_source.u.dfo, 0.0, 1.0);
-
   fx_unit_idx signal_source = fx_unit_signal_source_init(&params);
   // no parents
+/* */
 
+/* audio delay */
+  params = fx_unit_audio_delay_default();
+  fx_unit_idx audio_delay = fx_unit_audio_delay_init(&params);
+  // one parent, the mac audio input buffer
+  fx_unit_add_parent_ref(audio_delay, 0);
+/* */
+
+/* control signal joiner */
   memset(&params.u, 0, sizeof(params.u));
   params.t = FX_UNIT_CONTROL_JOINER;
   fx_unit_idx control_joiner = fx_unit_control_joiner_init(&params);
   // two parents
-  // 1st is LR channels (from buffer)
-  fx_unit_add_parent_ref(control_joiner, 0);
+  // 1st is LR channels (from audio delay)
+  fx_unit_add_parent_ref(control_joiner, audio_delay);
   // 2nd is C channel (signal source)
   fx_unit_add_parent_ref(control_joiner, signal_source);
+/* */
 
+/* panner */
   memset(&params.u, 0, sizeof(params.u));
   params.t = FX_UNIT_PAN;
   fx_unit_idx pan = fx_unit_pan_init(&params);
@@ -73,6 +81,7 @@ main(int argc, char * argv[])
 
   // adjust current fx chain appropriately
   fx_unit_replace_parent_ref(1, pan);
+/* */
 
   AudioComponentInstance audio_unit_io = audio_unit_io_init();
   printf("AudioUnit io initialized.\n");

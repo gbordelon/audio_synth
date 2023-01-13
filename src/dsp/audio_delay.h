@@ -3,12 +3,13 @@
 
 #include "../lib/macros.h"
 
-#include "ringbuf.h"
+#include "../fx/ringbuf.h"
+#include "../fx/audio_delay.h"
 
 /*
  * Based on code from Designing Audio Effect Plugins in C++ by Pirkle, chapter 14
  */
-
+/*
 typedef enum {
   AD_NORMAL,
   AD_PINGPONG
@@ -18,7 +19,7 @@ typedef enum {
   AD_LEFT_AND_RIGHT,
   AD_LEFT_PLUS_RATIO
 } audio_delay_update_e;
-
+*/
 typedef struct audio_delay_params_t {
   FTYPE sample_rate;
   audio_delay_algorithm alg;

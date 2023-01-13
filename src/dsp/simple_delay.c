@@ -3,7 +3,7 @@
 
 #include "../lib/macros.h"
 
-#include "ringbuf.h"
+#include "../fx/ringbuf.h"
 #include "simple_delay.h"
 
 /*

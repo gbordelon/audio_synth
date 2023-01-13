@@ -5,7 +5,7 @@
 
 #include "../lib/macros.h"
 
-#include "ringbuf.h"
+#include "../fx/ringbuf.h"
 
 /*
  * Based on the description from Designing Audio Effect Plugins in C++ by Pirkle, chapter 17

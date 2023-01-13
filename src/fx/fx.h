@@ -5,6 +5,7 @@
 
 #include "../lib/macros.h"
 
+#include "audio_delay.h"
 #include "buffer.h"
 #include "control_joiner.h"
 #include "pan.h"
@@ -32,6 +33,7 @@ typedef struct lrc_buffer_t {
 
 typedef enum fx_unit_type_e {
   FX_UNIT_UNUSED,
+  FX_UNIT_AUDIO_DELAY,
   FX_UNIT_BUFFER,
   FX_UNIT_CONTROL_JOINER,
   FX_UNIT_PAN,
@@ -42,6 +44,7 @@ typedef struct fx_unit_params_t {
   FTYPE sample_rate;
   fx_unit_type t;
   union {
+    fx_unit_audio_delay_params audio_delay;
     fx_unit_buffer_params buffer;
     fx_unit_control_joiner_params control_joiner;
     fx_unit_pan_params pan;
@@ -65,6 +68,7 @@ typedef struct fx_unit_state_t {
     void (*reset)(struct fx_unit_state_t *, FX_unit_params); // takes pointer to state and pointer to params
   } f; // function pointers for fx_unit interface
   union {
+    fx_unit_audio_delay_state audio_delay;
     fx_unit_buffer_state buffer;
     fx_unit_control_joiner_state control_joiner;
     fx_unit_pan_state pan;

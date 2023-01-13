@@ -1,7 +1,8 @@
-#ifndef RINGBUF_H
-#define RINGBUF_H
+#ifndef FX_RINGBUF_H
+#define FX_RINGBUF_H
 
 #include <stdint.h>
+
 #include "../lib/macros.h"
 
 typedef struct ringbuf_t {
