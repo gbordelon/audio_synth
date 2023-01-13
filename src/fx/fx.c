@@ -90,6 +90,13 @@ fx_unit_cleanup(fx_unit_idx idx)
   }
 }
 
+fx_unit_idx
+fx_unit_replace_parent_ref(fx_unit_idx idx, fx_unit_idx parent_idx)
+{
+  fx_unit_idx rv = fx_unit_head[idx].parents[fx_unit_head[idx].num_parents - 1];
+  fx_unit_head[idx].parents[fx_unit_head[idx].num_parents - 1] = parent_idx;
+}
+
 void
 fx_unit_add_parent_ref(fx_unit_idx idx, fx_unit_idx parent_idx)
 {

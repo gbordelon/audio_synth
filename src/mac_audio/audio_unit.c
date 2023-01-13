@@ -341,9 +341,12 @@ pull_samples()
   // mix chunks into mixer buffer
   //mixer_update(gmix);
   int i;
+//  FTYPE rv[2] = {0};
   for (i = 0; i < CHUNK_SIZE; i++) {
     fx_unit_process_frame(fx_unit_output_buffer_idx);
     fx_unit_reset_output_buffers();
+//    fx_unit_entry_point(rv, fx_unit_output_buffer_idx);
+//    printf("%f %f\n", rv[0], rv[1]);
   }
 
   // copy mixer buffer data to mac audio buffer

@@ -1,6 +1,8 @@
 #ifndef DFO_H
 #define DFO_H
 
+#include <stdbool.h>
+
 #include "../lib/macros.h"
 
 typedef enum {
@@ -21,8 +23,15 @@ typedef enum {
   DF_NUM_STATES
 } dfo_states;
 
+typedef struct dfo_ar_scaler_t {
+  FTYPE bias;
+  FTYPE scale;
+} dfo_rate_converter;
+
 typedef struct dfo_t {
   FTYPE sample_rate;
+  FTYPE freq;
+  dfo_rate_converter conv;
   FTYPE sr_conv;
   FTYPE coeffs[DF_NUM_COEFFS];
   FTYPE states[DF_NUM_STATES];
@@ -34,5 +43,7 @@ void dfo_set_sample_rate(Dfo dfo, FTYPE sample_rate);
 
 void dfo_set_freq(Dfo dfo, FTYPE freq);
 FTYPE dfo_sample(Dfo dfo);
+
+void dfo_set_scale(Dfo dfo, FTYPE low, FTYPE high);
 
 #endif

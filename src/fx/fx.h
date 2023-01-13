@@ -5,6 +5,11 @@
 
 #include "../lib/macros.h"
 
+#include "buffer.h"
+#include "control_joiner.h"
+#include "pan.h"
+#include "signal_source.h"
+
 #include "../ugen/ugen.h"
 
 typedef int16_t fx_unit_idx;
@@ -28,6 +33,9 @@ typedef struct lrc_buffer_t {
 typedef enum fx_unit_type_e {
   FX_UNIT_UNUSED,
   FX_UNIT_BUFFER,
+  FX_UNIT_CONTROL_JOINER,
+  FX_UNIT_PAN,
+  FX_UNIT_SIGNAL_SOURCE,
 } fx_unit_type;
 
 typedef struct fx_unit_params_t {
@@ -35,6 +43,9 @@ typedef struct fx_unit_params_t {
   fx_unit_type t;
   union {
     fx_unit_buffer_params buffer;
+    fx_unit_control_joiner_params control_joiner;
+    fx_unit_pan_params pan;
+    fx_unit_signal_source_params signal_source;
     
   } u;
 } fx_unit_params;
@@ -55,6 +66,10 @@ typedef struct fx_unit_state_t {
   } f; // function pointers for fx_unit interface
   union {
     fx_unit_buffer_state buffer;
+    fx_unit_control_joiner_state control_joiner;
+    fx_unit_pan_state pan;
+    fx_unit_signal_source_state signal_source;
+
   } u; // actual state
 } fx_unit_state;
 
@@ -90,6 +105,7 @@ void fx_unit_cleanup(fx_unit_idx);
 
 lrc_buf fx_unit_idx_to_buf(fx_unit_idx);
 void  fx_unit_add_parent_ref(fx_unit_idx idx, fx_unit_idx parent_idx);
+fx_unit_idx fx_unit_replace_parent_ref(fx_unit_idx idx, fx_unit_idx parent_idx); // returns old parent idx
 
 void fx_unit_entry_point(FTYPE rv[2], fx_unit_idx head);
 void fx_unit_process_frame(fx_unit_idx head); // only used by audio driver

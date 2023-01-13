@@ -5,11 +5,19 @@
 
 #include "../lib/macros.h"
 
-#include "buffer.h"
-#include "fx.h"
+typedef struct fx_unit_pan_state_t {
+} fx_unit_pan_state;
 
-//FTYPE stereo_pan(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control);
+typedef fx_unit_pan_state *FX_unit_pan_state;
 
-//DSP_callback dsp_init_stereo_pan();
+typedef struct fx_unit_pan_params_t {
+} fx_unit_pan_params;
 
+typedef struct fx_unit_pan_params_t *FX_unit_pan_params;
+
+// forward decl
+typedef struct fx_unit_params_t *FX_unit_params;
+typedef int16_t fx_unit_idx;
+
+fx_unit_idx fx_unit_pan_init(FX_unit_params params);
 #endif
