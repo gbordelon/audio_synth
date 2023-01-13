@@ -24,8 +24,6 @@ fx_unit_audio_delay_process_frame(fx_unit_idx idx)
   FTYPE ynR = ringbuf_read(state.bufs[1], state.delay_samps_r);
   FTYPE dnL = src[FX_L] + state.feedback * ynL;
   FTYPE dnR = src[FX_R] + state.feedback * ynR;
-//printf("L: %f %f R:%f %f\n", ynL, dnL, ynR, dnR);
-//printf("%f %f\n", state.delay_samps_l, ynL);
 
   if (state.alg == AD_NORMAL) {
     ringbuf_write(state.bufs[0], dnL); 

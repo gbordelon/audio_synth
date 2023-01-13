@@ -6,6 +6,9 @@
 
 #include "../lib/macros.h"
 
+#include "../fx/audio_detector.h"
+
+/*
 // ln(36.8%)
 #define AUDIO_DETECTOR_ENVELOPE_ANALOG_TC -0.9996723408132061
 
@@ -14,7 +17,7 @@ typedef enum {
   AUDIO_DETECTOR_MODE_MS,
   AUDIO_DETECTOR_MODE_RMS
 } detect_mode_e;
-
+*/
 typedef struct {
   FTYPE sample_rate;
   FTYPE attack_time;
