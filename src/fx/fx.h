@@ -12,6 +12,7 @@
 #include "bitcrusher.h"
 #include "buffer.h"
 #include "control_joiner.h"
+#include "envelope_follower.h"
 #include "pan.h"
 #include "signal_source.h"
 #include "stereo2mono.h"
@@ -44,6 +45,7 @@ typedef enum fx_unit_type_e {
   FX_UNIT_BITCRUSHER,
   FX_UNIT_BUFFER,
   FX_UNIT_CONTROL_JOINER,
+  FX_UNIT_ENVELOPE_FOLLOWER,
   FX_UNIT_PAN,
   FX_UNIT_SIGNAL_SOURCE,
   FX_UNIT_STEREO_2_MONO,
@@ -59,6 +61,7 @@ typedef struct fx_unit_params_t {
     fx_unit_bitcrusher_params bitcrusher;
     fx_unit_buffer_params buffer;
     fx_unit_control_joiner_params control_joiner;
+    fx_unit_envelope_follower_params envelope_follower;
     fx_unit_pan_params pan;
     fx_unit_signal_source_params signal_source;
     fx_unit_s2m_params s2m;
@@ -87,6 +90,7 @@ typedef struct fx_unit_state_t {
     fx_unit_bitcrusher_state bitcrusher;
     fx_unit_buffer_state buffer;
     fx_unit_control_joiner_state control_joiner;
+    fx_unit_envelope_follower_state envelope_follower;
     fx_unit_pan_state pan;
     fx_unit_signal_source_state signal_source;
     fx_unit_s2m_state s2m;
@@ -106,17 +110,9 @@ typedef struct fx_unit_t {
   // effect-specific state data (should include function pointer for populating the buffer)
   fx_unit_state state;
   // state can include a ugen for generating audio data, or control data, or a constant for control data
-} *FX_unit;
+} fx_unit;
 
-/*
- * FX subunits should be objects which help out FX units like the comb filter or delay_apf, etc
- */
-typedef union fx_subunit_state_u {
-} fx_subunit_state;
-
-typedef struct fx_subunit_t {
-  fx_subunit_state state;
-} *FX_subunit;
+typedef fx_unit *FX_unit;
 
 void fx_unit_library_cleanup();
 
@@ -132,7 +128,20 @@ void fx_unit_entry_point(FTYPE rv[2], fx_unit_idx head);
 void fx_unit_process_frame(fx_unit_idx head); // only used by audio driver
 void fx_unit_reset_output_buffers(); // only used by audio driver
 
+
+/*
+ * FX subunits should be objects which help out FX units like the comb filter or delay_apf, etc
+ */
+/*
+typedef union fx_subunit_state_u {
+} fx_subunit_state;
+
+typedef struct fx_subunit_t {
+  fx_subunit_state state;
+} *FX_subunit;
+
 FX_subunit fx_subunit_init();
 FX_subunit fx_subunit_default_init();
+*/
 
 #endif

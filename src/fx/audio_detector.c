@@ -15,6 +15,8 @@ fx_unit_audio_detector_process_frame(fx_unit_idx idx)
 #define dst (fx_unit_head[idx].output_buffer.lrc)
 #define src (fx_unit_head[fx_unit_head[idx].parents[0]].output_buffer.lrc)
 #define state (fx_unit_head[idx].state.u.audio_detector)
+  dst[FX_L] = src[FX_L]; // pass through
+  dst[FX_R] = src[FX_R]; // pass through
   FTYPE input = src[FX_L];
 
   if (state.detect_mode == AUDIO_DETECTOR_MODE_MS ||

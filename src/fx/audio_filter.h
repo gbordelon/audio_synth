@@ -64,9 +64,13 @@ typedef struct fx_unit_audio_filter_params_t {
 typedef struct fx_unit_audio_filter_params_t *FX_unit_audio_filter_params;
 
 // forward decl
+typedef struct fx_unit_state_t *FX_unit_state;
 typedef struct fx_unit_params_t *FX_unit_params;
+typedef struct fx_unit_params_t fx_unit_params;
 typedef int16_t fx_unit_idx;
 
 fx_unit_idx fx_unit_audio_filter_init(FX_unit_params params);
+void fx_unit_audio_filter_set_params(FX_unit_state state, FX_unit_params params);
+fx_unit_params fx_unit_audio_filter_default();
 
 #endif

@@ -38,8 +38,10 @@ typedef fx_unit_audio_detector_params *FX_unit_audio_detector_params;
 
 // forward decl
 typedef struct fx_unit_params_t *FX_unit_params;
+typedef struct fx_unit_params_t fx_unit_params;
 typedef int16_t fx_unit_idx;
 
 fx_unit_idx fx_unit_audio_detector_init(FX_unit_params params);
+fx_unit_params fx_unit_audio_detector_default();
 
 #endif

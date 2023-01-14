@@ -552,5 +552,6 @@ fx_unit_audio_filter_default()
   params.u.audio_filter.q = 0.707;
   params.u.audio_filter.boost_cut_db = 0.0;
   params.u.audio_filter.alg = AF_LPF1;
+
   return params;
 }
