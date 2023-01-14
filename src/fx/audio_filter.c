@@ -547,14 +547,10 @@ fx_unit_audio_filter_default()
 {
   fx_unit_params params = {0};
   params.sample_rate = DEFAULT_SAMPLE_RATE;
-  params.t = FX_UNIT_AUDIO_DELAY;
-  params.u.audio_delay.alg = AD_PINGPONG;
-  params.u.audio_delay.update_type = AD_LEFT_AND_RIGHT;
-  params.u.audio_delay.wet_mix = pow(10.0, -12.0 / 20.0);
-  params.u.audio_delay.dry_mix = pow(10.0, -3.0 / 20.0);
-  params.u.audio_delay.feedback = 0.2;
-  params.u.audio_delay.delay_samps_l = (1000.0 / 1000.0) * DEFAULT_SAMPLE_RATE;
-  params.u.audio_delay.delay_samps_r = (1000.0 / 1000.0) * DEFAULT_SAMPLE_RATE;
-  params.u.audio_delay.delay_ratio = 1.0;
+  params.t = FX_UNIT_AUDIO_FILTER;
+  params.u.audio_filter.fc = 100.0;
+  params.u.audio_filter.q = 0.707;
+  params.u.audio_filter.boost_cut_db = 0.0;
+  params.u.audio_filter.alg = AF_LPF1;
   return params;
 }
