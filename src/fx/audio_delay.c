@@ -131,5 +131,6 @@ fx_unit_audio_delay_default()
   params.u.audio_delay.delay_samps_l = (1000.0 / 1000.0) * DEFAULT_SAMPLE_RATE;
   params.u.audio_delay.delay_samps_r = (1000.0 / 1000.0) * DEFAULT_SAMPLE_RATE;
   params.u.audio_delay.delay_ratio = 1.0;
+
   return params;
 }

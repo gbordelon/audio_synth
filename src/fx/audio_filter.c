@@ -4,8 +4,10 @@
 #include "../lib/macros.h"
 
 #include "audio_filter.h"
-#include "../fx/biquad.h"
-#include "dsp.h"
+#include "biquad.h"
+#include "fx.h"
+
+extern FX_unit fx_unit_head;
 
 /*
  * Based on code from Designing Audio Effect Plugins in C++ by Pirkle, chapter 11
@@ -13,7 +15,7 @@
 
 #define coeffs (params->biquad.coeffs)
 void
-_calculate_filter_coefficients(audio_filter_params *params)
+calculate_filter_coefficients(FX_unit_audio_filter_state params)
 {
   FTYPE A_0,
     A_1,
@@ -481,58 +483,78 @@ _calculate_filter_coefficients(audio_filter_params *params)
 }
 #undef coeffs
 
-#define coeffs (state->audio_filter.biquad.coeffs)
-FTYPE
-mono_filter(FTYPE *L, dsp_state *state, FTYPE control)
+void
+fx_unit_audio_filter_process_frame(fx_unit_idx idx)
 {
-  *L = coeffs[BIQUAD_d0] * *L +
-       coeffs[BIQUAD_c0] * biquad_process_sample(&state->audio_filter.biquad, *L);
-  return control;
-}
+#define dst (fx_unit_head[idx].output_buffer.lrc)
+#define src (fx_unit_head[fx_unit_head[idx].parents[0]].output_buffer.lrc)
+#define coeffs (fx_unit_head[idx].state.u.audio_filter.biquad.coeffs)
+#define bq (fx_unit_head[idx].state.u.audio_filter.biquad)
+  dst[FX_L] = coeffs[BIQUAD_d0] * src[FX_L] +
+       coeffs[BIQUAD_c0] * biquad_process_sample(&bq, src[FX_L]);
+  dst[FX_R] = coeffs[BIQUAD_d0] * src[FX_R] +
+       coeffs[BIQUAD_c0] * biquad_process_sample(&bq, src[FX_R]);
+  dst[FX_C] = src[FX_C]; // pass-thru
+#undef bq
 #undef coeffs
+#undef src
+#undef dst
+}
 
 void
-dsp_audio_filter_set_params(
-    dsp_state *state,
-    audio_filter_params params)
+fx_unit_audio_filter_cleanup(FX_unit_state state)
 {
-  state->audio_filter.sample_rate =
-      params.sample_rate < DEFAULT_SAMPLE_RATE
-      ? DEFAULT_SAMPLE_RATE
-      : params.sample_rate;
-  state->audio_filter.sample_rate_i = 1.0 / state->audio_filter.sample_rate,
-  state->audio_filter.alg = params.alg;
-  state->audio_filter.fc = params.fc;
-  state->audio_filter.boost_cut_db = params.boost_cut_db;
-  state->audio_filter.q =
-      params.q <= 0.0
-      ? 0.707
-      : params.q;
-
-  _calculate_filter_coefficients(&state->audio_filter);
+  // do nothing
 }
 
-DSP_callback
-dsp_init_audio_filter(audio_filter_params params)
+void
+fx_unit_audio_filter_set_params(FX_unit_state state, FX_unit_params params)
 {
-  DSP_callback cb = dsp_init();
-  dsp_audio_filter_set_params(&cb->state, params);
-  dsp_set_mono_left(cb, mono_filter);
+  state->u.audio_filter.sample_rate_i = 1.0 / state->sample_rate,
+  state->u.audio_filter.alg = params->u.audio_filter.alg;
+  state->u.audio_filter.fc = params->u.audio_filter.fc;
+  state->u.audio_filter.boost_cut_db = params->u.audio_filter.boost_cut_db;
+  state->u.audio_filter.q =
+      params->u.audio_filter.q <= 0.0
+      ? 0.707 // -3dB
+      : params->u.audio_filter.q;
 
-  return cb;
+  calculate_filter_coefficients(&state->u.audio_filter);
 }
 
-DSP_callback
-dsp_init_audio_filter_default()
+void
+fx_unit_audio_filter_reset(FX_unit_state state, FX_unit_params params)
 {
-  audio_filter_params params = {
-    .sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE,
-    .fc = 100.0,
-    .q = 0.707,
-    .boost_cut_db = 0,
-    .alg = AF_LPF1
-  };
-  DSP_callback cb = dsp_init_audio_filter(params);
+  state->sample_rate = params->sample_rate;
+  fx_unit_audio_filter_set_params(state, params);
+}
 
-  return cb;
+fx_unit_idx
+fx_unit_audio_filter_init(FX_unit_params params)
+{
+  fx_unit_idx idx = fx_unit_init();
+  fx_unit_head[idx].state.t = params->t;
+  fx_unit_head[idx].state.f.cleanup = fx_unit_audio_filter_cleanup;
+  fx_unit_head[idx].state.f.process_frame = fx_unit_audio_filter_process_frame; 
+  fx_unit_head[idx].state.f.reset = fx_unit_audio_filter_reset;
+
+  fx_unit_audio_filter_reset(&fx_unit_head[idx].state, params);
+  return idx;
+}
+
+fx_unit_params
+fx_unit_audio_filter_default()
+{
+  fx_unit_params params = {0};
+  params.sample_rate = DEFAULT_SAMPLE_RATE;
+  params.t = FX_UNIT_AUDIO_DELAY;
+  params.u.audio_delay.alg = AD_PINGPONG;
+  params.u.audio_delay.update_type = AD_LEFT_AND_RIGHT;
+  params.u.audio_delay.wet_mix = pow(10.0, -12.0 / 20.0);
+  params.u.audio_delay.dry_mix = pow(10.0, -3.0 / 20.0);
+  params.u.audio_delay.feedback = 0.2;
+  params.u.audio_delay.delay_samps_l = (1000.0 / 1000.0) * DEFAULT_SAMPLE_RATE;
+  params.u.audio_delay.delay_samps_r = (1000.0 / 1000.0) * DEFAULT_SAMPLE_RATE;
+  params.u.audio_delay.delay_ratio = 1.0;
+  return params;
 }

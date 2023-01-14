@@ -8,7 +8,7 @@
 #include "audio_delay.h"
 #include "audio_detector.h"
 #include "audio_filter.h"
-#include "biquad.h"
+#include "../fx/biquad.h"
 #include "bitcrusher.h"
 #include "class_a_tube_pre.h"
 #include "envelope_follower.h"

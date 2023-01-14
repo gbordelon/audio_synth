@@ -7,6 +7,8 @@
 
 #include "audio_delay.h"
 #include "audio_detector.h"
+#include "audio_filter.h"
+#include "biquad.h"
 #include "buffer.h"
 #include "control_joiner.h"
 #include "pan.h"
@@ -37,6 +39,7 @@ typedef enum fx_unit_type_e {
   FX_UNIT_UNUSED,
   FX_UNIT_AUDIO_DELAY,
   FX_UNIT_AUDIO_DETECTOR,
+  FX_UNIT_AUDIO_FILTER,
   FX_UNIT_BUFFER,
   FX_UNIT_CONTROL_JOINER,
   FX_UNIT_PAN,
@@ -50,6 +53,7 @@ typedef struct fx_unit_params_t {
   union {
     fx_unit_audio_delay_params audio_delay;
     fx_unit_audio_detector_params audio_detector;
+    fx_unit_audio_filter_params audio_filter;
     fx_unit_buffer_params buffer;
     fx_unit_control_joiner_params control_joiner;
     fx_unit_pan_params pan;
@@ -76,6 +80,7 @@ typedef struct fx_unit_state_t {
   union {
     fx_unit_audio_delay_state audio_delay;
     fx_unit_audio_detector_state audio_detector;
+    fx_unit_audio_filter_state audio_filter;
     fx_unit_buffer_state buffer;
     fx_unit_control_joiner_state control_joiner;
     fx_unit_pan_state pan;

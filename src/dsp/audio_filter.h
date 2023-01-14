@@ -3,12 +3,13 @@
 
 #include "../lib/macros.h"
 
-#include "biquad.h"
+#include "../fx/biquad.h"
+#include "../fx/audio_filter.h"
 
 /*
  * Based on code from Designing Audio Effect Plugins in C++ by Pirkle, chapter 11
  */
-
+/*
 typedef enum {
   AF_LPF1P,
   AF_LPF1,
@@ -40,14 +41,14 @@ typedef enum {
   AF_ImpInvLPF1,
   AF_ImpInvLPF2
 } audio_filter_algorithm;
-
+*/
 typedef struct audio_filter_params_t {
   FTYPE sample_rate;
   FTYPE sample_rate_i;
   FTYPE fc;
   FTYPE q;
   FTYPE boost_cut_db;
-  audio_filter_algorithm alg;
+  fx_unit_audio_filter_algorithm alg;
   biquad_params biquad;
 } audio_filter_params;
 
