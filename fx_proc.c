@@ -17,6 +17,7 @@
 #include "src/midi/midi.h"
 
 #include "src/fx/fx.h"
+#include "src/fx/bitcrusher.h"
 #include "src/fx/envelope_follower.h"
 #include "src/fx/signal_source.h"
 
@@ -31,11 +32,18 @@ main(int argc, char * argv[])
   ugen_generate_tables();
   printf("wavetables generated\n");
 
+/* bitcrusher */
+  fx_unit_params params = fx_unit_bitcrusher_default();
+  fx_unit_idx bitcrusher = fx_unit_bitcrusher_init(&params);
+  // one parent, the mac audio input buffer
+  fx_unit_add_parent_ref(bitcrusher, 0);
+/* */
+
 /* envelope follower */
-  fx_unit_params params = fx_unit_envelope_follower_default();
+  params = fx_unit_envelope_follower_default();
   fx_unit_idx envelope_follower = fx_unit_envelope_follower_init(&params);
   // one parent, the mac audio input buffer
-  fx_unit_idx env2 = fx_unit_envelope_follower_set_parent(envelope_follower, 0);
+  fx_unit_idx env2 = fx_unit_envelope_follower_set_parent(envelope_follower, bitcrusher);
 /* */
 
 /* audio delay */
