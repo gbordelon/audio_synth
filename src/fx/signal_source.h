@@ -45,9 +45,13 @@ typedef struct fx_unit_signal_source_params_t {
 typedef struct fx_unit_signal_source_params_t *FX_unit_signal_source_params;
 
 // forward decl
+typedef struct fx_unit_params_t fx_unit_params;
 typedef struct fx_unit_params_t *FX_unit_params;
 typedef int16_t fx_unit_idx;
 
 fx_unit_idx fx_unit_signal_source_init(FX_unit_params params);
+fx_unit_params fx_unit_signal_source_constant_default();
+fx_unit_params fx_unit_signal_source_dfo_default();
+fx_unit_params fx_unit_signal_source_ugen_default();
 
 #endif

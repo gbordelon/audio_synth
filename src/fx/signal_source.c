@@ -104,3 +104,48 @@ fx_unit_signal_source_init(FX_unit_params params)
   fx_unit_signal_source_reset(&fx_unit_head[idx].state, params);
   return idx;
 }
+
+fx_unit_params
+signal_source_default_helper()
+{
+  fx_unit_params params = {0};
+  params.sample_rate = DEFAULT_SAMPLE_RATE;
+  params.t = FX_UNIT_SIGNAL_SOURCE;
+  params.u.signal_source.d = FX_SIGNAL_C;
+
+  return params;
+}
+
+fx_unit_params
+fx_unit_signal_source_constant_default()
+{
+  fx_unit_params params = signal_source_default_helper();
+  params.u.signal_source.t = FX_SIGNAL_CONSTANT;
+  params.u.signal_source.u.constant = 0.5;
+
+  return params;
+}
+
+fx_unit_params
+fx_unit_signal_source_dfo_default()
+{
+  fx_unit_params params = signal_source_default_helper();
+  params.u.signal_source.t = FX_SIGNAL_DFO;
+  params.u.signal_source.u.dfo = dfo_init(DEFAULT_SAMPLE_RATE);
+  dfo_set_freq(params.u.signal_source.u.dfo, 0.2);
+  dfo_set_scale(params.u.signal_source.u.dfo, 0.0, 1.0);
+
+  return params;
+}
+
+fx_unit_params
+fx_unit_signal_source_ugen_default()
+{
+  fx_unit_params params = signal_source_default_helper();
+  params.u.signal_source.t = FX_SIGNAL_UGEN;
+  params.u.signal_source.u.ugen = ugen_init_tri(0.1, DEFAULT_SAMPLE_RATE);
+  ugen_set_cr(params.u.signal_source.u.ugen);
+  ugen_set_scale(params.u.signal_source.u.ugen, 0.7, 0.2);
+
+  return params;
+}

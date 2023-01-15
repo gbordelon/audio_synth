@@ -17,9 +17,8 @@
 #include "src/midi/midi.h"
 
 #include "src/fx/fx.h"
-
-#include "src/ugen/dfo.h"
-#include "src/ugen/ugen.h"
+#include "src/fx/envelope_follower.h"
+#include "src/fx/signal_source.h"
 
 extern char const * icky_global_program_name;
 
@@ -32,33 +31,24 @@ main(int argc, char * argv[])
   ugen_generate_tables();
   printf("wavetables generated\n");
 
-  fx_unit_params params = {0};
-  params.sample_rate = DEFAULT_SAMPLE_RATE;
-
-/* control signal generator */
-  params.t = FX_UNIT_SIGNAL_SOURCE;
-  params.u.signal_source.d = FX_SIGNAL_C;
-  //params.u.signal_source.t = FX_SIGNAL_CONSTANT;
-  //params.u.signal_source.u.constant = 0.5;
-  
-  //params.u.signal_source.t = FX_SIGNAL_UGEN;
-  //params.u.signal_source.u.ugen = ugen_init_tri(0.1, DEFAULT_SAMPLE_RATE);
-  //ugen_set_cr(params.u.signal_source.u.ugen);
-  //ugen_set_scale(params.u.signal_source.u.ugen, 0.7, 0.2);
-
-  params.u.signal_source.t = FX_SIGNAL_DFO;
-  params.u.signal_source.u.dfo = dfo_init(DEFAULT_SAMPLE_RATE);
-  dfo_set_freq(params.u.signal_source.u.dfo, 0.2);
-  dfo_set_scale(params.u.signal_source.u.dfo, 0.0, 1.0);
-  fx_unit_idx signal_source = fx_unit_signal_source_init(&params);
-  // no parents
+/* envelope follower */
+  fx_unit_params params = fx_unit_envelope_follower_default();
+  fx_unit_idx envelope_follower = fx_unit_envelope_follower_init(&params);
+  // one parent, the mac audio input buffer
+  fx_unit_idx env2 = fx_unit_envelope_follower_set_parent(envelope_follower, 0);
 /* */
 
 /* audio delay */
   params = fx_unit_audio_delay_default();
   fx_unit_idx audio_delay = fx_unit_audio_delay_init(&params);
   // one parent, the mac audio input buffer
-  fx_unit_add_parent_ref(audio_delay, 0);
+  fx_unit_add_parent_ref(audio_delay, env2);
+/* */
+
+/* control signal generator */
+  params = fx_unit_signal_source_constant_default();
+  fx_unit_idx signal_source = fx_unit_signal_source_init(&params);
+  // no parents
 /* */
 
 /* control signal joiner */

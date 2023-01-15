@@ -38,6 +38,6 @@ typedef struct fx_unit_envelope_follower_params_t *FX_unit_envelope_follower_par
 fx_unit_idx fx_unit_envelope_follower_init(FX_unit_params params);
 fx_unit_params fx_unit_envelope_follower_default();
 void fx_unit_envelope_follower_params_free(FX_unit_params env);
-fx_unit_idx fx_unit_envelope_follower_set_parent(fx_unit_idx idx, fx_unit_idx parent);
+fx_unit_idx fx_unit_envelope_follower_set_parent(fx_unit_idx env, fx_unit_idx parent);
 
 #endif
