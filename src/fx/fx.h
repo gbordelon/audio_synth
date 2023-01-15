@@ -11,6 +11,7 @@
 #include "biquad.h"
 #include "bitcrusher.h"
 #include "buffer.h"
+#include "comb_filter.h"
 #include "control_joiner.h"
 #include "envelope_follower.h"
 #include "pan.h"
@@ -45,6 +46,7 @@ typedef enum fx_unit_type_e {
   FX_UNIT_AUDIO_FILTER,
   FX_UNIT_BITCRUSHER,
   FX_UNIT_BUFFER,
+  FX_UNIT_COMB_FILTER,
   FX_UNIT_CONTROL_JOINER,
   FX_UNIT_ENVELOPE_FOLLOWER,
   FX_UNIT_PAN,
@@ -62,6 +64,7 @@ typedef struct fx_unit_params_t {
     fx_unit_audio_filter_params audio_filter;
     fx_unit_bitcrusher_params bitcrusher;
     fx_unit_buffer_params buffer;
+    fx_unit_comb_filter_params comb_filter;
     fx_unit_control_joiner_params control_joiner;
     fx_unit_envelope_follower_params envelope_follower;
     fx_unit_pan_params pan;
@@ -92,6 +95,7 @@ typedef struct fx_unit_state_t {
     fx_unit_audio_filter_state audio_filter;
     fx_unit_bitcrusher_state bitcrusher;
     fx_unit_buffer_state buffer;
+    fx_unit_comb_filter_state comb_filter;
     fx_unit_control_joiner_state control_joiner;
     fx_unit_envelope_follower_state envelope_follower;
     fx_unit_pan_state pan;

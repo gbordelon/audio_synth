@@ -35,11 +35,18 @@ main(int argc, char * argv[])
 
   fx_unit_params params;
 
-/* waveshaper */
-  params = fx_unit_waveshaper_default();
-  fx_unit_idx waveshaper = fx_unit_waveshaper_init(&params);
+/* comb_filter */
+  params = fx_unit_comb_filter_default();
+  fx_unit_idx comb_filter = fx_unit_comb_filter_init(&params);
   // one parent, the mac audio input buffer
-  fx_unit_add_parent_ref(waveshaper, 0);
+  fx_unit_add_parent_ref(comb_filter, 0);
+
+/* */
+/* waveshaper */
+//  params = fx_unit_waveshaper_default();
+//  fx_unit_idx waveshaper = fx_unit_waveshaper_init(&params);
+  // one parent, the mac audio input buffer
+//  fx_unit_add_parent_ref(waveshaper, 0);
 /* */
 
 /* bitcrusher */
@@ -53,7 +60,7 @@ main(int argc, char * argv[])
   params = fx_unit_envelope_follower_default();
   fx_unit_idx envelope_follower = fx_unit_envelope_follower_init(&params);
   // one parent, the mac audio input buffer
-  fx_unit_idx env2 = fx_unit_envelope_follower_set_parent(envelope_follower, waveshaper);
+  fx_unit_idx env2 = fx_unit_envelope_follower_set_parent(envelope_follower, comb_filter);
 /* */
 
 /* audio delay */
