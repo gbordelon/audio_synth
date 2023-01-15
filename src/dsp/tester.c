@@ -6,8 +6,8 @@
 
 #include "comb_filter.h"
 #include "dsp.h"
-#include "simple_delay.h"
-#include "simple_lpf.h"
+#include "../fx/simple_delay.h"
+#include "../fx/simple_lpf.h"
 
 FTYPE
 stereo_tester(FTYPE *L, FTYPE *R, dsp_state *state, FTYPE control)

@@ -7,8 +7,8 @@
 
 #include "../ugen/ugen.h"
 
-#include "simple_delay.h"
-#include "simple_lpf.h"
+#include "../fx/simple_delay.h"
+#include "../fx/simple_lpf.h"
 
 /*
  * Based on code from Designing Audio Effect Plugins in C++ by Pirkle, chapter 17

@@ -6,7 +6,7 @@
 
 #include "comb_filter.h"
 #include "../fx/ringbuf.h"
-#include "simple_lpf.h"
+#include "../fx/simple_lpf.h"
 
 /*
  * Based on the description from Designing Audio Effect Plugins in C++ by Pirkle, chapter 17

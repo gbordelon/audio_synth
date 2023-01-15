@@ -6,8 +6,8 @@
 #include "comb_filter.h"
 #include "delay_apf.h"
 #include "dsp.h"
-#include "simple_delay.h"
-#include "simple_lpf.h"
+#include "../fx/simple_delay.h"
+#include "../fx/simple_lpf.h"
 
 typedef struct tester_params_t {
   Simple_delay delay;
