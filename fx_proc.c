@@ -20,6 +20,7 @@
 #include "src/fx/bitcrusher.h"
 #include "src/fx/envelope_follower.h"
 #include "src/fx/signal_source.h"
+#include "src/fx/waveshaper.h"
 
 extern char const * icky_global_program_name;
 
@@ -32,18 +33,27 @@ main(int argc, char * argv[])
   ugen_generate_tables();
   printf("wavetables generated\n");
 
-/* bitcrusher */
-  fx_unit_params params = fx_unit_bitcrusher_default();
-  fx_unit_idx bitcrusher = fx_unit_bitcrusher_init(&params);
+  fx_unit_params params;
+
+/* waveshaper */
+  params = fx_unit_waveshaper_default();
+  fx_unit_idx waveshaper = fx_unit_waveshaper_init(&params);
   // one parent, the mac audio input buffer
-  fx_unit_add_parent_ref(bitcrusher, 0);
+  fx_unit_add_parent_ref(waveshaper, 0);
+/* */
+
+/* bitcrusher */
+//  params = fx_unit_bitcrusher_default();
+//  fx_unit_idx bitcrusher = fx_unit_bitcrusher_init(&params);
+  // one parent, the mac audio input buffer
+//  fx_unit_add_parent_ref(bitcrusher, 0);
 /* */
 
 /* envelope follower */
   params = fx_unit_envelope_follower_default();
   fx_unit_idx envelope_follower = fx_unit_envelope_follower_init(&params);
   // one parent, the mac audio input buffer
-  fx_unit_idx env2 = fx_unit_envelope_follower_set_parent(envelope_follower, bitcrusher);
+  fx_unit_idx env2 = fx_unit_envelope_follower_set_parent(envelope_follower, waveshaper);
 /* */
 
 /* audio delay */
@@ -71,8 +81,7 @@ main(int argc, char * argv[])
 /* */
 
 /* panner */
-  memset(&params.u, 0, sizeof(params.u));
-  params.t = FX_UNIT_PAN;
+  params = fx_unit_pan_default();
   fx_unit_idx pan = fx_unit_pan_init(&params);
   // one parent
   fx_unit_add_parent_ref(pan, control_joiner);

@@ -3,11 +3,13 @@
 
 #include "../lib/macros.h"
 
+#include "../fx/waveshaper.h"
+
 /*
  * Based on equations from Designing Audio Effect Plugins in C++ by Pirkle, chapter 19
  */
-
-#define sgn(x) (((x) > 0) - ((x) < 0))
+/*
+//#define sgn(x) (((x) > 0) - ((x) < 0))
 
 typedef enum {
   WS_ARRY,
@@ -28,12 +30,12 @@ typedef enum {
   WS_SQR,
   WS_ASQRT
 } waveshaper_e;
-
+*/
 // forward declaration
 typedef struct waveshaper_params_t waveshaper_params;
 typedef union dsp_state_u dsp_state;
 
-typedef void (* shaper_fn)(FTYPE *, waveshaper_params *);
+//typedef void (* shaper_fn)(FTYPE *, waveshaper_params *);
 
 typedef struct waveshaper_params_t {
   waveshaper_e shape;

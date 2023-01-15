@@ -55,3 +55,14 @@ fx_unit_pan_init(FX_unit_params params)
   fx_unit_pan_reset(&fx_unit_head[idx].state, params);
   return idx;
 }
+
+fx_unit_params
+fx_unit_pan_default()
+{
+  fx_unit_params params = {0};
+  params.sample_rate = DEFAULT_SAMPLE_RATE;
+  params.t = FX_UNIT_PAN;
+
+  return params;
+}
+
