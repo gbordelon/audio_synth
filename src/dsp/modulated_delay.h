@@ -3,6 +3,7 @@
 
 #include "../lib/macros.h"
 
+#include "../fx/modulated_delay.h"
 #include "../ugen/ugen.h"
 
 #include "audio_delay.h"
@@ -10,13 +11,13 @@
 /*
  * Based on code from Designing Audio Effect Plugins in C++ by Pirkle, chapter 15
  */
-
+/*
 typedef enum {
   MD_FLANGER,
   MD_CHORUS,
   MD_VIBRATO
 } modulated_delay_algorithm;
-
+*/
 typedef struct modulated_delay_params_t {
   FTYPE sample_rate;
   modulated_delay_algorithm alg;

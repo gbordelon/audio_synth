@@ -23,8 +23,9 @@ fx_unit_comb_filter_process_frame(fx_unit_idx idx)
 #define state (fx_unit_head[idx].state.u.comb_filter)
   FTYPE frac, yn2, yn1;
   int i;
-  for (i = FX_L; i < FX_C; i++) {
+  for (i = 0; i < 2; i++) {
     yn1 = ringbuf_read(state.bufs[i], state.delay_samps);
+
     frac = 0.5;
 
     if (state.enable_lpf) {
@@ -35,7 +36,7 @@ fx_unit_comb_filter_process_frame(fx_unit_idx idx)
 
     if (!state.interpolate) {
       dst[i] = yn1;
-      break;
+      continue;
     }
 
     yn2 = ringbuf_read(state.bufs[i], state.delay_samps + 1);

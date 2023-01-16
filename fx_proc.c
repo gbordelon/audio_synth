@@ -48,6 +48,7 @@ DEBUG_FX_UNIT(size_t indent, fx_unit_idx unit_idx)
     DEBUG_FX_UNIT(indent + 2, fx_unit_head[unit_idx].parents[i]);
   }
 }
+#undef idx_print_type
 
 int
 main(int argc, char * argv[])
@@ -59,20 +60,23 @@ main(int argc, char * argv[])
   printf("wavetables generated\n");
 
   fx_unit_params params, params2, params3;
+  FX_compound_unit prev;
 
 /* panner */
   params = fx_unit_pan_default();
-  params2 = fx_unit_signal_source_ugen_default();
+  params2 = fx_unit_signal_source_constant_default();
   FX_compound_unit pan = fx_compound_unit_pan_init(&params, &params2);
 
   // adjust current fx chain appropriately
   fx_unit_insert_as_parent(1, pan);
+  prev = pan;
 /* */
 
 /* audio delay */
   params = fx_unit_audio_delay_default();
   FX_compound_unit audio_delay = fx_compound_unit_audio_delay_init(&params);
-  fx_compound_unit_insert_as_parent(pan, audio_delay);
+//  fx_compound_unit_insert_as_parent(prev, audio_delay);
+//  prev = audio_delay;
 /* */
 
 /* envelope follower */
@@ -80,28 +84,53 @@ main(int argc, char * argv[])
   params2 = fx_unit_envelope_follower_audio_filter_default();
   params3 = fx_unit_envelope_follower_audio_detector_default();
   FX_compound_unit envelope_follower = fx_compound_unit_envelope_follower_init(&params, &params2, &params3);
-  fx_compound_unit_insert_as_parent(audio_delay, envelope_follower);
+//  fx_compound_unit_insert_as_parent(prev, envelope_follower);
+//  prev = envelope_follower;
+/* */
+
+/* chorus */
+  params = fx_unit_modulated_delay_chorus_default();
+  params2 = fx_unit_modulated_delay_audio_delay_chorus_default();
+  params3 = fx_unit_modulated_delay_signal_source_chorus_default();
+  FX_compound_unit chorus = fx_compound_unit_modulated_delay_init(&params, &params2, &params3);
+  fx_compound_unit_insert_as_parent(prev, chorus);
+  prev = chorus;
+/* */
+
+/* vibrato */
+  params = fx_unit_modulated_delay_vibrato_default();
+  params2 = fx_unit_modulated_delay_audio_delay_vibrato_default();
+  params3 = fx_unit_modulated_delay_signal_source_vibrato_default();
+  FX_compound_unit vibrato = fx_compound_unit_modulated_delay_init(&params, &params2, &params3);
+  fx_compound_unit_insert_as_parent(prev, vibrato);
+  prev = vibrato;
 /* */
 
 /* comb_filter */
   params = fx_unit_comb_filter_default();
+  params.u.comb_filter.delay_ms = 3.0;
+  params.u.comb_filter.rt60_ms = 500;
   FX_compound_unit comb_filter = fx_compound_unit_comb_filter_init(&params);
-  fx_compound_unit_insert_as_parent(audio_delay, comb_filter);
+  fx_compound_unit_insert_as_parent(prev, comb_filter);
+  prev = comb_filter;
 /* */
 
 /* waveshaper */
   params = fx_unit_waveshaper_default();
   FX_compound_unit waveshaper = fx_compound_unit_waveshaper_init(&params);
   // one parent, the mac audio input buffer
-  fx_compound_unit_insert_as_parent(comb_filter, waveshaper);
+//  fx_compound_unit_insert_as_parent(prev, waveshaper);
+//  prev = waveshaper;
 /* */
 
-///* bitcrusher */
-//  params = fx_unit_bitcrusher_default();
-//  FX_compound_unit bitcrusher = fx_compound_unit_bitcrusher_init(&params);
-//  // one parent, the mac audio input buffer
-//  fx_compound_unit_insert_as_parent(comb_filter, bitcrusher);
-///* */
+/* bitcrusher */
+  params = fx_unit_bitcrusher_default();
+  params.u.bitcrusher.quantized_bit_depth = 9.0;
+  FX_compound_unit bitcrusher = fx_compound_unit_bitcrusher_init(&params);
+  // one parent, the mac audio input buffer
+  fx_compound_unit_insert_as_parent(prev, bitcrusher);
+  prev = bitcrusher;
+/* */
 
   AudioComponentInstance audio_unit_io = audio_unit_io_init();
   printf("AudioUnit io initialized.\n");

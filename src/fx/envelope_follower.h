@@ -15,6 +15,7 @@ typedef struct fx_unit_envelope_follower_state_t {
   fx_unit_idx detector;
   fx_unit_idx filter;
   fx_unit_idx s2m;
+  fx_unit_idx passthru;
   FTYPE fc;
   FTYPE fc_max;
   FTYPE threshold; // linear, not dB

@@ -23,6 +23,7 @@ typedef enum fx_unit_signal_source_dst_fields_e {
 typedef struct fx_unit_signal_source_state_t {
   fx_unit_signal_source_type t;
   fx_unit_signal_source_dst_fields d;
+  FTYPE ugen_triphase[4];
   union {
     FTYPE constant;
     Dfo dfo;

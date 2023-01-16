@@ -14,11 +14,13 @@ extern FX_unit fx_unit_head;
 void
 fx_unit_signal_source_process_frame(fx_unit_idx idx)
 {
+#define triphase (fx_unit_head[idx].state.u.signal_source.ugen_triphase)
   // switch on fx_unit_head[idx].state.u.signal_source.t to get value
   FTYPE val;
   switch (fx_unit_head[idx].state.u.signal_source.t) {
   case FX_SIGNAL_UGEN:
-    val = ugen_sample_fast(fx_unit_head[idx].state.u.signal_source.u.ugen, 0.0);
+    ugen_sample_fast_triphase(fx_unit_head[idx].state.u.signal_source.u.ugen, 0.0, triphase);
+    val = triphase[UGEN_PHASE_NORM];
     break;
   case FX_SIGNAL_DFO:
     val = dfo_sample(fx_unit_head[idx].state.u.signal_source.u.dfo);
@@ -29,6 +31,7 @@ fx_unit_signal_source_process_frame(fx_unit_idx idx)
     val = fx_unit_head[idx].state.u.signal_source.u.constant; 
     break;
   };
+#undef triphase
 
 #define dst (fx_unit_head[idx].output_buffer.lrc)
 #define bitmask (fx_unit_head[idx].state.u.signal_source.d)
@@ -143,9 +146,9 @@ fx_unit_signal_source_ugen_default()
 {
   fx_unit_params params = signal_source_default_helper();
   params.u.signal_source.t = FX_SIGNAL_UGEN;
-  params.u.signal_source.u.ugen = ugen_init_tri(0.1, DEFAULT_SAMPLE_RATE);
-  ugen_set_cr(params.u.signal_source.u.ugen);
-  ugen_set_scale(params.u.signal_source.u.ugen, 0.7, 0.2);
+  params.u.signal_source.u.ugen = ugen_init_tri(0.2, DEFAULT_SAMPLE_RATE);
+  //ugen_set_cr(params.u.signal_source.u.ugen);
+  ugen_set_scale(params.u.signal_source.u.ugen, 0.5, 1.0);
 
   return params;
 }

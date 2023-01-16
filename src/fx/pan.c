@@ -27,7 +27,20 @@ fx_unit_pan_process_frame(fx_unit_idx idx)
 void
 fx_unit_pan_cleanup(FX_unit_state state)
 {
-  // do nothing
+  // cleanup signal source, control joiner, passthru
+  fx_unit_head[state->u.pan.signal_source]
+    .state.f.cleanup(
+      &fx_unit_head[state->u.pan.signal_source].state);
+  fx_unit_head[state->u.pan.control_joiner]
+    .state.f.cleanup(
+      &fx_unit_head[state->u.pan.control_joiner].state);
+  fx_unit_head[state->u.pan.passthru]
+    .state.f.cleanup(
+      &fx_unit_head[state->u.pan.passthru].state);
+
+  state->u.pan.signal_source = FX_UNIT_IDX_NONE;
+  state->u.pan.control_joiner = FX_UNIT_IDX_NONE;
+  state->u.pan.passthru = FX_UNIT_IDX_NONE;
 }
 
 void
@@ -41,6 +54,8 @@ fx_unit_pan_reset(FX_unit_state state, FX_unit_params params)
 {
   state->sample_rate = params->sample_rate;
   fx_unit_pan_set_params(state, params);
+
+  // TODO reset dependents
 }
 
 fx_unit_idx
@@ -72,6 +87,10 @@ fx_compound_unit_pan_init(FX_unit_params pan_p, FX_unit_params sig_p)
   // passthru
   fx_unit_params pt_p = fx_unit_passthru_default();
   fx_unit_idx pt = fx_unit_passthru_init(&pt_p);
+
+  fx_unit_head[pan].state.u.pan.signal_source = sg;
+  fx_unit_head[pan].state.u.pan.control_joiner = cj;
+  fx_unit_head[pan].state.u.pan.passthru = pt;
 
   rv->units[0] = pt;
   rv->units[1] = cj;

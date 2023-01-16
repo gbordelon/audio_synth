@@ -50,10 +50,12 @@ typedef struct fx_unit_audio_delay_params_t *FX_unit_audio_delay_params;
 typedef struct fx_unit_params_t fx_unit_params;
 typedef struct fx_unit_params_t *FX_unit_params;
 typedef struct fx_compound_unit_t *FX_compound_unit;
+typedef struct fx_unit_state_t *FX_unit_state;
 typedef int16_t fx_unit_idx;
 
 fx_unit_idx fx_unit_audio_delay_init(FX_unit_params params);
 FX_compound_unit fx_compound_unit_audio_delay_init(FX_unit_params params);
 fx_unit_params fx_unit_audio_delay_default();
+void fx_unit_audio_delay_set_params(FX_unit_state state, FX_unit_params params);
 
 #endif

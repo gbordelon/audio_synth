@@ -14,6 +14,7 @@
 #include "comb_filter.h"
 #include "control_joiner.h"
 #include "envelope_follower.h"
+#include "modulated_delay.h"
 #include "pan.h"
 #include "passthru.h"
 #include "signal_source.h"
@@ -49,6 +50,7 @@ C(FX_UNIT_BUFFER)\
 C(FX_UNIT_COMB_FILTER)\
 C(FX_UNIT_CONTROL_JOINER)\
 C(FX_UNIT_ENVELOPE_FOLLOWER)\
+C(FX_UNIT_MODULATED_DELAY)\
 C(FX_UNIT_PAN)\
 C(FX_UNIT_PASSTHRU)\
 C(FX_UNIT_SIGNAL_SOURCE)\
@@ -73,6 +75,7 @@ typedef struct fx_unit_params_t {
     fx_unit_comb_filter_params comb_filter;
     fx_unit_control_joiner_params control_joiner;
     fx_unit_envelope_follower_params envelope_follower;
+    fx_unit_modulated_delay_params modulated_delay;
     fx_unit_pan_params pan;
     fx_unit_passthru_params passthru;
     fx_unit_signal_source_params signal_source;
@@ -105,6 +108,7 @@ typedef struct fx_unit_state_t {
     fx_unit_comb_filter_state comb_filter;
     fx_unit_control_joiner_state control_joiner;
     fx_unit_envelope_follower_state envelope_follower;
+    fx_unit_modulated_delay_state modulated_delay;
     fx_unit_pan_state pan;
     fx_unit_passthru_state passthru;
     fx_unit_signal_source_state signal_source;

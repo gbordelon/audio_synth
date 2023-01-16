@@ -53,10 +53,14 @@ fx_unit_envelope_follower_cleanup(FX_unit_state state)
   fx_unit_head[state->u.envelope_follower.s2m]
     .state.f.cleanup(
       &fx_unit_head[state->u.envelope_follower.s2m].state);
+  fx_unit_head[state->u.envelope_follower.passthru]
+    .state.f.cleanup(
+      &fx_unit_head[state->u.envelope_follower.passthru].state);
 
   state->u.envelope_follower.detector = FX_UNIT_IDX_NONE;
   state->u.envelope_follower.filter = FX_UNIT_IDX_NONE;
   state->u.envelope_follower.s2m = FX_UNIT_IDX_NONE;
+  state->u.envelope_follower.passthru = FX_UNIT_IDX_NONE;
 
   free(state->u.envelope_follower.filter_params);
 }
@@ -76,6 +80,8 @@ fx_unit_envelope_follower_reset(FX_unit_state state, FX_unit_params params)
 {
   state->sample_rate = params->sample_rate;
   fx_unit_envelope_follower_set_params(state, params);
+
+  // TODO reset dependents
 }
 
 FX_compound_unit
@@ -101,13 +107,14 @@ fx_compound_unit_envelope_follower_init(
   fx_unit_idx ad = fx_unit_audio_detector_init(detector_params);
   fx_unit_idx af = fx_unit_audio_filter_init(filter_params);
 
-  fx_unit_head[idx].state.u.envelope_follower.s2m = s2m;
-  fx_unit_head[idx].state.u.envelope_follower.detector = ad;
-  fx_unit_head[idx].state.u.envelope_follower.filter = af;
-
   // passthru
   fx_unit_params pt_p = fx_unit_passthru_default();
   fx_unit_idx pt = fx_unit_passthru_init(&pt_p);
+
+  fx_unit_head[idx].state.u.envelope_follower.s2m = s2m;
+  fx_unit_head[idx].state.u.envelope_follower.detector = ad;
+  fx_unit_head[idx].state.u.envelope_follower.filter = af;
+  fx_unit_head[idx].state.u.envelope_follower.passthru = pt;
 
   // connect s2m to ad
   fx_unit_parent_ref_add(ad, s2m);
