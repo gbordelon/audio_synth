@@ -117,6 +117,14 @@ fx_unit_audio_delay_init(FX_unit_params params)
   return idx;
 }
 
+FX_compound_unit
+fx_compound_unit_audio_delay_init(FX_unit_params params)
+{
+  FX_compound_unit rv = fx_compound_unit_init(1, 1);
+  rv->tail = rv->units[0] = rv->heads[0] = fx_unit_audio_delay_init(params);
+  return rv;
+}
+
 fx_unit_params
 fx_unit_audio_delay_default()
 {

@@ -78,8 +78,11 @@ fx_unit_envelope_follower_reset(FX_unit_state state, FX_unit_params params)
   fx_unit_envelope_follower_set_params(state, params);
 }
 
-fx_unit_idx
-fx_unit_envelope_follower_init(FX_unit_params params)
+FX_compound_unit
+fx_compound_unit_envelope_follower_init(
+  FX_unit_params params,
+  FX_unit_params filter_params,
+  FX_unit_params detector_params)
 {
   fx_unit_idx idx = fx_unit_init();
   fx_unit_head[idx].state.t = params->t;
@@ -87,83 +90,85 @@ fx_unit_envelope_follower_init(FX_unit_params params)
   fx_unit_head[idx].state.f.process_frame = fx_unit_envelope_follower_process_frame; 
   fx_unit_head[idx].state.f.reset = fx_unit_envelope_follower_reset;
 
+  params->u.envelope_follower.filter_params = calloc(1, sizeof(fx_unit_params));
+  memcpy(params->u.envelope_follower.filter_params, filter_params, sizeof(fx_unit_params));
+
   fx_unit_envelope_follower_reset(&fx_unit_head[idx].state, params);
 
-  fx_unit_idx s2m = fx_unit_s2m_init(params->u.envelope_follower.s2m_params);
-  fx_unit_idx ad = fx_unit_audio_detector_init(params->u.envelope_follower.detector_params);
-  fx_unit_idx af = fx_unit_audio_filter_init(params->u.envelope_follower.filter_params);
+  fx_unit_params s2m_params = fx_unit_s2m_default();
+  s2m_params.u.s2m.left = true;
+  fx_unit_idx s2m = fx_unit_s2m_init(&s2m_params);
+  fx_unit_idx ad = fx_unit_audio_detector_init(detector_params);
+  fx_unit_idx af = fx_unit_audio_filter_init(filter_params);
 
   fx_unit_head[idx].state.u.envelope_follower.s2m = s2m;
   fx_unit_head[idx].state.u.envelope_follower.detector = ad;
   fx_unit_head[idx].state.u.envelope_follower.filter = af;
 
+  // passthru
+  fx_unit_params pt_p = fx_unit_passthru_default();
+  fx_unit_idx pt = fx_unit_passthru_init(&pt_p);
+
   // connect s2m to ad
-  fx_unit_add_parent_ref(ad, s2m);
+  fx_unit_parent_ref_add(ad, s2m);
 
   // connect ad to envelope follower
-  fx_unit_add_parent_ref(idx, ad);
+  fx_unit_parent_ref_add(idx, ad);
 
   // connect envelope follower to af
-  fx_unit_add_parent_ref(af, idx);
+  fx_unit_parent_ref_add(af, idx);
 
-  return idx;
+  // connect passthru to envelope follower
+  fx_unit_parent_ref_add(idx, pt);
+
+  FX_compound_unit rv = fx_compound_unit_init(5, 2);
+  rv->units[0] = pt;
+  rv->units[1] = s2m;
+  rv->units[2] = idx;
+  rv->units[3] = ad;
+  rv->units[4] = af;
+
+  rv->heads[0] = s2m;
+  rv->heads[1] = pt;
+
+  rv->tail = af;
+  
+  return rv;
 }
 
 fx_unit_params
 fx_unit_envelope_follower_default()
 {
-  fx_unit_params env = {0}, af, ad, s2m;
+  fx_unit_params env = {0};
   env.sample_rate = DEFAULT_SAMPLE_RATE;
   env.t = FX_UNIT_ENVELOPE_FOLLOWER;
   env.u.envelope_follower.fc = 200.0;
   env.u.envelope_follower.fc_max = ((unsigned long)DEFAULT_SAMPLE_RATE)>>1;
-  env.u.envelope_follower.threshold = pow(10.0, -6.0 / 20.0); // -12 dB
+  env.u.envelope_follower.threshold = pow(10.0, -24.0 / 20.0); // -12 dB
   env.u.envelope_follower.sensitivity = 0.3;
 
+  return env;
+}
+
+fx_unit_params
+fx_unit_envelope_follower_audio_filter_default()
+{
   // .fc is set in the sample processing function, per frame
-  af = fx_unit_audio_filter_default();
+  fx_unit_params af = fx_unit_audio_filter_default();
   af.u.audio_filter.q = 4.707;
   af.u.audio_filter.boost_cut_db = -9.0;
   af.u.audio_filter.alg = AF_LPF2;
-  env.u.envelope_follower.filter_params = calloc(1, sizeof(fx_unit_params));
-  memcpy(env.u.envelope_follower.filter_params, &af, sizeof(fx_unit_params));
+  return af;
+}
 
-  ad = fx_unit_audio_detector_default();
+fx_unit_params
+fx_unit_envelope_follower_audio_detector_default()
+{
+  fx_unit_params ad = fx_unit_audio_detector_default();
   ad.u.audio_detector.attack_time = 20;
   ad.u.audio_detector.release_time = 200.0;
   ad.u.audio_detector.detect_mode = AUDIO_DETECTOR_MODE_RMS;
   ad.u.audio_detector.detect_db = false;
   ad.u.audio_detector.clamp_to_unity_max = false;
-  env.u.envelope_follower.detector_params = calloc(1, sizeof(fx_unit_params));
-  memcpy(env.u.envelope_follower.detector_params, &ad, sizeof(fx_unit_params));
-
-  s2m = fx_unit_s2m_default();
-  s2m.u.s2m.left = true;
-  env.u.envelope_follower.s2m_params = calloc(1, sizeof(fx_unit_params));
-  memcpy(env.u.envelope_follower.s2m_params, &s2m, sizeof(fx_unit_params));
-
-  return env;
-}
-
-void
-fx_unit_envelope_follower_params_free(FX_unit_params env)
-{
-  free(env->u.envelope_follower.detector_params);
-  //free(env->u.envelope_follower.filter_params); // copied these into the state
-  free(env->u.envelope_follower.s2m_params);
-}
-
-fx_unit_idx
-fx_unit_envelope_follower_set_parent(fx_unit_idx env, fx_unit_idx parent)
-{
-  // get idx for s2m and audio_filter
-#define s1 fx_unit_head[env].state.u.envelope_follower
-
-  // set parent for both idx and s2m
-  fx_unit_add_parent_ref(env, parent);
-  fx_unit_add_parent_ref(s1.s2m, parent);
-
-  // return idx for audio_filter
-  return s1.filter;
-#undef s1
+  return ad;
 }

@@ -56,6 +56,42 @@ fx_unit_pan_init(FX_unit_params params)
   return idx;
 }
 
+FX_compound_unit
+fx_compound_unit_pan_init(FX_unit_params pan_p, FX_unit_params sig_p)
+{
+  FX_compound_unit rv = fx_compound_unit_init(4, 1);
+  // panner
+  fx_unit_idx pan = fx_unit_pan_init(pan_p);
+  // control joiner
+  fx_unit_params cj_p = fx_unit_control_joiner_default();
+  fx_unit_idx cj = fx_unit_control_joiner_init(&cj_p);
+  // signal genenerator
+  // control signal generator has no parent
+  fx_unit_idx sg = fx_unit_signal_source_init(sig_p);
+
+  // passthru
+  fx_unit_params pt_p = fx_unit_passthru_default();
+  fx_unit_idx pt = fx_unit_passthru_init(&pt_p);
+
+  rv->units[0] = pt;
+  rv->units[1] = cj;
+  rv->units[2] = sg;
+  rv->units[3] = pan;
+
+  // panner has control joiner as parent
+  fx_unit_parent_ref_add(pan, cj);
+  // control joiner has signal generator as control parent
+  fx_unit_parent_ref_add(cj, pt);
+  fx_unit_parent_ref_add(cj, sg);
+
+  rv->heads[0] = pt;
+
+  // panner is output for compound obj
+  rv->tail = pan;
+
+  return rv;
+}
+
 fx_unit_params
 fx_unit_pan_default()
 {

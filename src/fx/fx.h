@@ -15,6 +15,7 @@
 #include "control_joiner.h"
 #include "envelope_follower.h"
 #include "pan.h"
+#include "passthru.h"
 #include "signal_source.h"
 #include "stereo2mono.h"
 #include "waveshaper.h"
@@ -39,21 +40,26 @@ typedef struct lrc_buffer_t {
   FTYPE lrc[FX_LRC_SIZE];
 } lrc_buf;
 
+#define NAMES C(FX_UNIT_UNUSED)\
+C(FX_UNIT_AUDIO_DELAY)\
+C(FX_UNIT_AUDIO_DETECTOR)\
+C(FX_UNIT_AUDIO_FILTER)\
+C(FX_UNIT_BITCRUSHER)\
+C(FX_UNIT_BUFFER)\
+C(FX_UNIT_COMB_FILTER)\
+C(FX_UNIT_CONTROL_JOINER)\
+C(FX_UNIT_ENVELOPE_FOLLOWER)\
+C(FX_UNIT_PAN)\
+C(FX_UNIT_PASSTHRU)\
+C(FX_UNIT_SIGNAL_SOURCE)\
+C(FX_UNIT_STEREO_2_MONO)\
+C(FX_UNIT_WAVESHAPER)
+#define C(x) x,
 typedef enum fx_unit_type_e {
-  FX_UNIT_UNUSED,
-  FX_UNIT_AUDIO_DELAY,
-  FX_UNIT_AUDIO_DETECTOR,
-  FX_UNIT_AUDIO_FILTER,
-  FX_UNIT_BITCRUSHER,
-  FX_UNIT_BUFFER,
-  FX_UNIT_COMB_FILTER,
-  FX_UNIT_CONTROL_JOINER,
-  FX_UNIT_ENVELOPE_FOLLOWER,
-  FX_UNIT_PAN,
-  FX_UNIT_SIGNAL_SOURCE,
-  FX_UNIT_STEREO_2_MONO,
-  FX_UNIT_WAVESHAPER,
+  NAMES FX_UNIT_TYPE_NUM
 } fx_unit_type;
+#undef C
+#define C(x) #x,
 
 typedef struct fx_unit_params_t {
   FTYPE sample_rate;
@@ -68,6 +74,7 @@ typedef struct fx_unit_params_t {
     fx_unit_control_joiner_params control_joiner;
     fx_unit_envelope_follower_params envelope_follower;
     fx_unit_pan_params pan;
+    fx_unit_passthru_params passthru;
     fx_unit_signal_source_params signal_source;
     fx_unit_s2m_params s2m;
     fx_unit_waveshaper_params waveshaper;
@@ -99,6 +106,7 @@ typedef struct fx_unit_state_t {
     fx_unit_control_joiner_state control_joiner;
     fx_unit_envelope_follower_state envelope_follower;
     fx_unit_pan_state pan;
+    fx_unit_passthru_state passthru;
     fx_unit_signal_source_state signal_source;
     fx_unit_s2m_state s2m;
     fx_unit_waveshaper_state waveshaper;
@@ -122,34 +130,31 @@ typedef struct fx_unit_t {
 
 typedef fx_unit *FX_unit;
 
+typedef struct fx_compound_unit_t {
+  size_t num_units;
+  fx_unit_idx *units;
+  size_t num_heads;
+  fx_unit_idx *heads;
+  fx_unit_idx tail;
+} fx_compound_unit;
+
+typedef fx_compound_unit *FX_compound_unit;
+
+void fx_compound_unit_cleanup(FX_compound_unit unit);
+FX_compound_unit fx_compound_unit_init(size_t num_units, size_t num_heads);
+void fx_compound_unit_insert_as_parent(FX_compound_unit unit, FX_compound_unit parent);
+void fx_compound_unit_parent_ref_add(FX_compound_unit unit, fx_unit_idx parent_idx);
+
 void fx_unit_library_cleanup();
 
 fx_unit_idx fx_unit_init();
-fx_unit_idx fx_unit_default_init();
 void fx_unit_cleanup(fx_unit_idx);
-
-lrc_buf fx_unit_idx_to_buf(fx_unit_idx);
-void  fx_unit_add_parent_ref(fx_unit_idx idx, fx_unit_idx parent_idx);
-fx_unit_idx fx_unit_replace_parent_ref(fx_unit_idx idx, fx_unit_idx parent_idx); // returns old parent idx
 
 void fx_unit_entry_point(FTYPE rv[2], fx_unit_idx head);
 void fx_unit_process_frame(fx_unit_idx head); // only used by audio driver
 void fx_unit_reset_output_buffers(); // only used by audio driver
 
-
-/*
- * FX subunits should be objects which help out FX units like the comb filter or delay_apf, etc
- */
-/*
-typedef union fx_subunit_state_u {
-} fx_subunit_state;
-
-typedef struct fx_subunit_t {
-  fx_subunit_state state;
-} *FX_subunit;
-
-FX_subunit fx_subunit_init();
-FX_subunit fx_subunit_default_init();
-*/
+void fx_unit_insert_as_parent(fx_unit_idx idx, FX_compound_unit parent);
+void fx_unit_parent_ref_add(fx_unit_idx idx, fx_unit_idx parent_idx);
 
 #endif

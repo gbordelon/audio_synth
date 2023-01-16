@@ -244,14 +244,27 @@ fx_unit_waveshaper_init(FX_unit_params params)
   return idx;
 }
 
+FX_compound_unit
+fx_compound_unit_waveshaper_init(FX_unit_params params)
+{
+  FX_compound_unit rv = fx_compound_unit_init(1, 1);
+  fx_unit_idx waveshaper = fx_unit_waveshaper_init(params);
+
+  rv->units[0] = waveshaper;
+  rv->heads[0] = waveshaper;
+  rv->tail = waveshaper;
+
+  return rv;
+}
+
 fx_unit_params
 fx_unit_waveshaper_default()
 {
   fx_unit_params params = {0};
   params.sample_rate = DEFAULT_SAMPLE_RATE;
   params.t = FX_UNIT_WAVESHAPER;
-  params.u.waveshaper.shape = WS_SCLIP;
-  params.u.waveshaper.saturation = 1.0;
+  params.u.waveshaper.shape = WS_FEXP1;
+  params.u.waveshaper.saturation = 0.707;
   params.u.waveshaper.asymmetry = -0.5;
 
   return params;

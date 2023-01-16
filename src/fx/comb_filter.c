@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "../lib/macros.h"
@@ -66,9 +67,9 @@ fx_unit_comb_filter_set_params(FX_unit_state state, FX_unit_params params)
 #define state2 (state->u.comb_filter)
 #define params2 (params->u.comb_filter)
   state2.delay_ms = params2.delay_ms;
-  state2.delay_samps = (uint32_t)1000.0 * params->sample_rate / params2.delay_ms;
+  state2.delay_samps = (uint32_t)params->sample_rate * params2.delay_ms / 1000.0;
   state2.rt60_ms = params2.rt60_ms;
-  state2.rt60_samps = (uint32_t)1000.0 * params->sample_rate / params2.rt60_ms;
+  state2.rt60_samps = (uint32_t)params->sample_rate * params2.rt60_ms / 1000.0;
 
   state2.g = pow(10.0, -3.0 * state2.delay_ms / state2.rt60_ms);
 
@@ -106,13 +107,21 @@ fx_unit_comb_filter_init(FX_unit_params params)
   return idx;
 }
 
+FX_compound_unit
+fx_compound_unit_comb_filter_init(FX_unit_params params)
+{
+  FX_compound_unit rv = fx_compound_unit_init(1, 1);
+  rv->tail = rv->units[0] = rv->heads[0] = fx_unit_comb_filter_init(params);
+  return rv;
+}
+
 fx_unit_params
 fx_unit_comb_filter_default()
 {
   fx_unit_params params = {0};
   params.sample_rate = DEFAULT_SAMPLE_RATE;
   params.t = FX_UNIT_COMB_FILTER;
-  params.u.comb_filter.delay_ms = 100.0;
+  params.u.comb_filter.delay_ms = 10.0;
   params.u.comb_filter.rt60_ms = 500.0;
   params.u.comb_filter.lpf_g = 0.8;
   params.u.comb_filter.enable_lpf = true;

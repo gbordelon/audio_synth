@@ -37,7 +37,7 @@ FTYPE *_mic_output_buffer_L;
 FTYPE *_mic_output_buffer_R;
 FTYPE *_mic_output_buffer_stereo;
 
-static const FTYPE gain = 6.0; // dB
+static const FTYPE gain = 1.0; //0dB //2.0;//pow(10.0, 6.0 / 20.0); // dB
 
 #define fx_unit_input_buffer_idx 0
 #define fx_unit_output_buffer_idx 1
@@ -298,6 +298,11 @@ inputCallback(void *inRefCon,
       }
       //printf("max sample input for this chunk: %f\n", sqrt(max));
 #else
+
+      if (fabs(*samp) > 1.0 || fabs(*(samp + 1)) > 1.0) {
+        printf("peak: %f %f\n", *samp, *(samp+1));
+      }
+
       if(samplesLeft < numSamples) { // wrap around to the start of the buffer
         for (samplesAfterWrap = samplesLeft; samplesAfterWrap > 0; samplesAfterWrap--, samp+=2, _mic_output_write_index+=2) {
           //_mic_output_buffer_L[_mic_output_write_index] = *samp;
@@ -341,12 +346,14 @@ pull_samples()
   // mix chunks into mixer buffer
   //mixer_update(gmix);
   int i;
-//  FTYPE rv[2] = {0};
+  FTYPE rv[2] = {0};
   for (i = 0; i < CHUNK_SIZE; i++) {
-    fx_unit_process_frame(fx_unit_output_buffer_idx);
-    fx_unit_reset_output_buffers();
-//    fx_unit_entry_point(rv, fx_unit_output_buffer_idx);
-//    printf("%f %f\n", rv[0], rv[1]);
+//    fx_unit_process_frame(fx_unit_output_buffer_idx);
+//    fx_unit_reset_output_buffers();
+    fx_unit_entry_point(rv, fx_unit_output_buffer_idx);
+    if (fabs(rv[0]) > 1.0 || fabs(rv[1]) > 1.0) {
+      printf("%f %f\n", rv[0], rv[1]);
+    }
   }
 
   // copy mixer buffer data to mac audio buffer

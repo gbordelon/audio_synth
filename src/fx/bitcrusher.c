@@ -58,12 +58,25 @@ fx_unit_bitcrusher_init(FX_unit_params params)
   return idx;
 }
 
+FX_compound_unit
+fx_compound_unit_bitcrusher_init(FX_unit_params params)
+{
+  FX_compound_unit rv = fx_compound_unit_init(1, 1);
+  fx_unit_idx bitcrusher = fx_unit_bitcrusher_init(params);
+
+  rv->units[0] = bitcrusher;
+  rv->heads[0] = bitcrusher;
+  rv->tail = bitcrusher;
+
+  return rv;
+}
+
 fx_unit_params
 fx_unit_bitcrusher_default()
 {
   fx_unit_params params = {0};
   params.sample_rate = DEFAULT_SAMPLE_RATE;
   params.t = FX_UNIT_BITCRUSHER;
-  params.u.bitcrusher.quantized_bit_depth = 4.0;
+  params.u.bitcrusher.quantized_bit_depth = 6.0;
   return params;
 }

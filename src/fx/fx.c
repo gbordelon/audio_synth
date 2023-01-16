@@ -43,7 +43,7 @@ fx_unit_init()
     params.u.buffer.buffer_output = true;
 
     fx_unit_buffer_init(&params); // should recursively call fx_unit_init() to increase count
-    fx_unit_add_parent_ref(1, 0);
+    fx_unit_parent_ref_add(1, 0);
   } 
   if (fx_unit_count >= fx_unit_max) {
     fx_unit_max *= 2;
@@ -57,11 +57,14 @@ fx_unit_init()
   return fx_unit_count++;
 }
 
-fx_unit_idx
-fx_unit_init_default()
+void
+fx_unit_parents_ref_cleanup(fx_unit_idx idx)
 {
-  //return fx_init_stereo_pan();
-  return 0;
+  if (fx_unit_head[idx].parents != NULL) {
+    free(fx_unit_head[idx].parents);
+    fx_unit_head[idx].parents = NULL;
+    fx_unit_head[idx].num_parents = 0;
+  }
 }
 
 void
@@ -71,10 +74,7 @@ fx_unit_cleanup(fx_unit_idx idx)
   fx_unit_head[idx].state.f.cleanup(&fx_unit_head[idx].state);
   fx_unit_head[idx].state.t = FX_UNIT_UNUSED;
 
-  fx_unit_head[idx].num_parents = 0;
-
-  free(fx_unit_head[idx].parents);
-  fx_unit_head[idx].parents = NULL;
+  fx_unit_parents_ref_cleanup(idx);
 
   // iterate over all fx units
   fx_unit_idx idx2, par_idx;
@@ -90,21 +90,29 @@ fx_unit_cleanup(fx_unit_idx idx)
   }
 }
 
-fx_unit_idx
-fx_unit_replace_parent_ref(fx_unit_idx idx, fx_unit_idx parent_idx)
-{
-  fx_unit_idx rv = fx_unit_head[idx].parents[fx_unit_head[idx].num_parents - 1];
-  fx_unit_head[idx].parents[fx_unit_head[idx].num_parents - 1] = parent_idx;
-}
-
 void
-fx_unit_add_parent_ref(fx_unit_idx idx, fx_unit_idx parent_idx)
+fx_unit_parent_ref_add(fx_unit_idx idx, fx_unit_idx parent_idx)
 {
   fx_unit_head[idx].parents = realloc(
       fx_unit_head[idx].parents,
       (++fx_unit_head[idx].num_parents) * sizeof(fx_unit_idx));
 
   fx_unit_head[idx].parents[fx_unit_head[idx].num_parents - 1] = parent_idx;
+}
+
+void
+fx_unit_insert_as_parent(fx_unit_idx idx, FX_compound_unit parent)
+{
+  int i, j;
+  for (i = 0; i < parent->num_heads; i++) {
+    fx_unit_parents_ref_cleanup(parent->heads[i]);
+    for (j = 0; j < fx_unit_head[idx].num_parents; j++) {
+      fx_unit_parent_ref_add(parent->heads[i], fx_unit_head[idx].parents[j]);
+    }
+  }
+
+  fx_unit_parents_ref_cleanup(idx);
+  fx_unit_parent_ref_add(idx, parent->tail);
 }
 
 void
@@ -148,4 +156,59 @@ fx_unit_entry_point(FTYPE rv[2], fx_unit_idx head)
   rv[FX_L] = fx_unit_head[head].output_buffer.lrc[FX_L];
   rv[FX_R] = fx_unit_head[head].output_buffer.lrc[FX_R];
   fx_unit_reset_output_buffers();
+}
+
+FX_compound_unit
+fx_compound_unit_alloc()
+{
+  return calloc(1, sizeof(fx_compound_unit));
+}
+
+void
+fx_compound_unit_cleanup(FX_compound_unit unit)
+{
+  int i;
+  for (i = 0; i < unit->num_units; i++) {
+    fx_unit_cleanup(unit->units[i]);
+  }
+  free(unit->units);
+  free(unit->heads);
+  free(unit);
+}
+
+FX_compound_unit
+fx_compound_unit_init(size_t num_units, size_t num_heads)
+{
+  FX_compound_unit unit = fx_compound_unit_alloc();
+  unit->units = calloc(num_units, sizeof(fx_unit_idx));
+  unit->heads = calloc(num_heads, sizeof(fx_unit_idx));
+  unit->num_units = num_units;
+  unit->num_heads = num_heads;
+
+  return unit;
+}
+
+void
+fx_compound_unit_insert_as_parent(FX_compound_unit unit, FX_compound_unit parent)
+{
+  int i, j;
+  for (i = 0; i < parent->num_heads; i++) {
+    fx_unit_parents_ref_cleanup(parent->heads[i]);
+    for (j = 0; j < fx_unit_head[unit->heads[0]].num_parents; j++) {
+      fx_unit_parent_ref_add(parent->heads[i], fx_unit_head[unit->heads[0]].parents[j]);
+    }
+  }
+  for (i = 0; i < unit->num_heads; i++) {
+    fx_unit_parents_ref_cleanup(unit->heads[i]);
+    fx_unit_parent_ref_add(unit->heads[i], parent->tail);
+  }
+}
+
+void
+fx_compound_unit_parent_ref_add(FX_compound_unit unit, fx_unit_idx parent_idx)
+{
+  int i;
+  for (i = 0; i < unit->num_heads; i++) {
+    fx_unit_parent_ref_add(unit->heads[i], parent_idx);
+  }
 }

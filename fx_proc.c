@@ -23,6 +23,31 @@
 #include "src/fx/waveshaper.h"
 
 extern char const * icky_global_program_name;
+extern FX_unit fx_unit_head;
+
+#define idx_print_type(unit_idx) {\
+const char * const fx_unit_names[] = { NAMES };\
+printf( "%s", fx_unit_names[fx_unit_head[unit_idx].state.t]);\
+}
+
+void
+DEBUG_FX_UNIT(size_t indent, fx_unit_idx unit_idx)
+{
+  int i;
+  if (indent > 0) {
+    char *str = calloc(indent + 1, sizeof(char));
+    memset(str, ' ', indent * sizeof(char));
+    printf(str);
+    free(str);
+  }
+  printf("%u: ", unit_idx);
+  idx_print_type(unit_idx);
+  printf("\n");
+  
+  for (i = 0; i < fx_unit_head[unit_idx].num_parents; i++) {
+    DEBUG_FX_UNIT(indent + 2, fx_unit_head[unit_idx].parents[i]);
+  }
+}
 
 int
 main(int argc, char * argv[])
@@ -33,69 +58,50 @@ main(int argc, char * argv[])
   ugen_generate_tables();
   printf("wavetables generated\n");
 
-  fx_unit_params params;
+  fx_unit_params params, params2, params3;
 
-/* comb_filter */
-  params = fx_unit_comb_filter_default();
-  fx_unit_idx comb_filter = fx_unit_comb_filter_init(&params);
-  // one parent, the mac audio input buffer
-  fx_unit_add_parent_ref(comb_filter, 0);
+/* panner */
+  params = fx_unit_pan_default();
+  params2 = fx_unit_signal_source_ugen_default();
+  FX_compound_unit pan = fx_compound_unit_pan_init(&params, &params2);
 
-/* */
-/* waveshaper */
-//  params = fx_unit_waveshaper_default();
-//  fx_unit_idx waveshaper = fx_unit_waveshaper_init(&params);
-  // one parent, the mac audio input buffer
-//  fx_unit_add_parent_ref(waveshaper, 0);
-/* */
-
-/* bitcrusher */
-//  params = fx_unit_bitcrusher_default();
-//  fx_unit_idx bitcrusher = fx_unit_bitcrusher_init(&params);
-  // one parent, the mac audio input buffer
-//  fx_unit_add_parent_ref(bitcrusher, 0);
-/* */
-
-/* envelope follower */
-  params = fx_unit_envelope_follower_default();
-  fx_unit_idx envelope_follower = fx_unit_envelope_follower_init(&params);
-  // one parent, the mac audio input buffer
-  fx_unit_idx env2 = fx_unit_envelope_follower_set_parent(envelope_follower, comb_filter);
+  // adjust current fx chain appropriately
+  fx_unit_insert_as_parent(1, pan);
 /* */
 
 /* audio delay */
   params = fx_unit_audio_delay_default();
-  fx_unit_idx audio_delay = fx_unit_audio_delay_init(&params);
+  FX_compound_unit audio_delay = fx_compound_unit_audio_delay_init(&params);
+  fx_compound_unit_insert_as_parent(pan, audio_delay);
+/* */
+
+/* envelope follower */
+  params = fx_unit_envelope_follower_default();
+  params2 = fx_unit_envelope_follower_audio_filter_default();
+  params3 = fx_unit_envelope_follower_audio_detector_default();
+  FX_compound_unit envelope_follower = fx_compound_unit_envelope_follower_init(&params, &params2, &params3);
+  fx_compound_unit_insert_as_parent(audio_delay, envelope_follower);
+/* */
+
+/* comb_filter */
+  params = fx_unit_comb_filter_default();
+  FX_compound_unit comb_filter = fx_compound_unit_comb_filter_init(&params);
+  fx_compound_unit_insert_as_parent(audio_delay, comb_filter);
+/* */
+
+/* waveshaper */
+  params = fx_unit_waveshaper_default();
+  FX_compound_unit waveshaper = fx_compound_unit_waveshaper_init(&params);
   // one parent, the mac audio input buffer
-  fx_unit_add_parent_ref(audio_delay, env2);
+  fx_compound_unit_insert_as_parent(comb_filter, waveshaper);
 /* */
 
-/* control signal generator */
-  params = fx_unit_signal_source_constant_default();
-  fx_unit_idx signal_source = fx_unit_signal_source_init(&params);
-  // no parents
-/* */
-
-/* control signal joiner */
-  memset(&params.u, 0, sizeof(params.u));
-  params.t = FX_UNIT_CONTROL_JOINER;
-  fx_unit_idx control_joiner = fx_unit_control_joiner_init(&params);
-  // two parents
-  // 1st is LR channels (from audio delay)
-  fx_unit_add_parent_ref(control_joiner, audio_delay);
-  // 2nd is C channel (signal source)
-  fx_unit_add_parent_ref(control_joiner, signal_source);
-/* */
-
-/* panner */
-  params = fx_unit_pan_default();
-  fx_unit_idx pan = fx_unit_pan_init(&params);
-  // one parent
-  fx_unit_add_parent_ref(pan, control_joiner);
-
-  // adjust current fx chain appropriately
-  fx_unit_replace_parent_ref(1, pan);
-/* */
+///* bitcrusher */
+//  params = fx_unit_bitcrusher_default();
+//  FX_compound_unit bitcrusher = fx_compound_unit_bitcrusher_init(&params);
+//  // one parent, the mac audio input buffer
+//  fx_compound_unit_insert_as_parent(comb_filter, bitcrusher);
+///* */
 
   AudioComponentInstance audio_unit_io = audio_unit_io_init();
   printf("AudioUnit io initialized.\n");
