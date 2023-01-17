@@ -19,6 +19,7 @@
 #include "passthru.h"
 #include "signal_source.h"
 #include "stereo2mono.h"
+#include "two_band_shelving_filter.h"
 #include "waveshaper.h"
 
 #include "../ugen/ugen.h"
@@ -55,6 +56,7 @@ C(FX_UNIT_PAN)\
 C(FX_UNIT_PASSTHRU)\
 C(FX_UNIT_SIGNAL_SOURCE)\
 C(FX_UNIT_STEREO_2_MONO)\
+C(FX_UNIT_TWO_BAND_SHELVING_FILTER)\
 C(FX_UNIT_WAVESHAPER)
 #define C(x) x,
 typedef enum fx_unit_type_e {
@@ -80,6 +82,7 @@ typedef struct fx_unit_params_t {
     fx_unit_passthru_params passthru;
     fx_unit_signal_source_params signal_source;
     fx_unit_s2m_params s2m;
+    fx_unit_two_band_shelving_filter_params two_band_shelving_filter;
     fx_unit_waveshaper_params waveshaper;
 
   } u;
@@ -113,6 +116,7 @@ typedef struct fx_unit_state_t {
     fx_unit_passthru_state passthru;
     fx_unit_signal_source_state signal_source;
     fx_unit_s2m_state s2m;
+    fx_unit_two_band_shelving_filter_state two_band_shelving_filter;
     fx_unit_waveshaper_state waveshaper;
 
   } u; // actual state

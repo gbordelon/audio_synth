@@ -20,6 +20,7 @@
 #include "src/fx/bitcrusher.h"
 #include "src/fx/envelope_follower.h"
 #include "src/fx/signal_source.h"
+#include "src/fx/two_band_shelving_filter.h"
 #include "src/fx/waveshaper.h"
 
 extern char const * icky_global_program_name;
@@ -106,6 +107,17 @@ main(int argc, char * argv[])
   prev = vibrato;
 /* */
 
+/* two_band_shelving_filter */
+  params = fx_unit_two_band_shelving_filter_default();
+  params.u.two_band_shelving_filter.low_shelf_fc = 400.0;
+  params.u.two_band_shelving_filter.low_shelf_boost_cut_db = 3.0;
+  params.u.two_band_shelving_filter.high_shelf_fc = 1200.0;
+  params.u.two_band_shelving_filter.high_shelf_boost_cut_db = -24.0;
+  FX_compound_unit two_band_shelving_filter = fx_compound_unit_two_band_shelving_filter_init(&params);
+  fx_compound_unit_insert_as_parent(prev, two_band_shelving_filter);
+  prev = two_band_shelving_filter;
+/* */
+
 /* comb_filter */
   params = fx_unit_comb_filter_default();
   params.u.comb_filter.delay_ms = 3.0;
@@ -118,7 +130,6 @@ main(int argc, char * argv[])
 /* waveshaper */
   params = fx_unit_waveshaper_default();
   FX_compound_unit waveshaper = fx_compound_unit_waveshaper_init(&params);
-  // one parent, the mac audio input buffer
 //  fx_compound_unit_insert_as_parent(prev, waveshaper);
 //  prev = waveshaper;
 /* */
