@@ -13,7 +13,7 @@
 
 #define coeffs (params->biquad.coeffs)
 void
-_calculate_filter_coefficients(audio_filter_params *params)
+__calculate_filter_coefficients(audio_filter_params *params)
 {
   FTYPE A_0,
     A_1,
@@ -509,7 +509,7 @@ dsp_audio_filter_set_params(
       ? 0.707
       : params.q;
 
-  _calculate_filter_coefficients(&state->audio_filter);
+  __calculate_filter_coefficients(&state->audio_filter);
 }
 
 DSP_callback

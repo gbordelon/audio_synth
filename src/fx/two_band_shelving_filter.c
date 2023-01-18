@@ -86,17 +86,17 @@ fx_compound_unit_two_band_shelving_filter_init(FX_unit_params params)
   // lpf
   fx_unit_params lpf_p = fx_unit_audio_filter_default();
   lpf_p.u.audio_filter.alg = AF_LowShelf;
-  lpf_p.u.audio_filter.q = 0.707; // -3dB
-  lpf_p.u.audio_filter.fc = params->u.two_band_shelving_filter.low_shelf_fc;
-  lpf_p.u.audio_filter.boost_cut_db = params->u.two_band_shelving_filter.low_shelf_boost_cut_db;
+  lpf_p.u.audio_filter.q[0] = lpf_p.u.audio_filter.q[1] = 0.707; // -3dB
+  lpf_p.u.audio_filter.fc[0] = lpf_p.u.audio_filter.fc[1] = params->u.two_band_shelving_filter.low_shelf_fc;
+  lpf_p.u.audio_filter.boost_cut_db[0] = lpf_p.u.audio_filter.boost_cut_db[1] = params->u.two_band_shelving_filter.low_shelf_boost_cut_db;
   fx_unit_idx lpf = fx_unit_audio_filter_init(&lpf_p);
 
   // hpf
   fx_unit_params hpf_p = fx_unit_audio_filter_default();
   hpf_p.u.audio_filter.alg = AF_HiShelf;
-  hpf_p.u.audio_filter.q = 0.707; // -3dB
-  hpf_p.u.audio_filter.fc = params->u.two_band_shelving_filter.high_shelf_fc;
-  hpf_p.u.audio_filter.boost_cut_db = params->u.two_band_shelving_filter.high_shelf_boost_cut_db;
+  hpf_p.u.audio_filter.q[0] = hpf_p.u.audio_filter.q[1] = 0.707; // -3dB
+  hpf_p.u.audio_filter.fc[0] = hpf_p.u.audio_filter.fc[1] = params->u.two_band_shelving_filter.high_shelf_fc;
+  hpf_p.u.audio_filter.boost_cut_db[0] = hpf_p.u.audio_filter.boost_cut_db[1] = params->u.two_band_shelving_filter.high_shelf_boost_cut_db;
   fx_unit_idx hpf = fx_unit_audio_filter_init(&hpf_p);
 
   fx_unit_head[idx].state.u.two_band_shelving_filter.low_apf = lpf;

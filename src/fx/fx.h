@@ -17,8 +17,10 @@
 #include "modulated_delay.h"
 #include "pan.h"
 #include "passthru.h"
+#include "phase_shifter.h"
 #include "signal_source.h"
 #include "stereo2mono.h"
+#include "sum.h"
 #include "two_band_shelving_filter.h"
 #include "waveshaper.h"
 
@@ -54,8 +56,10 @@ C(FX_UNIT_ENVELOPE_FOLLOWER)\
 C(FX_UNIT_MODULATED_DELAY)\
 C(FX_UNIT_PAN)\
 C(FX_UNIT_PASSTHRU)\
+C(FX_UNIT_PHASE_SHIFTER)\
 C(FX_UNIT_SIGNAL_SOURCE)\
 C(FX_UNIT_STEREO_2_MONO)\
+C(FX_UNIT_SUM)\
 C(FX_UNIT_TWO_BAND_SHELVING_FILTER)\
 C(FX_UNIT_WAVESHAPER)
 #define C(x) x,
@@ -80,7 +84,9 @@ typedef struct fx_unit_params_t {
     fx_unit_modulated_delay_params modulated_delay;
     fx_unit_pan_params pan;
     fx_unit_passthru_params passthru;
+    fx_unit_phase_shifter_params phase_shifter;
     fx_unit_signal_source_params signal_source;
+    fx_unit_sum_params sum;
     fx_unit_s2m_params s2m;
     fx_unit_two_band_shelving_filter_params two_band_shelving_filter;
     fx_unit_waveshaper_params waveshaper;
@@ -114,7 +120,9 @@ typedef struct fx_unit_state_t {
     fx_unit_modulated_delay_state modulated_delay;
     fx_unit_pan_state pan;
     fx_unit_passthru_state passthru;
+    fx_unit_phase_shifter_state phase_shifter;
     fx_unit_signal_source_state signal_source;
+    fx_unit_sum_state sum;
     fx_unit_s2m_state s2m;
     fx_unit_two_band_shelving_filter_state two_band_shelving_filter;
     fx_unit_waveshaper_state waveshaper;

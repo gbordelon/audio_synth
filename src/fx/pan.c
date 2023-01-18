@@ -120,4 +120,3 @@ fx_unit_pan_default()
 
   return params;
 }
-

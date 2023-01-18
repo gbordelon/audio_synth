@@ -65,7 +65,6 @@ fx_unit_params fx_unit_modulated_delay_vibrato_default();
 fx_unit_params fx_unit_modulated_delay_audio_delay_vibrato_default();
 fx_unit_params fx_unit_modulated_delay_signal_source_vibrato_default();
 
-void fx_unit_modulated_delay_params_free(FX_unit_params env);
-fx_unit_idx fx_unit_modulated_delay_set_parent(fx_unit_idx env, fx_unit_idx parent);
+void fx_unit_modulated_delay_params_free(FX_unit_params params);
 
 #endif

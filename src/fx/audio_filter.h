@@ -45,19 +45,19 @@ typedef enum fx_unit_audio_filter_algorithm_e {
 
 typedef struct fx_unit_audio_filter_state_t {
   FTYPE sample_rate_i; // multiplicative inverse
-  FTYPE fc;
-  FTYPE q;
-  FTYPE boost_cut_db;
+  FTYPE fc[2];
+  FTYPE q[2];
+  FTYPE boost_cut_db[2];
   fx_unit_audio_filter_algorithm alg;
-  biquad_params biquad;
+  biquad_params biquad[2];
 } fx_unit_audio_filter_state;
 
 typedef fx_unit_audio_filter_state *FX_unit_audio_filter_state;
 
 typedef struct fx_unit_audio_filter_params_t {
-  FTYPE fc;
-  FTYPE q;
-  FTYPE boost_cut_db;
+  FTYPE fc[2];
+  FTYPE q[2];
+  FTYPE boost_cut_db[2];
   fx_unit_audio_filter_algorithm alg;
 } fx_unit_audio_filter_params;
 

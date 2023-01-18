@@ -5,12 +5,20 @@
 
 #include "../lib/macros.h"
 
+typedef enum {
+  FX_PASS_L = 1,
+  FX_PASS_R = 2,
+  FX_PASS_C = 4,
+} fx_unit_passthru_allow_fields;
+
 typedef struct fx_unit_passthru_state_t {
+  fx_unit_passthru_allow_fields allow; 
 } fx_unit_passthru_state;
 
 typedef fx_unit_passthru_state *FX_unit_passthru_state;
 
 typedef struct fx_unit_passthru_params_t {
+  fx_unit_passthru_allow_fields allow; 
 } fx_unit_passthru_params;
 
 typedef struct fx_unit_passthru_params_t *FX_unit_passthru_params;

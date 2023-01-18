@@ -103,8 +103,8 @@ main(int argc, char * argv[])
   params2 = fx_unit_modulated_delay_audio_delay_vibrato_default();
   params3 = fx_unit_modulated_delay_signal_source_vibrato_default();
   FX_compound_unit vibrato = fx_compound_unit_modulated_delay_init(&params, &params2, &params3);
-  fx_compound_unit_insert_as_parent(prev, vibrato);
-  prev = vibrato;
+//  fx_compound_unit_insert_as_parent(prev, vibrato);
+//  prev = vibrato;
 /* */
 
 /* two_band_shelving_filter */
@@ -114,8 +114,8 @@ main(int argc, char * argv[])
   params.u.two_band_shelving_filter.high_shelf_fc = 1200.0;
   params.u.two_band_shelving_filter.high_shelf_boost_cut_db = -24.0;
   FX_compound_unit two_band_shelving_filter = fx_compound_unit_two_band_shelving_filter_init(&params);
-  fx_compound_unit_insert_as_parent(prev, two_band_shelving_filter);
-  prev = two_band_shelving_filter;
+//  fx_compound_unit_insert_as_parent(prev, two_band_shelving_filter);
+//  prev = two_band_shelving_filter;
 /* */
 
 /* comb_filter */
@@ -123,8 +123,16 @@ main(int argc, char * argv[])
   params.u.comb_filter.delay_ms = 3.0;
   params.u.comb_filter.rt60_ms = 500;
   FX_compound_unit comb_filter = fx_compound_unit_comb_filter_init(&params);
-  fx_compound_unit_insert_as_parent(prev, comb_filter);
-  prev = comb_filter;
+//  fx_compound_unit_insert_as_parent(prev, comb_filter);
+//  prev = comb_filter;
+/* */
+
+/* phase_shifter */
+  params = fx_unit_phase_shifter_default();
+  params2 = fx_unit_phase_shifter_signal_source_default();
+  FX_compound_unit phase_shifter = fx_compound_unit_phase_shifter_init(&params, &params2);
+  fx_compound_unit_insert_as_parent(prev, phase_shifter);
+  prev = phase_shifter;
 /* */
 
 /* waveshaper */
@@ -136,11 +144,10 @@ main(int argc, char * argv[])
 
 /* bitcrusher */
   params = fx_unit_bitcrusher_default();
-  params.u.bitcrusher.quantized_bit_depth = 9.0;
+  params.u.bitcrusher.quantized_bit_depth = 6.0;
   FX_compound_unit bitcrusher = fx_compound_unit_bitcrusher_init(&params);
-  // one parent, the mac audio input buffer
-  fx_compound_unit_insert_as_parent(prev, bitcrusher);
-  prev = bitcrusher;
+//  fx_compound_unit_insert_as_parent(prev, bitcrusher);
+//  prev = bitcrusher;
 /* */
 
   AudioComponentInstance audio_unit_io = audio_unit_io_init();

@@ -25,10 +25,10 @@ fx_unit_envelope_follower_process_frame(fx_unit_idx idx)
   FTYPE delta_val = detect_val - thresh_val;
 
   if (delta_val <= 0.0) {
-    _state.filter_params->u.audio_filter.fc = _state.fc;
+    _state.filter_params->u.audio_filter.fc[0] = _state.filter_params->u.audio_filter.fc[1] = _state.fc;
   } else {
     FTYPE modulator_val = delta_val * _state.sensitivity;
-    _state.filter_params->u.audio_filter.fc = modulator_val * (_state.fc_max - _state.fc) + _state.fc;
+    _state.filter_params->u.audio_filter.fc[0] =  _state.filter_params->u.audio_filter.fc[1] = modulator_val * (_state.fc_max - _state.fc) + _state.fc;
   }
   dst[FX_L] = src[FX_L];
   dst[FX_R] = src[FX_R];
@@ -162,8 +162,8 @@ fx_unit_envelope_follower_audio_filter_default()
 {
   // .fc is set in the sample processing function, per frame
   fx_unit_params af = fx_unit_audio_filter_default();
-  af.u.audio_filter.q = 4.707;
-  af.u.audio_filter.boost_cut_db = -9.0;
+  af.u.audio_filter.q[0] = af.u.audio_filter.q[1] = 4.707;
+  af.u.audio_filter.boost_cut_db[0] = af.u.audio_filter.boost_cut_db[1] = -9.0;
   af.u.audio_filter.alg = AF_LPF2;
   return af;
 }

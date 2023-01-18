@@ -10,7 +10,7 @@
 #include "dsp.h"
 #include "phase_shifter.h"
 
-const double apf_minF[PHASER_STAGES] = {
+const double dsp_apf_minF[PHASER_STAGES] = {
   16.0,
   33.0,
   48.0,
@@ -18,7 +18,7 @@ const double apf_minF[PHASER_STAGES] = {
   160.0,
   260.0
 };
-const double apf_maxF[PHASER_STAGES] = {
+const double dsp_apf_maxF[PHASER_STAGES] = {
   1600.0,
   3300.0,
   4800.0,
@@ -37,7 +37,7 @@ helper(FTYPE *xn, FTYPE lfo_out, dsp_state *state)
   int i;
   for (i = 0; i < PHASER_STAGES; i++) {
     audio_filter_params params = state->phase_shifter.apfs[i]->state.audio_filter; 
-    params.fc = apf_minF[i] + (apf_maxF[i] - apf_minF[i]) * 0.5 * (lfo_out + 1.0);
+    params.fc = dsp_apf_minF[i] + (dsp_apf_maxF[i] - dsp_apf_minF[i]) * 0.5 * (lfo_out + 1.0);
     dsp_audio_filter_set_params(&state->phase_shifter.apfs[i]->state, params);
   }
 
