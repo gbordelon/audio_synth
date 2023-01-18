@@ -73,6 +73,17 @@ main(int argc, char * argv[])
   prev = pan;
 /* */
 
+/* reverb tank*/
+  params = fx_unit_reverb_tank_default();
+  params2 = fx_unit_reverb_tank_shelving_filter_default();
+  params3 = fx_unit_reverb_tank_sum_default();
+  FX_compound_unit reverb_tank = fx_compound_unit_reverb_tank_init(&params, &params2, &params3);
+
+  // adjust current fx chain appropriately
+  fx_compound_unit_insert_as_parent(prev, reverb_tank);
+  prev = reverb_tank;
+/* */
+
 /* audio delay */
   params = fx_unit_audio_delay_default();
   FX_compound_unit audio_delay = fx_compound_unit_audio_delay_init(&params);
@@ -94,8 +105,8 @@ main(int argc, char * argv[])
   params2 = fx_unit_modulated_delay_audio_delay_chorus_default();
   params3 = fx_unit_modulated_delay_signal_source_chorus_default();
   FX_compound_unit chorus = fx_compound_unit_modulated_delay_init(&params, &params2, &params3);
-  fx_compound_unit_insert_as_parent(prev, chorus);
-  prev = chorus;
+//  fx_compound_unit_insert_as_parent(prev, chorus);
+//  prev = chorus;
 /* */
 
 /* vibrato */
@@ -120,26 +131,27 @@ main(int argc, char * argv[])
 
 /* comb_filter */
   params = fx_unit_comb_filter_default();
-  params.u.comb_filter.delay_ms = 3.0;
-  params.u.comb_filter.rt60_ms = 500;
+  // 3,100 E, 35,100 D
+  params.u.comb_filter.delay_ms = 3.5; // lower values have more mid scoop. different values match different notes
+  params.u.comb_filter.rt60_ms = 100; // lower has more fundamental, higher has more harmonics
   FX_compound_unit comb_filter = fx_compound_unit_comb_filter_init(&params);
-//  fx_compound_unit_insert_as_parent(prev, comb_filter);
-//  prev = comb_filter;
+  fx_compound_unit_insert_as_parent(prev, comb_filter);
+  prev = comb_filter;
 /* */
 
 /* phase_shifter */
   params = fx_unit_phase_shifter_default();
   params2 = fx_unit_phase_shifter_signal_source_default();
   FX_compound_unit phase_shifter = fx_compound_unit_phase_shifter_init(&params, &params2);
-  fx_compound_unit_insert_as_parent(prev, phase_shifter);
-  prev = phase_shifter;
+//  fx_compound_unit_insert_as_parent(prev, phase_shifter);
+//  prev = phase_shifter;
 /* */
 
 /* waveshaper */
   params = fx_unit_waveshaper_default();
   FX_compound_unit waveshaper = fx_compound_unit_waveshaper_init(&params);
-//  fx_compound_unit_insert_as_parent(prev, waveshaper);
-//  prev = waveshaper;
+  fx_compound_unit_insert_as_parent(prev, waveshaper);
+  prev = waveshaper;
 /* */
 
 /* bitcrusher */

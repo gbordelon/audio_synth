@@ -2,7 +2,7 @@
 
 #include "../lib/macros.h"
 
-#include "delay_apf.h"
+#include "../fx/delay_apf.h"
 #include "dsp.h"
 #include "reverb_tank.h"
 #include "../fx/simple_delay.h"
@@ -87,7 +87,7 @@ dsp_reverb_tank_reset(DSP_callback cb)
 }
 
 void
-reverb_tank_cleanup_helper(dsp_state *state)
+_reverb_tank_cleanup_helper(dsp_state *state)
 {
   int i;
   for (i = 0; i < NUM_BRANCHES; i++) {
@@ -117,7 +117,7 @@ dsp_reverb_tank_set_params(
     reverb_tank_params params)
 {
   int i, m;
-  reverb_tank_cleanup_helper(state);
+  _reverb_tank_cleanup_helper(state);
 
   if (params.sample_rate < DEFAULT_SAMPLE_RATE) {
     params.sample_rate = (FTYPE)DEFAULT_SAMPLE_RATE;
@@ -234,6 +234,6 @@ dsp_init_reverb_tank_default()
 void
 dsp_reverb_tank_cleanup(DSP_callback cb)
 {
-  reverb_tank_cleanup_helper(&cb->state);
+  _reverb_tank_cleanup_helper(&cb->state);
   dsp_cleanup(cb);
 }

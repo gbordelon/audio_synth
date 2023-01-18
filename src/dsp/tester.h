@@ -4,7 +4,7 @@
 #include "../lib/macros.h"
 
 #include "comb_filter.h"
-#include "delay_apf.h"
+#include "../fx/delay_apf.h"
 #include "dsp.h"
 #include "../fx/simple_delay.h"
 #include "../fx/simple_lpf.h"

@@ -3,23 +3,23 @@
 
 #include "../lib/macros.h"
 
-#include "delay_apf.h"
+#include "../fx/delay_apf.h"
 #include "dsp.h"
-#include "reverb_tank.h"
 #include "../fx/simple_delay.h"
 #include "../fx/simple_lpf.h"
+#include "../fx/reverb_tank.h"
 
 /*
  * Based on code from Designing Audio Effect Plugins in C++ by Pirkle, chapter 17
  */
 
 #define NUM_BRANCHES 4
-
+/*
 typedef enum {
   REVERB_THICK,
   REVERB_SPARSE
 } reverb_density_e;
-
+*/
 // forward declaration of type from dsp.h
 typedef union dsp_state_u dsp_state;
 typedef struct dsp_callback_t *DSP_callback;
