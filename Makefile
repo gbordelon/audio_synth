@@ -19,6 +19,8 @@ FX_OBJECTS	:= $(shell sed -e 's/.\/src/obj/g' <<< " $(FX_C_NAMES:.c=.o) " )
 
 .PHONY: all alldefault clean synth fx
 
+all: $(FX) $(SYNTH)
+
 $(SYNTH): $(SYNTH_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ -lfftw3 -lportmidi -framework CoreAudio -framework CoreServices -framework AudioUnit -framework AudioToolBox -fno-pie
 

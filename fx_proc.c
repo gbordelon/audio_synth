@@ -16,6 +16,8 @@
 
 #include "src/midi/midi.h"
 
+#include "src/voice/voice.h"
+
 #include "src/fx/fx.h"
 #include "src/fx/bitcrusher.h"
 #include "src/fx/envelope_follower.h"
@@ -24,6 +26,7 @@
 #include "src/fx/waveshaper.h"
 
 extern char const * icky_global_program_name;
+Voice gsynth[2]; // hack
 extern FX_unit fx_unit_head;
 
 #define idx_print_type(unit_idx) {\
@@ -69,7 +72,7 @@ main(int argc, char * argv[])
   FX_compound_unit pan = fx_compound_unit_pan_init(&params, &params2);
 
   // adjust current fx chain appropriately
-  fx_unit_insert_as_parent(1, pan);
+  fx_unit_insert_as_parent(2, pan);
   prev = pan;
 /* */
 

@@ -22,9 +22,9 @@
 #define kOutputBus 0
 #define kInputBus 1
 
-extern Mixer gmix;
-extern Voice gsynth[2]; // TODO collection of voices, not just one
-extern Voice gmic; // TODO collection of voices, not just one
+extern Voice gsynth[2];
+extern char const * icky_global_program_name;
+
 AudioComponentInstance _audioUnit;
 
 static size_t _output_index = 0;
@@ -39,8 +39,8 @@ FTYPE *_mic_output_buffer_stereo;
 
 static const FTYPE gain = 1.0; //0dB //2.0;//pow(10.0, 6.0 / 20.0); // dB
 
-#define fx_unit_input_buffer_idx 0
-#define fx_unit_output_buffer_idx 1
+#define fx_unit_input_buffer_idx 1
+#define fx_unit_output_buffer_idx 2
 
 void
 checkStatus(OSStatus status)
@@ -337,14 +337,13 @@ static void
 pull_samples()
 {
   // generate a chunk of samples
-  //voice_play_chunk(gsynth[0]);
-  //voice_play_chunk(gsynth[1]);
-  //voice_play_chunk(gmic);
+  if (strcmp(icky_global_program_name, "./synth") == 0) {
+    voice_play_chunk(gsynth[0]);
+    voice_play_chunk(gsynth[1]);
+  }
 
   fx_unit_buffer_write_chunk(fx_unit_input_buffer_idx, _mic_output_buffer_stereo, _mic_output_write_index);
 
-  // mix chunks into mixer buffer
-  //mixer_update(gmix);
   int i;
   FTYPE rv[2] = {0};
   for (i = 0; i < CHUNK_SIZE; i++) {
@@ -357,11 +356,8 @@ pull_samples()
   }
 
   // copy mixer buffer data to mac audio buffer
-  //memcpy(_output_buffer, gmix->write_buf, MMAP_SIZE * sizeof(FTYPE));
   fx_unit_buffer_read_chunk(fx_unit_output_buffer_idx, _output_buffer);
 
-  // clear mixer buffer
-  //memset(gmix->write_buf, 0, MMAP_SIZE * sizeof(FTYPE));
 }
 
 // called about every 10 millis

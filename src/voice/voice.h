@@ -6,10 +6,9 @@
 
 #include "../lib/macros.h"
 
-#include "../dsp/dsp.h"
 #include "../env/envelope.h"
 #include "../ugen/operator.h"
-#include "../pcm/channel.h"
+#include "../fx/fx.h"
 
 #include "dx7.h"
 #include "simple_synth.h"
@@ -38,12 +37,10 @@ typedef struct mv_fns_t {
 } mv_fns;
 
 typedef struct voice_t {
-  Channel channels;
-  size_t channel_num;
   MonoVoice voices;
   size_t voice_num;
   mv_fns fns;
-  DSP_callback fx_chain;
+  fx_unit_idx buffer;
 } *Voice;
 
 typedef enum {
@@ -52,8 +49,8 @@ typedef enum {
   VOICE_MIC_IN
 } instrument_e;
 
-Voice voice_init(Channel channels, size_t channel_num, instrument_e instrument, mono_voice_params params);
-Voice voice_init_default(Channel channels, size_t channel_num);
+Voice voice_init(fx_unit_idx output, instrument_e instrument, mono_voice_params params);
+Voice voice_init_default(fx_unit_idx output);
 
 void voice_cleanup();
 void voice_play_chunk(Voice voice);

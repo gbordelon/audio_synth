@@ -23,10 +23,11 @@ fx_unit_sum_process_frame(fx_unit_idx idx)
   } else if (fx_unit_head[idx].num_parents > 1) {
     dst[FX_L] = src0[FX_L] * mix[0] + src1[FX_L] * mix[1];
     dst[FX_R] = src0[FX_R] * mix[0] + src1[FX_R] * mix[1];
-//    printf("%f %f %f %f \n", src0[0], mix[0], src1[0], mix[1]);
   } else {
     memcpy(dst, src0, 2 * sizeof(FTYPE));
   }
+  if (fabs(dst[FX_L]) > 1.0) dst[FX_L] = 0;
+  if (fabs(dst[FX_R]) > 1.0) dst[FX_R] = 0;
   dst[FX_C] = src0[FX_C];
 #undef mix
 #undef src2

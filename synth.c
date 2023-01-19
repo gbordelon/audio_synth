@@ -13,25 +13,42 @@
 
 #include "src/mac_audio/audio_unit.h"
 
-#include "src/dsp/audio_filter.h"
-#include "src/dsp/bitcrusher.h"
-#include "src/dsp/class_a_tube_pre.h"
-#include "src/dsp/dsp.h"
-#include "src/dsp/reverb_tank.h"
-#include "src/env/envelope.h"
 #include "src/midi/midi.h"
 #include "src/pcm/mixer.h"
-#include "src/pcm/pcm.h"
-#include "src/ugen/sin.h"
 #include "src/ugen/ugen.h"
 #include "src/voice/voice.h"
 #include "src/voice/dx7.h"
 
 extern char const * icky_global_program_name;
 
-Mixer gmix;
 Voice gsynth[2];
-Voice gmic;
+
+extern FX_unit fx_unit_head;
+
+#define idx_print_type(unit_idx) {\
+const char * const fx_unit_names[] = { NAMES };\
+printf( "%s", fx_unit_names[fx_unit_head[unit_idx].state.t]);\
+}
+
+void
+DEBUG_FX_UNIT(size_t indent, fx_unit_idx unit_idx)
+{
+  int i;
+  if (indent > 0) {
+    char *str = calloc(indent + 1, sizeof(char));
+    memset(str, ' ', indent * sizeof(char));
+    printf(str);
+    free(str);
+  }
+  printf("%u: ", unit_idx);
+  idx_print_type(unit_idx);
+  printf("\n");
+  
+  for (i = 0; i < fx_unit_head[unit_idx].num_parents; i++) {
+    DEBUG_FX_UNIT(indent + 2, fx_unit_head[unit_idx].parents[i]);
+  }
+}
+#undef idx_print_type
 
 int
 main(int argc, char * argv[])
@@ -42,25 +59,23 @@ main(int argc, char * argv[])
   ugen_generate_tables();
   printf("wavetables generated\n");
 
-  gmix = mixer_init(3, 0.707);
-  printf("mixer initialized.\n");
+  fx_unit_params params, params2, params3;
+  FX_compound_unit prev;
 
-/* gsynth */
-  Channel chans = gmix->busses[0].channels;
-  audio_delay_params params_ad;
-  audio_filter_params params_af;
+/* init the fx lib */
+  params = fx_unit_passthru_default();
+  FX_compound_unit passthru = fx_compound_unit_passthru_init(&params);
+
+  // adjust current fx chain appropriately
+  fx_unit_insert_as_parent(0, passthru);
+  prev = passthru;
+/* */
+
   mono_voice_params params_mv = {0};
-  Ugen ug;
 
   dx7_e_piano_1(&params_mv);
-  gsynth[0] = voice_init(chans, NUM_CHANNELS, VOICE_DX7, params_mv);
-
-  chans = gmix->busses[1].channels;
-  gsynth[1] = voice_init(chans, NUM_CHANNELS, VOICE_SIMPLE_SYNTH, params_mv);
-/* gmic */
-
-  chans = gmix->busses[2].channels;
-  gmic = voice_init(chans, NUM_CHANNELS, VOICE_MIC_IN, params_mv);
+  gsynth[0] = voice_init(0, VOICE_DX7, params_mv);
+  gsynth[1] = voice_init(0, VOICE_SIMPLE_SYNTH, params_mv);
 
   printf("instrument initialized.\n");
 
@@ -132,7 +147,6 @@ main(int argc, char * argv[])
   midi_stop();
   midi_cleanup();
   voice_cleanup(gsynth);
-  mixer_cleanup(gmix);
   return 0;
 }
 

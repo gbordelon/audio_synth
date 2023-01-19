@@ -10,7 +10,7 @@
 
 FX_unit fx_unit_head = NULL;
 static fx_unit_idx fx_unit_count = 0;
-static size_t fx_unit_max = 16;
+static size_t fx_unit_max = 32;
 
 void
 fx_units_free()
@@ -32,18 +32,23 @@ fx_unit_idx
 fx_unit_init()
 {
   if (fx_unit_head == NULL) {
-    struct fx_unit_params_t params = {0};
-    params.sample_rate = DEFAULT_SAMPLE_RATE;
-    params.t = FX_UNIT_BUFFER;
-    params.u.buffer.buffer_output = false;
+    fx_unit_params params = fx_unit_buffer_default();
+    fx_unit_params sum_p = fx_unit_sum_default();
+    free(sum_p.u.sum.mix);
+    sum_p.u.sum.mix = calloc(3, sizeof(FTYPE));
+    sum_p.u.sum.mix[0] = 0.707;
+    sum_p.u.sum.mix[1] = 0.707;
+    sum_p.u.sum.mix[2] = 0.707;
 
     fx_unit_head = calloc(fx_unit_max, sizeof(struct fx_unit_t));
-    
-    fx_unit_buffer_init(&params); // should recursively call fx_unit_init() to increase count
-    params.u.buffer.buffer_output = true;
+    fx_unit_idx sum = fx_unit_sum_init(&sum_p);
+    fx_unit_idx line_in = fx_unit_buffer_init(&params); // line in
 
-    fx_unit_buffer_init(&params); // should recursively call fx_unit_init() to increase count
-    fx_unit_parent_ref_add(1, 0);
+    params.u.buffer.buffer_output = true;
+    fx_unit_idx out = fx_unit_buffer_init(&params);
+
+    fx_unit_parent_ref_add(out, sum);
+    fx_unit_parent_ref_add(sum, line_in);
   } 
   if (fx_unit_count >= fx_unit_max) {
     fx_unit_max *= 2;
@@ -124,6 +129,7 @@ fx_unit_reset_output_buffers()
   }
 }
 
+#include <stdio.h>
 void
 fx_unit_process_frame(fx_unit_idx idx)
 {
@@ -145,6 +151,7 @@ fx_unit_process_frame(fx_unit_idx idx)
   fx_unit_head[idx].state.f.process_frame(idx);
 }
 
+#include <stdio.h>
 /*
  * call this fn CHUNK_SIZE times to populate an output buffer for the audio driver
  * output buffer should be CHUNK_SIZE stereo frames

@@ -1,10 +1,12 @@
+#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../dsp/dsp.h"
-#include "../env/envelope.h"
 #include "../lib/macros.h"
+
+#include "../env/envelope.h"
+#include "../fx/fx.h"
 #include "../midi/midi.h"
 #include "../ugen/ugen.h"
 
@@ -39,15 +41,15 @@ voice_free(Voice voice)
 }
 
 Voice
-voice_init(Channel channels, size_t channel_num, instrument_e instrument, mono_voice_params params)
+voice_init(fx_unit_idx output, instrument_e instrument, mono_voice_params params)
 {
   Voice rv = voice_alloc();
-  rv->channels = channels;
-  rv->channel_num = channel_num;
-  // TODO for channel in channels: increment refcount
   rv->voices = mono_voice_alloc();
   rv->voice_num = NUM_VOICES;
-  rv->fx_chain = NULL;
+
+  fx_unit_params p = fx_unit_buffer_default();
+  rv->buffer = fx_unit_buffer_init(&p);
+  fx_unit_parent_ref_add(output, rv->buffer);
 
   switch(instrument) {
   case VOICE_DX7:
@@ -86,13 +88,11 @@ voice_init(Channel channels, size_t channel_num, instrument_e instrument, mono_v
 }
 
 Voice
-voice_init_default(Channel channels, size_t channel_num)
+voice_init_default(fx_unit_idx output)
 {
   mono_voice_params params = {0};
 
-  Voice rv = voice_init(channels, channel_num, VOICE_SIMPLE_SYNTH, params);
-
-  rv->fx_chain = dsp_init_default();
+  Voice rv = voice_init(output, VOICE_SIMPLE_SYNTH, params);
 
   return rv;
 }
@@ -106,27 +106,19 @@ voice_cleanup(Voice voice)
     voice->fns.cleanup(mv);
   }
   mono_voice_free(voice->voices);
-  dsp_cleanup(voice->fx_chain);
+  fx_unit_cleanup(voice->buffer);
   voice_free(voice);
 }
 
 #include <stdio.h>
-/*
- * TODO don't force two channels
- */
 void
 voice_play_chunk(Voice voice)
 {
-  Channel left = voice->channels;
-  Channel right = voice->channels + 1;
-
   static FTYPE samples[2][CHUNK_SIZE];
-  static FTYPE accum_l[CHUNK_SIZE];
-  static FTYPE accum_r[CHUNK_SIZE];
+  static FTYPE accum[CHUNK_SIZE << 1];
   FTYPE *sL, *sR, *L, *R;
 
-  memset(accum_l, 0, CHUNK_SIZE * sizeof(FTYPE));
-  memset(accum_r, 0, CHUNK_SIZE * sizeof(FTYPE));
+  memset(accum, 0, (CHUNK_SIZE << 1) * sizeof(FTYPE));
 
   bool peak = false;
   // iterate over 64 voices
@@ -134,12 +126,12 @@ voice_play_chunk(Voice voice)
   for (mv = voice->voices; mv - voice->voices < voice->voice_num; mv++) {
     if (mono_voice_playing(mv)) {
       voice->fns.play_chunk(mv, samples);
-      for (L = accum_l, R = accum_r, sL = samples[0], sR = samples[1];
-           L - accum_l < CHUNK_SIZE;
-           sL++, sR++, L++, R++) {
+      for (L = accum, R = accum + 1, sL = samples[0], sR = samples[1];
+           R - accum < (NUM_CHANNELS * CHUNK_SIZE);
+           sL++, sR++, L += 2, R += 2) {
         *L += *sL;
         *R += *sR;
-        peak = *L > 1.0 || *L < -1.0 || *R > 1.0 || *R < -1.0;
+        peak = peak || fabs(*L) > 1.0 || fabs(*R) > 1.0;
       }
     }
   }
@@ -147,17 +139,7 @@ voice_play_chunk(Voice voice)
     printf("peaked\n");
   }
 
-  // after all monovoices have been summed apply fx
-  for (L = accum_l, R = accum_r; L - accum_l < CHUNK_SIZE; L++, R++) {
-    stereo_fx_chain(voice->fx_chain, L, R);
-    peak = *L > 1.0 || *L < -1.0 || *R > 1.0 || *R < -1.0;
-  }
-  if (peak) {
-    printf("peaked\n");
-  }
-  // TODO check rv
-  channel_write(left, accum_l);
-  channel_write(right, accum_r);
+  fx_unit_buffer_write_chunk(voice->buffer, accum, 0);
 }
 
 uint8_t
