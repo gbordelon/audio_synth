@@ -18,6 +18,8 @@
 #include "src/ugen/ugen.h"
 #include "src/voice/voice.h"
 #include "src/voice/dx7.h"
+#include "src/tunable/tunable.h"
+#include "src/cli/cli.h"
 
 extern char const * icky_global_program_name;
 
@@ -37,7 +39,7 @@ DEBUG_FX_UNIT(size_t indent, fx_unit_idx unit_idx)
   if (indent > 0) {
     char *str = calloc(indent + 1, sizeof(char));
     memset(str, ' ', indent * sizeof(char));
-    printf(str);
+    printf("%s", str);
     free(str);
   }
   printf("%u: ", unit_idx);
@@ -54,7 +56,10 @@ int
 main(int argc, char * argv[])
 {
   icky_global_program_name = argv[0];
-  //set_signal_handler();
+//  set_signal_handler();
+
+  cli_menu_init_menu_system();
+  printf("menus initialized\n");
 
   ugen_generate_tables();
   printf("wavetables generated\n");
@@ -141,7 +146,8 @@ main(int argc, char * argv[])
         }
       } else {
       }
-    } 
+    } // if (spin)
+    cli_entry_point();
   }
 
   midi_stop();
