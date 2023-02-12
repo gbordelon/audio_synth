@@ -10,25 +10,15 @@
 
 bool active = false;     /* set when midi_in is ready for reading */
 bool in_sysex = false;   /* we are reading a sysex message */
-bool inited = false;     /* suppress printing during command line parsing */
-bool done = false;       /* when true, exit */
-bool notes = true;       /* show notes? */
-bool controls = true;    /* show continuous controllers */
-bool bender = true;      /* record pitch bend etc.? */
-bool excldata = true;    /* record system exclusive data? */
-bool verbose = true;     /* show text representation? */
-bool realdata = true;    /* record real time messages? */
-bool chmode = true;      /* show channel mode messages */
-bool pgchanges = true;   /* show program changes */
-bool flush = false;	    /* flush all pending MIDI data */
-
-uint32_t filter = 0;            /* remember state of midi filter */
-
-uint32_t notestotal = 0;        /* total #notes */
 
 PmQueue *midi_to_main;
 PmStream *midi_in;      /* midi input */
 
+/*
+ * this function should differentiate between sysex and everything else
+ * if sysex, build up the sysex message then enqueue
+ * else, enqueue
+ */
 static void
 handle_midi_in(PmMessage data)
 {
@@ -38,12 +28,10 @@ handle_midi_in(PmMessage data)
   static size_t sysex_msg_idx = 0;
   static my_midi_data midi_data = { 0 };
 
-  /* printf("handle_midi_in data %8x; ", data); */
-
   command = Pm_MessageStatus(data) & MIDI_CODE_MASK;
   chan = Pm_MessageStatus(data) & MIDI_CHN_MASK;
 
-  if (in_sysex || Pm_MessageStatus(data) == MIDI_SYSEX) {
+  if (in_sysex || Pm_MessageStatus(data) == MIDI_SYSEX) { // sysex
     int i;
     PmMessage data_copy = data;
     in_sysex = true;
@@ -73,87 +61,79 @@ handle_midi_in(PmMessage data)
       sysex_msg_idx = 0;
     } else if (sysex_msg_idx >= (sysex_max >> 2)) {
       // sysex message is larger than we can read...
+      // TODO realloc buffer
     }
-    //showbytes(data, i, verbose);
-  } else if (command == MIDI_ON_NOTE) {
+  } else { // everything else
+    midi_data.u.data[sysex_msg_idx] = data;
+    Pm_Enqueue(midi_to_main, &midi_data);
+  }/* else if (command == MIDI_ON_NOTE) {
     midi_data.u.data[sysex_msg_idx] = data;
     Pm_Enqueue(midi_to_main, &midi_data);
   } else if (command == MIDI_OFF_NOTE) {
     midi_data.u.data[sysex_msg_idx] = data;
     Pm_Enqueue(midi_to_main, &midi_data);
   } else if (command == MIDI_CH_PROGRAM) {
-    midi_data.u.data[sysex_msg_idx] = data;
+     // TODO this should change which instrument is set for gynth[0] or gsynth[1], depending on chan    midi_data.u.data[sysex_msg_idx] = data;
     Pm_Enqueue(midi_to_main, &midi_data);
   } else if (command == MIDI_CTRL) {
-    /* controls 121 (MIDI_RESET_CONTROLLER) to 127 are channel mode messages. */
+    // TODO handle control signals for controls 0 thru 120
+    // controls 121 (MIDI_RESET_CONTROLLER) to 127 are channel mode messages. //
     if (Pm_MessageData1(data) < MIDI_ALL_SOUND_OFF) {
     } else {
       switch (Pm_MessageData1(data)) {
         case MIDI_ALL_SOUND_OFF:
-          //printf("All Sound Off, Chan %2d\n", chan);
+          // TODO turn off all monovoices for all channels
           break;
         case MIDI_RESET_CONTROLLERS:
-          //printf("Reset All Controllers, Chan %2d\n", chan);
+          // TODO default settings for a channel
           break;
         case MIDI_LOCAL:
-          //printf("LocCtrl Chan %2d %s\n",
-                  //chan, Pm_MessageData2(data) ? "On" : "Off");
+          // TODO unused
           break;
         case MIDI_ALL_OFF:
-          //printf("All Off Chan %2d\n", chan);
+          // TODO turn off all monovoices for a channel
           break;
         case MIDI_OMNI_OFF:
-          //printf("OmniOff Chan %2d\n", chan);
+          // TODO set a channel to accept only signals from its channel
           break;
         case MIDI_OMNI_ON:
-          //printf("Omni On Chan %2d\n", chan);
+          // TODO set a channel to accept signals from all channels
           break;
         case MIDI_MONO_ON:
-          //printf("Mono On Chan %2d\n", chan);
           if (Pm_MessageData2(data)) {
-            //printf(" to %d received channels\n", Pm_MessageData2(data));
+            // TODO mono for specified channel
           } else {
-            //printf(" to all received channels\n");
+            // TODO mono for all channels
           }
           break;
         case MIDI_POLY_ON:
-          //printf("Poly On Chan %2d\n", chan);
+          // TODO allow polyphony for a channel
           break;
       }
     }
   } else if (command == MIDI_POLY_TOUCH && bender) {
     if (verbose) {
+      // TODO allow key pressure to control an aspect of a channel's monovoice
       //printf("P.Touch Chan %2d Key %2d ", chan, Pm_MessageData1(data));
       //len = put_pitch(Pm_MessageData1(data));
       //printf(val_format + len, Pm_MessageData2(data));
     }
   } else if (command == MIDI_TOUCH && bender) {
+    // TODO allow key pressure to control an aspect of a channel
     //showbytes(data, 2, verbose);
     if (verbose) {
       //printf("  A.Touch Chan %2d Val %2d\n", chan, Pm_MessageData1(data));
     }
   } else if (command == MIDI_BEND && bender) {
-    //showbytes(data, 3, verbose);
-    if (verbose) {
+    // TODO pitch bend for a channel
       //printf("P.Bend  Chan %2d Val %2d\n", chan,
               //(Pm_MessageData1(data) + (Pm_MessageData2(data)<<7)));
-    }
   } else if (Pm_MessageStatus(data) == MIDI_SONG_POINTER) {
-    //showbytes(data, 3, verbose);
-    if (verbose) {
-      //printf("    Song Position %d\n",
-              //(Pm_MessageData1(data) + (Pm_MessageData2(data)<<7)));
-    }
+    // TODO unused
   } else if (Pm_MessageStatus(data) == MIDI_SONG_SELECT) {
-    //showbytes(data, 2, verbose);
-    if (verbose) {
-      //printf("    Song Select %d\n", Pm_MessageData1(data));
-    }
+    // TODO unused
   } else if (Pm_MessageStatus(data) == MIDI_TUNE_REQ) {
-    //showbytes(data, 1, verbose);
-    if (verbose) {
-      //printf("    Tune Request\n");
-    }
+    // TODO unused
   } else if (Pm_MessageStatus(data) == MIDI_Q_FRAME && realdata) {
     //showbytes(data, 2, verbose);
     if (verbose) {
@@ -197,7 +177,7 @@ handle_midi_in(PmMessage data)
   } else {
     //showbytes(data, 3, verbose);
   }
-  //fflush(stdout);
+*/
 }
 
 void
@@ -256,4 +236,3 @@ midi_stop()
 {
   active = false;
 }
-
