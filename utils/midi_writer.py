@@ -39,6 +39,12 @@ def sysex(output):
     output.write_sys_ex(midi.time(), random.choice(sysex_msgs))
     time.sleep(delay_arp * 5)
 
+def test_control_change(output):
+  global current_instrument
+  while True:
+    output.write_short(0xb0, 0x7f, 0x7f)
+    time.sleep(delay)
+
 def arpeggiator(output):
   global current_instrument
   while True:
@@ -110,19 +116,22 @@ if __name__ == '__main__':
   time.sleep(0.01)
 
   try:
+    test_control_change(output)
     #sysex(output)
     #random_loop(output)
-    arpeggiator(output)
+    #arpeggiator(output)
   except KeyboardInterrupt:
     # turn off all notes
-    output.set_instrument(0)
-    for note in range(0, 127):
-      output.note_off(note, 64)
-      time.sleep(0.001)
-    output.set_instrument(1)
-    for note in range(0, 127):
-      output.note_off(note, 64)
-      time.sleep(0.001)
+    output.write_short(0xb0, 0x78)
+    output.write_short(0xb1, 0x78)
+    #output.set_instrument(0)
+    #for note in range(0, 127):
+    #  output.note_off(note, 64)
+    #  time.sleep(0.001)
+    #output.set_instrument(1)
+    #for note in range(0, 127):
+    #  output.note_off(note, 64)
+    #  time.sleep(0.001)
     print('')
   finally:
     print('quitting')
