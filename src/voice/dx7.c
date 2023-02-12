@@ -13,13 +13,17 @@
 #include "voice.h"
 #include "dx7.h"
 
+/*
+ * 45 tunable parameters
+ */
 void
 dx7_e_piano_1(mono_voice_params *params)
 {
-  params->dx7.alg = DX7_5;
-  params->dx7.fback_s = 1.0/7.0; // between 0 and 1
-  params->dx7.decay_rate = 0.99; // between 0 and 1
+  params->dx7.alg = DX7_5; // [0, 31]
+  params->dx7.fback_s = 1.0/7.0; // [0, 1]
+  params->dx7.decay_rate = 0.99; // [0, 1]
 
+  // [0,1]
   params->dx7.patch.env_amps[0][0] = 0.0;
   params->dx7.patch.env_amps[0][1] = 1.0;
   params->dx7.patch.env_amps[0][2] = 0.55;
@@ -50,7 +54,7 @@ dx7_e_piano_1(mono_voice_params *params)
   params->dx7.patch.env_amps[5][2] = 0.95;
   params->dx7.patch.env_amps[5][3] = 0.1;
 
-
+  // (0, 10]
   params->dx7.patch.env_rates[0][0] = 9.5;
   params->dx7.patch.env_rates[0][1] = 5.0;
   params->dx7.patch.env_rates[0][2] = 0.5;
@@ -81,7 +85,7 @@ dx7_e_piano_1(mono_voice_params *params)
   params->dx7.patch.env_rates[5][2] = 0.4;
   params->dx7.patch.env_rates[5][3] = 5.0;
 
-
+  // [0, 1200.0]
   params->dx7.patch.detune[0] = 0.0;
   params->dx7.patch.detune[1] = 0.0;
   params->dx7.patch.detune[2] = 0.0;
@@ -89,6 +93,7 @@ dx7_e_piano_1(mono_voice_params *params)
   params->dx7.patch.detune[4] = 0.0;
   params->dx7.patch.detune[5] = 0.0;
 
+  // [0, 10]
   params->dx7.patch.vel_s[0] = 0.4;
   params->dx7.patch.vel_s[1] = 1.0;
   params->dx7.patch.vel_s[2] = 0.4;
@@ -96,6 +101,7 @@ dx7_e_piano_1(mono_voice_params *params)
   params->dx7.patch.vel_s[4] = 0.0;
   params->dx7.patch.vel_s[5] = 0.8;
 
+  // [0, 100]
   params->dx7.patch.mult[0] = 1.0;
   params->dx7.patch.mult[1] = 14.0;
   params->dx7.patch.mult[2] = 1.0;
@@ -103,6 +109,7 @@ dx7_e_piano_1(mono_voice_params *params)
   params->dx7.patch.mult[4] = 1.0;
   params->dx7.patch.mult[5] = 1.0;
 
+  // [0, 1]
   params->dx7.patch.pan[0] = 0.5;
   params->dx7.patch.pan[1] = 0.5;
   params->dx7.patch.pan[2] = 0.25;
