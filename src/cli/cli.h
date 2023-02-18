@@ -45,7 +45,13 @@ typedef struct cli_menu_t {
   Cli_menu previous;
 } cli_menu;
 
-Cli_menu cli_menu_init_menu_system();
+Cli_menu cli_menu_init_menu_system(bool instruments, bool fx, Cli_menu inst1, Cli_menu inst2, Cli_menu fxm);
+
+Cli_menu cli_menu_init(cli_menu_type type, const char *name, const char *prompt);
+void cli_menu_cleanup(Cli_menu menu);
+
+void cli_menu_add_menu(Cli_menu head, Cli_menu menu);
+void cli_menu_add_tunable(Cli_menu menu, Tunable entry);
 
 /*
  * TODO

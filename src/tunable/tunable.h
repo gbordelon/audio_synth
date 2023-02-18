@@ -157,7 +157,6 @@ typedef struct tunable_t {
 
   tunable_range_type range_type;
 
-  tunable_fn_type args_type[2]; // TODO redundant information to fn_type?
   tunable_arg args_u[2];
 
   tunable_fn_type fn_type;
@@ -172,12 +171,12 @@ void tunable_cleanup(Tunable t);
 Tunable tunable_default_init();
 Tunable tunable_init(
     tunable_type param_type, tunable_range_type range, void *param,
-    tunable_fn_type args_type[2], tunable_arg args[2],
-    tunable_fn_type fn_type, Tunable_fn fn, const char *description
+    tunable_arg args[2], tunable_fn_type fn_type, Tunable_fn fn,
+    const char *description
 );
 
 void tunable_param_set(Tunable t, tunable_type param_type, tunable_range_type range, void *param);
-void tunable_args_set(Tunable t, tunable_fn_type args_type[2], tunable_arg args[2]);
+void tunable_args_set(Tunable t, tunable_arg args[2]);
 void tunable_fn_set(Tunable t, tunable_fn_type fn_type, Tunable_fn fn);
 void tunable_name_set(Tunable t, const char *description);
 

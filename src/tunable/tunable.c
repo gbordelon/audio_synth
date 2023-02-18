@@ -18,18 +18,20 @@ tunable_free(Tunable t)
 void
 tunable_cleanup(Tunable t)
 {
-  Tunable n = t->Next;
-  if (t->Prev != NULL) {
-    t->Prev->Next = n;
-  }
-  if (n != NULL) {
-    n->Prev = t->Prev;
-  }
+  if (t != NULL) {
+    Tunable n = t->Next;
+    if (t->Prev != NULL) {
+      t->Prev->Next = n;
+    }
+    if (n != NULL) {
+      n->Prev = t->Prev;
+    }
 
-  if (t->name != NULL) {
-    free(t->name);
+    if (t->name != NULL) {
+      free(t->name);
+    }
+    tunable_free(t);
   }
-  tunable_free(t);
 }
 
 void
@@ -41,9 +43,8 @@ tunable_param_set(Tunable t, tunable_type param_type, tunable_range_type range, 
 }
 
 void
-tunable_args_set(Tunable t, tunable_fn_type args_type[2], tunable_arg args[2])
+tunable_args_set(Tunable t, tunable_arg args[2])
 {
-  memcpy(t->args_type, args_type, 2 * sizeof(tunable_fn_type));
   memcpy(t->args_u, args, 2 * sizeof(tunable_arg));
 }
 
@@ -70,13 +71,13 @@ tunable_name_set(Tunable t, const char *description)
 Tunable
 tunable_init(
     tunable_type param_type, tunable_range_type range, void *param,
-    tunable_fn_type args_type[2], tunable_arg args[2],
-    tunable_fn_type fn_type, Tunable_fn fn, const char *description
+    tunable_arg args[2], tunable_fn_type fn_type, Tunable_fn fn,
+    const char *description
 )
 {
   Tunable rv = tunable_alloc();
   tunable_param_set(rv, param_type, range, param);
-  tunable_args_set(rv, args_type, args);
+  tunable_args_set(rv, args);
   tunable_fn_set(rv, fn_type, fn);
   tunable_name_set(rv, description);
 
@@ -91,7 +92,6 @@ arity0_default()
 Tunable
 tunable_default_init()
 {
-  tunable_fn_type args_type[2] = {0};
   tunable_arg args[2] = {0};
   tunable_fn fn;
   fn.f0 = arity0_default;
@@ -100,7 +100,6 @@ tunable_default_init()
     TUNABLE_NONE,
     TUNABLE_RANGE_NONE,
     NULL,
-    args_type,
     args,
     ARITY_0,
     &fn,
@@ -128,7 +127,7 @@ tunable_param_write(Tunable t, Tunable_arg val)
   default:
     break;
   }
-  memcpy(t->param, &val, len);
+  memcpy(t->param, val, len);
 }
 
 void

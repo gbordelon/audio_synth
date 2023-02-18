@@ -7,6 +7,9 @@
 
 #include "../lib/macros.h"
 
+#include "../cli/cli.h"
+#include "../tunable/tunable.h"
+
 #define ugen_reset_phase(u) ((u)->p_ind = 0)
 #define ugen_set_cr(u) ((u)->conv.cr = true)
 #define ugen_unset_cr(u) ((u)->conv.cr = false)
@@ -50,6 +53,15 @@ typedef struct ar_cr_t {
   bool cr;
 } rate_converter;
 
+typedef struct ugen_params_t {
+  FTYPE sample_rate;
+  FTYPE freq;
+  FTYPE scale_low;
+  FTYPE scale_high;
+  FTYPE duty_cycle;
+  ugen_type_e shape;
+} ugen_params;
+
 typedef struct ugen_t {
   FTYPE sample_rate;
 
@@ -75,6 +87,12 @@ typedef struct ugen_t {
   // phase management for computation
   FTYPE p_inc;
   FTYPE p;
+
+  Cli_menu menu;
+  struct {
+    ugen_params p;
+    Tunable *ts;
+  } tunables;
 } *Ugen;
 
 // sample fn determines the wave table to use
@@ -90,6 +108,9 @@ Ugen ugen_init_tri(FTYPE freq, FTYPE sample_rate);
 Ugen ugen_init_ease_in_circle(FTYPE freq, FTYPE sample_rate);
 Ugen ugen_init_ease_out_circle(FTYPE freq, FTYPE sample_rate);
 Ugen ugen_init_ramp_linear(FTYPE freq, FTYPE sample_rate);
+
+Ugen ugen_init_with_params(ugen_params *p);
+void ugen_set_params(Ugen ugen, ugen_params *p);
 
 void ugen_cleanup(Ugen ugen);
 

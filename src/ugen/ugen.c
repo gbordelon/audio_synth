@@ -109,6 +109,132 @@ ugen_init_ramp_linear(FTYPE freq, FTYPE sample_rate)
 }
 
 void
+ugen_set_params(Ugen ugen, ugen_params *p)
+{
+  switch (p->shape) {
+  case UGEN_OSC_IMP:
+    ugen->sample = ugen_sample_imp;
+    ugen_set_duty_cycle(ugen, p->duty_cycle);
+    break;
+  case UGEN_OSC_SAW:
+    ugen->sample = ugen_sample_saw;
+    break;
+  case UGEN_OSC_SIN:
+    ugen->sample = ugen_sample_sin;
+    break;
+  case UGEN_OSC_TRI:
+    ugen->sample = ugen_sample_tri;
+    break;
+  case UGEN_EASE_IN_CIRCLE:
+    ugen->sample = ugen_sample_ease_in_circle;
+    ugen->conv.cr = true;
+    break;
+  case UGEN_EASE_IN_CIRCLE_INV:
+    ugen->conv.cr = true;
+    break;
+  case UGEN_EASE_OUT_CIRCLE:
+    ugen->sample = ugen_sample_ease_out_circle;
+    ugen->conv.cr = true;
+    break;
+  case UGEN_EASE_OUT_CIRCLE_INV:
+    ugen->conv.cr = true;
+    break;
+  case UGEN_RAMP_LINEAR_DOWN:
+    ugen->conv.cr = true;
+    break;
+  case UGEN_RAMP_LINEAR_UP:
+    ugen->conv.cr = true;
+    ugen->sample = ugen_sample_ramp_linear;
+  default:
+    break;
+  }
+  ugen_set_freq(ugen, p->freq);
+  ugen_set_scale(ugen, p->scale_low, p->scale_high);
+}
+
+Ugen
+ugen_init_with_params(ugen_params *p)
+{
+  Ugen ugen = ugen_init(p->sample_rate);
+  ugen_set_params(ugen, p);
+
+  // create ugen menu
+  ugen->menu = cli_menu_init(CLI_MENU, "Ugen Menu", "Edit ugen parameters");
+  // attach a copy of params
+  ugen->tunables.p = *p;
+  // track tunables for freeing
+  ugen->tunables.ts = calloc(5, sizeof(Tunable));
+
+  tunable_arg args[2];
+  tunable_fn fn;
+  args[0].v = (void *)ugen;
+  args[1].v = (void *)&ugen->tunables.p;
+  fn.f2pp = ugen_set_params;
+
+  // create shape tunable
+  Tunable t = tunable_init(TUNABLE_INT32,
+      TUNABLE_RANGE_0_127,
+      &ugen->tunables.p.shape,
+      args,
+      ARITY_2_PP,
+      &fn,
+      "Ugen Shape [integer 0-10] impulse 1, saw 2, sin 3, tri 4"
+  );
+  ugen->tunables.ts[0] = t;
+  cli_menu_add_tunable(ugen->menu, t);
+
+  // create freq tunable
+  t = tunable_init(TUNABLE_DOUBLE,
+      TUNABLE_RANGE_0_24000,
+      &ugen->tunables.p.freq,
+      args,
+      ARITY_2_PP,
+      &fn,
+      "Ugen Frequency [0-24000]"
+  );
+  ugen->tunables.ts[1] = t;
+  cli_menu_add_tunable(ugen->menu, t);
+
+  // create duty_cycle tunable
+  t = tunable_init(TUNABLE_DOUBLE,
+      TUNABLE_RANGE_0_1,
+      &ugen->tunables.p.duty_cycle,
+      args,
+      ARITY_2_PP,
+      &fn,
+      "Ugen Duty Cycle [0-1]"
+  );
+  ugen->tunables.ts[2] = t;
+  cli_menu_add_tunable(ugen->menu, t);
+
+  // create scale low tunable
+  t = tunable_init(TUNABLE_DOUBLE,
+      TUNABLE_RANGE_NONE,
+      &ugen->tunables.p.scale_low,
+      args,
+      ARITY_2_PP,
+      &fn,
+      "Ugen Scale Low [-1 to 1]"
+  );
+  ugen->tunables.ts[3] = t;
+  cli_menu_add_tunable(ugen->menu, t);
+
+  // create scale high tunable
+  t = tunable_init(TUNABLE_DOUBLE,
+      TUNABLE_RANGE_NONE,
+      &ugen->tunables.p.scale_high,
+      args,
+      ARITY_2_PP,
+      &fn,
+      "Ugen Scale High [-1 to 1]"
+  );
+  ugen->tunables.ts[4] = t;
+  cli_menu_add_tunable(ugen->menu, t);
+
+  return ugen;
+}
+
+void
 ugen_free(Ugen ugen)
 {
   free(ugen);
@@ -118,6 +244,13 @@ void
 ugen_cleanup(Ugen ugen)
 {
   if (ugen) {
+    cli_menu_cleanup(ugen->menu);
+    int i;
+    for (i = 0; i < 5; i++) {
+      tunable_cleanup(ugen->tunables.ts[i]);
+    }
+    free(ugen->tunables.ts);
+
     ugen_cleanup(ugen->gain);
     ugen_free(ugen);
   }

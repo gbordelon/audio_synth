@@ -204,12 +204,16 @@ midi_listener_init()
 
   Pm_Initialize();
 
-  // assume my privia keyboard is input 0
-  PmError err = Pm_OpenInput(&midi_in, 0, NULL, 512, NULL, NULL);
+  // assume my privia keyboard is input 1
+  PmError err = Pm_OpenInput(&midi_in, 1, NULL, 512, NULL, NULL);
   if (err) {
-    printf(Pm_GetErrorText(err));
-    Pt_Stop();
-    return NULL;
+    printf("%s\n", Pm_GetErrorText(err));
+    err = Pm_OpenInput(&midi_in, 0, NULL, 512, NULL, NULL);
+    if (err) {
+      printf("%s\n", Pm_GetErrorText(err));
+      Pt_Stop();
+      return NULL;
+    }
   }
 
   midi_to_main = Pm_QueueCreate(64, sizeof(struct my_midi_st));

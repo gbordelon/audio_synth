@@ -13,12 +13,27 @@
 #include "dx7.h"
 #include "simple_synth.h"
 
-#define NUM_VOICES 64
+#include "../cli/cli.h"
+#include "../tunable/tunable.h"
+
+#define NUM_VOICES 32
+
+typedef enum {
+  VOICE_NONE,
+  VOICE_SIMPLE_SYNTH,
+  VOICE_DX7,
+  VOICE_MIC_IN
+} instrument_e;
 
 typedef union mono_voice_params_u {
   dx7_params dx7;
   simple_synth_params ss;
 } mono_voice_params;
+
+typedef struct voice_params_t {
+  instrument_e instrument;
+  mono_voice_params mvp;
+} voice_params;
 
 typedef struct mono_voice_t {
   Operator *ops;
@@ -41,16 +56,18 @@ typedef struct voice_t {
   size_t voice_num;
   mv_fns fns;
   fx_unit_idx buffer;
-} *Voice;
 
-typedef enum {
-  VOICE_SIMPLE_SYNTH,
-  VOICE_DX7,
-  VOICE_MIC_IN
-} instrument_e;
+  Cli_menu menu;
+  struct {
+    voice_params p;
+    Tunable *ts;
+  } tunables;
+} *Voice;
 
 Voice voice_init(fx_unit_idx output, instrument_e instrument, mono_voice_params params);
 Voice voice_init_default(fx_unit_idx output);
+
+void voice_set_params(Voice voice, voice_params *p);
 
 void voice_cleanup();
 void voice_play_chunk(Voice voice);

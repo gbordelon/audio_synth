@@ -27,9 +27,21 @@ cli_menu_free(Cli_menu menu)
 }
 
 void
+cli_menu_add_tunable(Cli_menu menu, Tunable t)
+{
+  Cli_entry entry = calloc(1, sizeof(cli_entry));
+  entry->type = CLI_ENTRY;
+  entry->u.entry = t;
+
+  menu->num_entries++;
+  menu->entries = realloc(menu->entries, menu->num_entries * sizeof(Cli_entry));
+  menu->entries[menu->num_entries - 1] = entry;
+}
+
+void
 cli_menu_add_menu(Cli_menu head, Cli_menu menu)
 {
-  Cli_entry entry = calloc(1, sizeof(cli_menu));
+  Cli_entry entry = calloc(1, sizeof(cli_entry));
   entry->type = CLI_MENU;
   entry->u.menu = menu;
 
@@ -46,40 +58,42 @@ cli_menu_cleanup(Cli_menu entry)
   Cli_menu tmp_menu;
   Cli_entry tmp_entry;
 
-  // hang child menus off of parent
-  for (i = 0; i < entry->num_entries; i++) {
-    tmp_entry = entry->entries[i];
-    if (tmp_entry != NULL && tmp_entry->type == CLI_MENU) {
-      tmp_menu = tmp_entry->u.menu;
-      cli_menu_add_menu(entry->previous, tmp_menu);
-    }
-  }
-
-  // eliminate parent's references to this menu
-  tmp_menu = entry->previous;
-  if (tmp_menu != NULL) {
-    for (i = 0; i < tmp_menu->num_entries; i++) {
-      tmp_entry = tmp_menu->entries[i];
-      if (tmp_entry->type == CLI_MENU && tmp_entry->u.menu == entry) {
-        tmp_entry->u.menu = NULL;
-        tmp_entry->type = CLI_NONE;
+  if (entry != NULL) {
+    // hang child menus off of parent
+    for (i = 0; i < entry->num_entries; i++) {
+      tmp_entry = entry->entries[i];
+      if (tmp_entry != NULL && tmp_entry->type == CLI_MENU) {
+        tmp_menu = tmp_entry->u.menu;
+        cli_menu_add_menu(entry->previous, tmp_menu);
       }
     }
-  }
 
-  // free this menu's resources
-  for (i = 0; i < entry->num_entries; i++) {
-    tmp_entry = entry->entries[i];
-    if (tmp_entry != NULL) {
-      free(tmp_entry);
+    // eliminate parent's references to this menu
+    tmp_menu = entry->previous;
+    if (tmp_menu != NULL) {
+      for (i = 0; i < tmp_menu->num_entries; i++) {
+        tmp_entry = tmp_menu->entries[i];
+        if (tmp_entry->type == CLI_MENU && tmp_entry->u.menu == entry) {
+          tmp_entry->u.menu = NULL;
+          tmp_entry->type = CLI_NONE;
+        }
+      }
     }
+
+    // free this menu's resources
+    for (i = 0; i < entry->num_entries; i++) {
+      tmp_entry = entry->entries[i];
+      if (tmp_entry != NULL) {
+        free(tmp_entry);
+      }
+    }
+
+    free(entry->name);
+    free(entry->prompt_header);
+    free(entry->entries);
+
+    cli_menu_free(entry);
   }
-
-  free(entry->name);
-  free(entry->prompt_header);
-  free(entry->entries);
-
-  cli_menu_free(entry);
 }
 
 Cli_menu
@@ -96,20 +110,21 @@ cli_menu_init(cli_menu_type type, const char *name, const char *prompt)
 }
 
 Cli_menu
-cli_menu_init_menu_system()
+cli_menu_init_menu_system(bool instruments, bool fx, Cli_menu inst1, Cli_menu inst2, Cli_menu fxm)
 {
   Cli_menu rv, tmp1, tmp2;
   rv = cli_menu_init(CLI_MENU, "Main Menu", "Edit synthesizer or FX");
   tmp1 = cli_menu_init(CLI_MENU, "Synth Menu", "Edit instruments");
   cli_menu_add_menu(rv, tmp1);
 
-  tmp2 = cli_menu_init(CLI_MENU, "Instrument 0 Menu", "Enable/Disable or configure");
-  cli_menu_add_menu(tmp1, tmp2);
-  tmp2 = cli_menu_init(CLI_MENU, "Instrument 1 Menu", "Enable/Disable or configure");
-  cli_menu_add_menu(tmp1, tmp2);
+  if (instruments) {
+    cli_menu_add_menu(tmp1, inst1);
+    cli_menu_add_menu(tmp1, inst2);
+  }
 
-  tmp1 = cli_menu_init(CLI_MENU, "FX Menu", "Choose an effect to configure");
-  cli_menu_add_menu(rv, tmp1);
+  if (fx) {
+    cli_menu_add_menu(rv, fxm);
+  }
 
   current_menu = rv;
   return rv;
@@ -126,13 +141,15 @@ cli_input_poll(char *input_buf, size_t buf_len)
   static fd_set readfds;
 
   tv.tv_sec = 0;
-  tv.tv_usec = 0;
+  tv.tv_usec = 1;
 
   FD_ZERO(&readfds);
   FD_SET(STDIN_FILENO, &readfds);
 
   // don't care about writefds and exceptfds:
   select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv);
+
+  input_buf[0] = '\0';
 
   if (FD_ISSET(STDIN_FILENO, &readfds)) {
     fgets(input_buf, buf_len, stdin);
@@ -156,7 +173,7 @@ cli_print_entry(Tunable entry)
   if (!printed_entry_prompt) {
     printed_entry_prompt = true;
     // print prompt
-    len = snprintf(output_buf, strlen(entry->name) + 9, "Adjust %s:\n", entry->name);
+    len = snprintf(output_buf, strlen(entry->name) + 9, "Adjust %s:\n", entry->name) - 1;
 
     // entry's current value
     switch (entry->param_type) {
@@ -173,12 +190,15 @@ cli_print_entry(Tunable entry)
       len += snprintf(output_buf + len, 3 + DBL_MANT_DIG - DBL_MIN_EXP + 12, "  current: %f\n", *(double *)(entry->param));
       break;
     default:
+      len += 1;
       break;
     }
+    len -= 1;
 
     // entry's expected input range
     switch (entry->range_type) {
     case TUNABLE_RANGE_NONE:
+      len += snprintf(output_buf + len, 9, "  float: ");
       break;
     case TUNABLE_RANGE_0_127:
       len += snprintf(output_buf + len, 19, "  integer [0-127]: ");
@@ -187,13 +207,16 @@ cli_print_entry(Tunable entry)
       len += snprintf(output_buf + len, 15, "  float [0-1]: ");
       break;
     case TUNABLE_RANGE_0_24000:
-      len += snprintf(output_buf + len, 17, "  float [0-24000]: ");
+      len += snprintf(output_buf + len, 19, "  float [0-24000]: ");
       break;
     default:
+      len += 1;
       break;
     }
+    len -= 1;
 
     printf("%s", output_buf);
+    fflush(stdout);
   }
 }
 
@@ -202,17 +225,19 @@ cli_entry_prompt_and_response(Tunable entry)
 {
   cli_print_entry(entry);
 
-  return cli_input_poll(input_buf_s, sizeof(INPUT_BUF_LEN));
+  return cli_input_poll(input_buf_s, INPUT_BUF_LEN);
 }
 
 void
 cli_entry_entry_point()
 {
-  char *str_end;
+  char str_end[1];
   int32_t i_val = 0;
   uint32_t u_val = 0;
   float f_val = 0;
   double d_val = 0;
+
+  int i;
   if (cli_entry_prompt_and_response(current_entry) > 0) {
     printed_entry_prompt = false;
     errno = 0;
@@ -233,7 +258,7 @@ cli_entry_entry_point()
       break;
     }
     if (errno == EINVAL || errno == ERANGE) {
-
+      printf("  DEBUG  ");
     }
 
     tunable_arg arg;
@@ -258,9 +283,12 @@ cli_entry_entry_point()
 
     current_entry = NULL;
     menu_or_entry = true;
+    input_buf_s[0] = '\0';
   }
 }
 
+// TODO consolidate all printf calls
+// TODO only run cli code once or twice per second.
 void
 cli_print_menu(Cli_menu menu)
 {
@@ -268,36 +296,41 @@ cli_print_menu(Cli_menu menu)
   Cli_entry entry;
   if (!menu->printed_prompt) {
     menu->printed_prompt = true;
-    printf("%s\n%s\n%s", menu->name, menu->prompt_header, menu->previous == NULL ? "" : "  -1: previous menu\n");
+    printf("--%s--\n%s\n%s", menu->name, menu->prompt_header, menu->previous == NULL ? "" : "  -1: previous menu\n");
     for (i = 0; i < menu->num_entries; i++) {
       printf("  %d: ", i); 
       entry = menu->entries[i];
       if (entry->type == CLI_MENU) {
-        printf("menu %s\n", entry->u.menu->name);
+        printf("%s\n", entry->u.menu->name);
       } else if (entry->type == CLI_ENTRY) {
-        printf("adjust %s\n", entry->u.entry->name);
+        printf("%s\n", entry->u.entry->name);
       }
     }
     fflush(stdout);
   }
 }
 
-void
+size_t
 cli_menu_prompt_and_response(Cli_menu menu)
 {
   cli_print_menu(menu);
 
-  if (cli_input_poll(input_buf_s, sizeof(INPUT_BUF_LEN)) > 0) {
+  size_t n = cli_input_poll(input_buf_s, INPUT_BUF_LEN);
+  if (n > 0) {
     menu->printed_prompt = false;
   }
+  return n;
 }
 
 int32_t
 cli_menu_prompt_and_response_int(Cli_menu menu)
 {
-  cli_menu_prompt_and_response(menu);
-  char *str_end;
-  return strtol(input_buf_s, &str_end, 10);
+  char str_end[1];
+  if (cli_menu_prompt_and_response(menu) > 0) {
+    return strtol(input_buf_s, &str_end, 10);
+  }
+  errno = EINVAL;
+  return 0;
 }
 
 void

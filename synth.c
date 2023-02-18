@@ -58,9 +58,6 @@ main(int argc, char * argv[])
   icky_global_program_name = argv[0];
 //  set_signal_handler();
 
-  cli_menu_init_menu_system();
-  printf("menus initialized\n");
-
   ugen_generate_tables();
   printf("wavetables generated\n");
 
@@ -83,6 +80,9 @@ main(int argc, char * argv[])
   gsynth[1] = voice_init(0, VOICE_SIMPLE_SYNTH, params_mv);
 
   printf("instrument initialized.\n");
+
+  cli_menu_init_menu_system(true, false, gsynth[0]->menu, gsynth[1]->menu, NULL);
+  printf("menus initialized\n");
 
   AudioComponentInstance audio_unit_io = audio_unit_io_init();
   printf("AudioUnit io initialized.\n");

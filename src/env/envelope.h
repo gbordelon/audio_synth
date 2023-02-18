@@ -6,6 +6,9 @@
 
 #include "../lib/macros.h"
 
+#include "../cli/cli.h"
+#include "../tunable/tunable.h"
+
 #define env_spent(env) ((env)->p_ind >= \
 ((env)->max_samples[ENV_ATTACK] + \
  (env)->max_samples[ENV_DECAY] + \
@@ -47,6 +50,12 @@ typedef struct envelope_t {
   FTYPE decay_rate; // 0 means infinite sustain while mv->sustain is true
 
   env_state state;
+
+  Cli_menu menu;
+  struct {
+    envelope_params p;
+    Tunable *ts;
+  } tunables;
 } *Envelope;
 
 Envelope env_init(envelope_params params);
@@ -56,10 +65,15 @@ void env_cleanup(Envelope env);
 void env_reset(Envelope env);
 void env_set_release(Envelope env);
 
+void env_set_amplitude(Envelope env, FTYPE amp, env_state stage);
 void env_set_amplitudes(Envelope env, FTYPE amps[ENV_NUM_STAGES]);
-void env_set_rate(Envelope env, FTYPE rate/*in 1.0 / seconds*/, env_state stage);
+void env_set_decay_rate(Envelope env, FTYPE decay_rate/* [0,1] */);
 void env_set_duration(Envelope env, FTYPE duration/*in seconds*/, env_state stage);
+void env_set_rate(Envelope env, FTYPE rate/*in 1.0 / seconds*/, env_state stage);
 void env_set_sample_rate(Envelope env, FTYPE sample_rate);
+
+void env_set_params(Envelope env, envelope_params *p);
+
 FTYPE env_sample(Envelope env, bool sustain); // sampling an envelope after it expires should return 0.
 void env_sample_chunk(Envelope env, bool sustain, FTYPE *buf);
 

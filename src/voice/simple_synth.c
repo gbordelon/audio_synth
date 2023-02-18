@@ -18,15 +18,27 @@ simple_synth_init(MonoVoice mv, mono_voice_params params)
 {
   mv->op_num = 4;
   mv->ops = calloc(4, sizeof(struct operator_t *));
-  mv->ops[0] = operator_init(UGEN_OSC_SIN, OPERATOR_ENV, 0.7, DEFAULT_SAMPLE_RATE); //carrier
-  mv->ops[1] = operator_init(UGEN_OSC_IMP, OPERATOR_ENV, 0.25, DEFAULT_SAMPLE_RATE); //modulator
-  operator_set_mult(mv->ops[1], 5.0);
-  mv->ops[2] = operator_init(UGEN_OSC_SIN, OPERATOR_NONE, 1.0, DEFAULT_SAMPLE_RATE); // duty cycle for modulator
-  mv->ops[3] = operator_init(UGEN_OSC_SIN, OPERATOR_NONE, 1.0, DEFAULT_SAMPLE_RATE); // gain for modulator
+  operator_params p = {
+    .sample_rate = DEFAULT_SAMPLE_RATE,
+    .u_type = UGEN_OSC_SIN,
+    .e_type = OPERATOR_ENV,
+    .gain_c = 0.7,
+    .mult = 1.0,
+    .pan = 0.5,
+    .vel_s = 1.0
+  };
+  mv->ops[0] = operator_init(&p); //carrier
 
-  operator_set_vel_s(mv->ops[1], 0.0);
-  operator_set_vel_s(mv->ops[2], 0.0);
-  operator_set_vel_s(mv->ops[3], 0.0);
+  p.u_type = UGEN_OSC_IMP;
+  p.gain_c = 0.25;
+  p.mult = 5.0;
+  p.vel_s = 0.0;
+  mv->ops[1] = operator_init(&p); //modulator
+
+  p.u_type = UGEN_OSC_SIN;
+  p.gain_c = 1.0;
+  mv->ops[2] = operator_init(&p); // duty cycle for modulator
+  mv->ops[3] = operator_init(&p); // gain for modulator
 
   // variable duty cycle for modulator
   // output of op3 should be control rate between 0 and 0.1 instead of AR [-1, 1]

@@ -37,49 +37,205 @@ operator_cleanup(Operator op)
   default:
     break;
   }
+
+  cli_menu_cleanup(op->menu);
+  int i;
+  for (i = 0; i < 5; i++) {
+    tunable_cleanup(op->tunables.ts[i]);
+  }
+  free(op->tunables.ts);
+
   operator_free(op);
 }
 
-Operator
-operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain, FTYPE sample_rate)
+void
+operator_set_params(Operator op, operator_params *p)
 {
-  Operator op = operator_alloc();
-  op->e_type = e_type;
-  op->detune = 0.0;
-  op->fc = 0.0;
-  op->mod = 0.0;
-  op->gain_c = gain;
-  op->pan = 0.5;
-  op->mult = 1.0;
-  op->vel_s = 1.0;
+  bool detune = op->detune != p->detune;
 
-  switch (u_type) {
-  case UGEN_OSC_IMP:
-    op->ugen = ugen_init_imp(0.0, 0.5, sample_rate);
-    break;
-  case UGEN_OSC_SAW:
-    op->ugen = ugen_init_saw(0.0, sample_rate);
-    break;
-  case UGEN_OSC_TRI:
-    op->ugen = ugen_init_tri(0.0, sample_rate);
-    break;
-  default:
-  // fall through
-  case UGEN_OSC_SIN:
-    op->ugen = ugen_init_sin(0.0, sample_rate);
-    op->dfo = dfo_init(sample_rate);
-    break;
+  op->gain_c = p->gain_c;
+  op->pan = p->pan;
+  op->mult = p->mult;
+  op->vel_s = p->vel_s;
+
+  if (detune) {
+    operator_set_detune(op, p->detune);
   }
 
+  if (op->u_type != p->u_type) {
+    ugen_cleanup(op->ugen);
+    op->ugen = NULL;
+    if (op->dfo != NULL) {
+      dfo_cleanup(op->dfo);
+      op->dfo = NULL;
+    }
+    switch (p->u_type) {
+    case UGEN_OSC_IMP:
+      op->ugen = ugen_init_imp(0.0, 0.5, p->sample_rate);
+      break;
+    case UGEN_OSC_SAW:
+      op->ugen = ugen_init_saw(0.0, p->sample_rate);
+      break;
+    case UGEN_OSC_TRI:
+      op->ugen = ugen_init_tri(0.0, p->sample_rate);
+      break;
+    default:
+    // fall through
+    case UGEN_OSC_SIN:
+      op->ugen = ugen_init_sin(0.0, p->sample_rate);
+      op->dfo = dfo_init(p->sample_rate);
+      break;
+    }
+    op->u_type = p->u_type;
+  }
+
+  if (op->e_type != p->e_type) {
+    switch (op->e_type) {
+    case OPERATOR_ENV:
+      env_cleanup(op->env_u.env);
+      break;
+    case OPERATOR_UGEN:
+      ugen_cleanup(op->env_u.lfo);
+      break;
+    default:
+      break;
+    }
+    switch (p->e_type) {
+    case OPERATOR_UGEN:
+      op->env_u.lfo = ugen_init_sin(1.0, p->sample_rate);
+      ugen_set_scale(op->env_u.lfo, 0.0, 1.0);
+    // TODO attach menu item for ugen
+  //    cli_menu_add_menu(op->menu, op->env_u.lfo->menu);
+      break;
+    case OPERATOR_ENV:
+      op->env_u.env = env_init_default();
+      env_set_sample_rate(op->env_u.env, p->sample_rate);
+      cli_menu_add_menu(op->menu, op->env_u.env->menu);
+      break;
+    default:
+      // none
+      break;
+    }
+    op->e_type = p->e_type;
+  }
+}
+
+Operator
+operator_init(operator_params *p)
+{
+  Operator op = operator_alloc();
+  op->fc = 0.0;
+  op->mod = 0.0;
+  op->u_type = p->u_type;
+  op->e_type = p->e_type;
+
+  operator_set_params(op, p);
+
+  // create operator menu
+  op->menu = cli_menu_init(CLI_MENU, "Operator Menu", "Edit operator parameters");
+  // attach a copy of params
+  op->tunables.p = *p;
+  // track tunables for freeing
+  op->tunables.ts = calloc(5, sizeof(Tunable));
+
+  tunable_arg args[2];
+  tunable_fn fn;
+  args[0].v = (void *)op;
+  args[1].v = (void *)&op->tunables.p;
+  fn.f2pp = operator_set_params;
+
+  // create detune tunable
+  Tunable t = tunable_init(
+    TUNABLE_DOUBLE,
+    TUNABLE_RANGE_NONE,
+    &op->tunables.p.detune,
+    args,
+    ARITY_2_PP,
+    &fn,
+    "Operator Carrier Frequency Detune [cents, 1200 per octave]"
+  );
+  op->tunables.ts[0] = t;
+  cli_menu_add_tunable(op->menu, t);
+
+  // create gain tunable
+  t = tunable_init(
+    TUNABLE_DOUBLE,
+    TUNABLE_RANGE_0_1,
+    &op->tunables.p.gain_c,
+    args,
+    ARITY_2_PP,
+    &fn,
+    "Operator Gain [0-1]"
+  );
+  op->tunables.ts[1] = t;
+  cli_menu_add_tunable(op->menu, t);
+
+  // create pan tunable
+  t = tunable_init(
+    TUNABLE_DOUBLE,
+    TUNABLE_RANGE_0_1,
+    &op->tunables.p.pan,
+    args,
+    ARITY_2_PP,
+    &fn,
+    "Operator Pan [0-1]"
+  );
+  op->tunables.ts[2] = t;
+  cli_menu_add_tunable(op->menu, t);
+
+  // create mult tunable
+  t = tunable_init(
+    TUNABLE_DOUBLE,
+    TUNABLE_RANGE_NONE,
+    &op->tunables.p.mult,
+    args,
+    ARITY_2_PP,
+    &fn,
+    "Operator Carrier Frequency Multiplier [>0]"
+  );
+  op->tunables.ts[3] = t;
+  cli_menu_add_tunable(op->menu, t);
+
+  // create velocity sensitivity tunable
+  t = tunable_init(
+    TUNABLE_DOUBLE,
+    TUNABLE_RANGE_0_1,
+    &op->tunables.p.vel_s,
+    args,
+    ARITY_2_PP,
+    &fn,
+    "Operator Velocity Sensitivity [0-1]"
+  );
+  op->tunables.ts[4] = t;
+  cli_menu_add_tunable(op->menu, t);
+
+  ugen_params up = {
+    .shape = p->u_type,
+    .duty_cycle = 0.5,
+    .freq = 0.0,
+    .scale_low = -1.0,
+    .scale_high = 1.0,
+    .sample_rate = p->sample_rate,
+  };
+  op->ugen = ugen_init_with_params(&up);
+  if (p->u_type == UGEN_OSC_SIN) {
+    op->dfo = dfo_init(p->sample_rate);
+  }
+  cli_menu_add_menu(op->menu, op->ugen->menu);
+
   // TODO support configuration of EG at init time
-  switch (e_type) {
+  switch (p->e_type) {
   case OPERATOR_UGEN:
-    op->env_u.lfo = ugen_init_sin(1.0, sample_rate);
-    ugen_set_scale(op->env_u.lfo, 0.0, 1.0);
+    up.shape = UGEN_OSC_SIN;
+    up.freq = 1.0;
+    up.scale_low = 0.0;
+    op->env_u.lfo = ugen_init_with_params(&up);
+    cli_menu_add_menu(op->menu, op->env_u.lfo->menu);
     break;
   case OPERATOR_ENV:
     op->env_u.env = env_init_default();
-    env_set_sample_rate(op->env_u.env, sample_rate);
+    env_set_sample_rate(op->env_u.env, p->sample_rate);
+    cli_menu_add_menu(op->menu, op->env_u.env->menu);
     break;
   default:
     // none
@@ -92,7 +248,17 @@ operator_init(ugen_type_e u_type, operator_env_e e_type, FTYPE gain, FTYPE sampl
 Operator
 operator_init_default()
 {
-  return operator_init(UGEN_OSC_SIN, OPERATOR_ENV, 1.0, DEFAULT_SAMPLE_RATE);
+  operator_params p = {
+    .sample_rate = DEFAULT_SAMPLE_RATE,
+    .u_type = UGEN_OSC_SIN,
+    .e_type = OPERATOR_ENV,
+    .mult = 1.0,
+    .detune = 0.0,
+    .vel_s = 1.0,
+    .gain_c = 1.0,
+    .pan = 0.5
+  };
+  return operator_init(&p);
 }
 
 void
@@ -125,9 +291,16 @@ operator_set_fc(Operator op, FTYPE fc)
 {
   op->fc = pow(2.0, op->detune / 1200.0 + log2(fc));
   ugen_set_freq(op->ugen, op->mult * op->fc);
-  if (op->dfo) {
+  if (op->dfo != NULL) {
     dfo_set_freq(op->dfo, op->mult * op->fc);
   }
+}
+
+void
+operator_set_detune(Operator op, FTYPE detune)
+{
+  op->detune = detune;
+  operator_set_fc(op, op->fc);
 }
 
 // convert from radians to wave table phase units inside the ugen sample function
